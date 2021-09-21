@@ -11,6 +11,7 @@ use App\Models\Distribuidor;
 use App\Models\Mediciones;
 use App\Models\PagosDistribuidor;
 use App\Models\AnticipoNoPago;
+use App\Models\AnticipoExtraordinario;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -240,10 +241,33 @@ class CalculoComisiones extends Controller
                                 ->first();
 
             $anticipo_no_pago=is_null($anticipo->anticipo)?0:$anticipo->anticipo;
-            $residual=0;
-            $charge_back=0;
+
+            $residual=0; //PENDIENTE DE CALCULO
+            $charge_back=0; //PENDIENTE DE CALCULO
+            $retroactivos_reproceso=0; //PENDIENTE DE CALCULO
+
             $anticipos_extraordinarios=0;
-            $retroactivos_reproceso=0;
+
+            //RESETEA LOS ANTICIPOS
+            AnticipoExtraordinario::where('aplicado_calculo_id',$calculo->id)
+                                        ->where('user_id',$pago->user_id)
+                                        ->update([
+                                                    'aplicado'=>false,
+                                                    'aplicado_calculo_id'=>0,
+                                        ]);
+            //OBTIENE ANTICIPOS RESETEADOS y DE PERIODOS PREVIOS 
+            $anticipos=AnticipoExtraordinario::where('fecha_relacionada','<=',$calculo->fecha_fin)
+                                        ->where('user_id',$pago->user_id)
+                                        ->where('aplicado',false)
+                                        ->get();
+                                        
+            foreach($anticipos as $por_aplicar)
+            {
+                $anticipos_extraordinarios=$anticipos_extraordinarios+$por_aplicar->anticipo;
+                $por_aplicar->aplicado_calculo_id=$calculo->id;
+                $por_aplicar->aplicado=true;
+                $por_aplicar->save();
+            }
 
             $registro->anticipo_no_pago=$anticipo_no_pago;
             $registro->residual=$residual;

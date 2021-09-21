@@ -4,7 +4,7 @@
             {{ __('Estado de cuenta') }}
         </h2>
     </x-slot>
-    <div class="w-full flex flex-col space-y-6">  
+    <div class="w-full flex flex-col space-y-6 pb-10">  
         <div class="w-full flex flex-col md:flex-row md:space-x-10 space-y-3 md:space-y-0">
             <div class="w-full md:w-5/12 p-3 flex flex-col">
                 <div class="font-semibold text-2xl text-gray-700">{{$user->name}}</div>
@@ -167,6 +167,11 @@
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones,0)}}</center></td>
                     </tr>
                     <tr class="border-l border-r border-gray-300">
+                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"></td>
+                        <td class="border-b border-gray-500 px-3">Bonos</td>
+                        <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->bono_nuevas+$pago->bono_adiciones+$pago->bono_renovaciones,0)}}</center></td>
+                    </tr>
+                    <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center><i class="fas fa-file-excel"></i></td>
                         <td class="border-b border-gray-500 px-3">Residual</td>
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->residual,0)}}</center></td>
@@ -189,11 +194,31 @@
                     
                 </table>
             </div>
-        </div>    
+        </div>  
+        <div class="w-full flex flex-col">
+            <div class="w-full p-3 text-lg text-ttds bg-gray-200 rounded-t-lg font-semibold">Anticipos aplicados</div>
+            <div class="w-full p-3 text-base bg-white rounded-b-lg shaddow-xl">
+                <table>
+                    <tr>
+                        <td class="p-3 text-ttds">Fecha referencia</td>
+                        <td class="p-3 text-ttds">Anticipo</td>
+                        <td class="p-3 text-ttds">Descripcion</td>
+                    </tr>
+                    @foreach($anticipos_aplicados as $anticipo)
+                    <tr>
+                        <td class="px-3 text-gray-600">{{$anticipo->fecha_relacionada}}</td>
+                        <td class="px-3 text-gray-600">${{number_format($anticipo->anticipo,0)}}</td>
+                        <td class="px-3 text-gray-600">{{$anticipo->descripcion}}</td>
+                    </tr>
+                    @endforeach
+                </table>
+            </div>
+
+        </div>
                 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.js"></script>
         
 <script>
 var ctx = document.getElementById('myChart').getContext('2d');
@@ -234,7 +259,7 @@ var myChart = new Chart(ctx, {
             },
             
             {
-                label: 'Objetivo Diario',
+                label: 'Umbral para obtener bono',
                 data: [
                     {{($pago->renovaciones+$pago->renovaciones_no_pago)*0.3}}, {{($pago->renovaciones+$pago->renovaciones_no_pago)*0.3}}              
                     ],

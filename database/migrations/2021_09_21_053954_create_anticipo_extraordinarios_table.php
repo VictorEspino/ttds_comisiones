@@ -20,6 +20,7 @@ class CreateAnticipoExtraordinariosTable extends Migration
             $table->float('anticipo');
             $table->string('descripcion');
             $table->boolean('aplicado');
+            $table->foreignId('aplicado_calculo_id')->default('0');
             $table->timestamps();
         });
     }

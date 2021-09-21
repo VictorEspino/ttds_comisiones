@@ -230,21 +230,27 @@ class ProcessViewController extends Controller
         $calculo=Calculo::find($id_calculo);
         $user=User::find($id_user);
         $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->get()->first();
-        
+        $anticipos_aplicados=AnticipoExtraordinario::where('aplicado_calculo_id',$id_calculo)->where('user_id',$id_user)->get();
         return(view('estado_cuenta_distribuidor',[  'calculo'=>$calculo,
                                                     'user'=>$user,
                                                     'pago'=>$pago,
+                                                    'anticipos_aplicados'=>$anticipos_aplicados,
                                                 ]));
     }
     public function transacciones_pago_distribuidor(Request $request)
     {
     
     $sql_consulta="SELECT a.upfront,a.bono,a.tipo as c_tipo,a.renta as c_renta,a.plazo as c_plazo,a.descuento_multirenta as c_descuento_multirenta,a.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b WHERE a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.venta_id=b.id and a.estatus='PAGO'";
-    //return($sql_consulta);
     $query=DB::select(DB::raw(
         $sql_consulta
        ));
-    return(view('transacciones_pago_distribuidor',['query'=>$query]));
+
+    $sql_consulta_no_pago="SELECT a.upfront,a.bono,a.tipo as c_tipo,a.renta as c_renta,a.plazo as c_plazo,a.descuento_multirenta as c_descuento_multirenta,a.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b WHERE a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.venta_id=b.id and a.estatus='NO PAGO'";
+
+    $query_no_pago=DB::select(DB::raw(
+        $sql_consulta_no_pago
+       ));
+    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago]));
     }
 
     public function distribuidores_consulta_pago(Request $request)
