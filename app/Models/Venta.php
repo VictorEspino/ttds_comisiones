@@ -25,7 +25,8 @@ class Venta extends Model
                             'contrato',
                             'validado',
                             'user_id_carga',
-                            'user_id_validacion'
+                            'user_id_validacion',
+                            'carga_id'
                     ];
     use HasFactory;
 }

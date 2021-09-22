@@ -1,18 +1,18 @@
 <x-app-layout>
     <x-slot name="header">
-            {{ __('Validacion de Ventas') }}
+            {{ __('Consolidado de Ventas') }}
     </x-slot>
 
     <div class="flex flex-col w-full bg-white text-gray-700 shadow-lg rounded-lg">
         <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-col border-b border-gray-800"> <!--ENCABEZADO-->
-            <div class="w-full text-lg font-semibold text-gray-100">Ventas pendientes de validacion</div>            
+            <div class="w-full text-lg font-semibold text-gray-100">Consolidado de Ventas</div>            
             <div class="w-full text-sm font-semibold text-gray-100">{{Auth::user()->name}}</div>            
         </div> <!--FIN ENCABEZADO-->
         
         <div class="w-full rounded-b-lg bg-ttds-secundario p-3 pb-7 flex flex-col"> <!--CONTENIDO-->
             <div class="w-full flex flex-col lg:flex-row justify-between space-y-3 lg:space-y-0">
                 <div class="w-full lg:w-1/2">
-                    <form action="{{route('ventas_admin')}}" class="">
+                    <form action="{{route('ventas_review')}}" class="">
                         <input class="w-2/3 lg:w-1/2 rounded p-1 border border-gray-300" type="text" name="query" value="{{$query}}" placeholder="Buscar Cliente/DN/Cuenta"> 
                         <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Buscar</button>
                     </form>
@@ -91,7 +91,7 @@
                         <form action="{{route('guarda_cambios_venta')}}" method="POST" id="forma_datos">
                             @csrf
                             <input class="hidden" type="text" name="id_venta" id="id_venta" value="{{old('id_venta')}}">
-                            <input class="hidden" type="text" name="validado" id="validado" value="0">
+                            <input class="hidden" type="text" name="validado" id="validado" value="1">
                             <div class="w-full px-2">
                                 <span class="text-xs text-ttds">Cliente</span><br>
                                 <input class="w-full rounded p-1 border border-gray-300" type="text" name="cliente" value="{{old('cliente')}}" id="cliente">
@@ -216,28 +216,14 @@
                             </div>
                             
                             <div class="w-full flex justify-center pt-6 pb-3 rounded-b">
-                                <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold" type="button" onClick="onlySave()">Guardar</button>
-                                <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold" type="button" onClick="saveAndValidate()">Guardar y Validar</button>
+                                <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold" type="button" onClick="Save()">Guardar</button>
                                 <button class="rounded p-1 border bg-red-500 hover:bg-red-700 text-gray-100 font-semibold" type="button" onClick="Cancel()">Cancelar</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="text-lg font-semibold py-5 px-5">Valida los registros restantes del distribuidor</div>
-            <div class="w-full flex flex-col px-5">
-                <div class="w-full">
-                    <form action="{{route('ventas_valida_distribuidor')}}" class="" method="POST">
-                        @csrf
-                        <select class="w-1/2 rounded p-1 border border-gray-300" name="id_distribuidor">
-                        @foreach($distribuidores as $distribuidor)
-                            <option value="{{$distribuidor->id}}">{{$distribuidor->name}}
-                        @endforeach
-                        </select>
-                        <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Valida Distribuidor</button>
-                    </form>
-                </div>
-            </div>   
+ 
         </div> <!-- FIN DEL CONTENIDO -->
         @if(session('status')!='')
             <div class="w-full flex justify-center p-3 bg-green-300 rounded-b-lg">
@@ -288,13 +274,8 @@
             xmlhttp.open("GET", "/ventas_consulta/" + id, true);
             xmlhttp.send();
         }
-        function onlySave()
+        function Save()
         {
-            document.getElementById('forma_datos').submit();
-        }
-        function saveAndValidate()
-        {
-            document.getElementById('validado').value=1;
             document.getElementById('forma_datos').submit();
         }
         function Cancel()

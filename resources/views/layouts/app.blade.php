@@ -127,6 +127,12 @@
                                     Carga Archivo
                                 </a>
                             </div>
+                            <div class="pl-5 pt-2">
+                                <a href="{{route('ventas_review')}}">
+                                    <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                    Base de ventas
+                                </a>
+                            </div>
                         </div>
                     </div>
                     <div class="px-3 pt-2 text-white flex flex-col">

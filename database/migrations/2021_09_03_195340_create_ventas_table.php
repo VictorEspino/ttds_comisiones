@@ -34,6 +34,7 @@ class CreateVentasTable extends Migration
             $table->boolean('validado');
             $table->foreignId('user_id_carga');
             $table->foreignId('user_id_validacion');
+            $table->string('carga_id',20);
             $table->timestamps();
         });
     }

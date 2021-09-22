@@ -51,13 +51,15 @@ class VentasImport implements ToModel,WithHeadingRow,WithValidation,WithBatchIns
     {
         $fecha=$row['fecha'];
         $fecha_db=\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($fecha);
+        $id_carga=session('id_carga');
+        
         return new Venta([
             'user_id'=> Auth::user()->id,
             'cuenta'=> trim($row['cuenta']),
             'cliente'=> $row['cliente'],
             'tipo'=> $row['tipo'],
             'fecha'=> $fecha_db,
-            //'propiedad'=> $row['propiedad'],
+            'propiedad'=> '-', //DEBE AGREGARSE AL LAYOUT
             'dn'=> trim($row['dn']),
             'plan'=> $row['plan'],
             'folio'=> trim($row['folio']),
@@ -67,21 +69,23 @@ class VentasImport implements ToModel,WithHeadingRow,WithValidation,WithBatchIns
             'equipo'=> $row['equipo'],
             'descuento_multirenta'=> $row['descuento_multirenta']*100,
             'afectacion_comision'=> $row['afectacion_comision']*100,
-            //'contrato'=> $row['contrato'],
+            'contrato'=> $row['folio'],
             'validado'=> 0,
             'user_id_carga'=> Auth::user()->id,
             'user_id_validacion'=> 0,
+            'carga_id'=>$id_carga,
 
         ]);
     }
     public function rules(): array
     {
         return [
-            '*.dn' => ['required','digits:10','unique:ventas,dn'],
+            '*.dn' => ['required','digits:10'],
             '*.cuenta' => ['required'],
             '*.cliente' => ['required','max:255'],
             '*.tipo' => ['required',Rule::in(['NUEVA','ADICION','RENOVACION'])],
             '*.fecha' => ['required'],
+            '*.folio'=>['required','numeric'],
             //'*.propiedad' => ['required',Rule::in(['NUEVO','PROPIO'])],
             '*.plan' => ['required'],
             '*.plazo' => ['required','numeric',Rule::in(['12','18','24'])],
@@ -89,11 +93,10 @@ class VentasImport implements ToModel,WithHeadingRow,WithValidation,WithBatchIns
             '*.equipo' => ['required'],
             '*.descuento_multirenta' => ['required','numeric'],
             '*.afectacion_comision' => ['required','numeric'],
-            //'*.contrato' => ['required'],
         ];
     }
     public function batchSize(): int
     {
-        return 1000;
+        return 50;
     }
 }

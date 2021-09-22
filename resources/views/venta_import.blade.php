@@ -74,5 +74,28 @@
             </table>
         </div>
         @endif
+        @if(session()->has('error_validacion'))
+        <div class="bg-red-200 p-4 flex justify-center font-bold">
+            El archivo no fue cargado!
+        </div>
+        <div class="bg-red-200 p-4 flex justify-center rounded-b-lg">
+            <table class="text-sm">
+                <tr>
+                    <td class="bg-red-700 text-gray-100 px-3">Row</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Columna</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Error</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Valor</td>
+                </tr>
+            @foreach(session()->get('error_validacion') as $error)
+                <tr>
+                    <td class="px-3"><center>{{$error["row"]}}</td>
+                    <td class="px-3"><center>{{$error["campo"]}}</td>
+                    <td class="px-3"><center>{{$error["mensaje"]}}</td>
+                    <td class="px-3"><center>{{$error["valor"]}}</td>
+                </tr>
+            @endforeach
+            </table>
+        </div>
+        @endif
     </div>
 </x-app-layout>

@@ -65,7 +65,7 @@ class ProcessViewController extends Controller
                                 ->join('users', 'users.id', '=', 'ventas.user_id')
                                 ->select('ventas.*','users.user','users.name')
                                 ->where(function($query){
-                                    $query->where('users.name','like','%'.$_GET["query"].'%')
+                                    $query->where('ventas.cliente','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.dn','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.cuenta','like','%'.$_GET["query"].'%');
                                         })
@@ -77,7 +77,7 @@ class ProcessViewController extends Controller
                                 ->join('users', 'users.id', '=', 'ventas.user_id')
                                 ->select(DB::raw('distinct users.id,users.name'))
                                 ->where(function($query){
-                                    $query->where('users.name','like','%'.$_GET["query"].'%')
+                                    $query->where('ventas.cliente','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.dn','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.cuenta','like','%'.$_GET["query"].'%');
                                         })
@@ -278,6 +278,36 @@ class ProcessViewController extends Controller
     public function anticipos_extraordinarios_consulta(Request $request)
     {
         return(AnticipoExtraordinario::where('user_id',$request->user_id)->where('aplicado',false)->get());
+    }
+    public function ventas_review(Request $request)
+    {
+        if(isset($_GET['query']))
+        {
+            $registros=DB::table('ventas')
+                                ->join('users', 'users.id', '=', 'ventas.user_id')
+                                ->select('ventas.*','users.user','users.name')
+                                ->where(function($query){
+                                    $query->where('ventas.cliente','like','%'.$_GET["query"].'%')
+                                          ->orWhere('ventas.dn','like','%'.$_GET["query"].'%')
+                                          ->orWhere('ventas.cuenta','like','%'.$_GET["query"].'%');
+                                        })
+                                ->where('ventas.validado',true)
+                                ->orderBy('ventas.cliente','asc')
+                                ->paginate(10);
+            $registros->appends($request->all());
+            return(view('ventas_review',['registros'=>$registros,'query'=>$_GET['query']]));
+        }
+        else
+        {
+            $registros=DB::table('ventas')
+                                ->join('users', 'users.id', '=', 'ventas.user_id')
+                                ->select('ventas.*','users.user','users.name')
+                                ->where('ventas.validado',true)
+                                ->orderBy('ventas.cliente','asc')
+                                ->paginate(10);
+            return(view('ventas_review',['registros'=>$registros,'query'=>'']));
+        }
+
     }
     
 }

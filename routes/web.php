@@ -63,6 +63,9 @@ Route::get('/ventas_consulta/{id}',[ProcessViewController::class,'ventas_consult
 Route::post('/ventas_actualiza',[ProcessFormsController::class,'ventas_actualiza'])->name('guarda_cambios_venta')->middleware('auth');
 Route::post('/ventas_valida_distribuidor',[ProcessFormsController::class,'ventas_valida_distribuidor'])->name('ventas_valida_distribuidor')->middleware('auth');
 
+Route::get('/ventas_review',[ProcessViewController::class,'ventas_review'])->name('ventas_review')->middleware('auth');
+
+
 //RUTAS DE ESTADO DE CUENTA
 
 Route::get('/estado_cuenta_distribuidor/{id}/{id_user}',[ProcessViewController::class,'estado_cuenta_distribuidor'])->middleware('auth');
