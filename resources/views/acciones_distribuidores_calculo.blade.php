@@ -1,19 +1,20 @@
 <x-app-layout>
     <x-slot name="header">
-            {{ __('Acciones Distribuidores') }}
+            {{ __('Resultados Calculo') }}
     </x-slot>
 
     <div class="flex flex-col w-full bg-white text-gray-700 shadow-lg rounded-lg">
         <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-col border-b border-gray-800"> <!--ENCABEZADO-->
-            <div class="w-full text-lg font-semibold text-gray-100">Distribuidores</div>            
-            <div class="w-full text-sm font-semibold text-gray-100">{{Auth::user()->name}}</div>            
+            <div class="w-full text-xl font-bold text-gray-100">Pagos</div>
+            <div class="w-full text-lg font-semibold text-gray-100">{{$calculo->descripcion}}</div>            
+            <div class="w-full text-xs font-semibold text-gray-100">De {{$calculo->fecha_inicio}} a {{$calculo->fecha_fin}}</div>            
         </div> <!--FIN ENCABEZADO-->
         
         <div class="w-full rounded-b-lg bg-ttds-secundario p-3 pb-7 flex flex-col"> <!--CONTENIDO-->
             <div class="w-full flex flex-col lg:flex-row justify-between space-y-3 lg:space-y-0">
                 <div class="w-full lg:w-1/2">
                     <?php
-                    $ruta=route('acciones_distribuidores_calculo',['id'=>$id]);
+                    $ruta=route('acciones_distribuidores_calculo',['id'=>$calculo->id]);
                     ?>
                     <form action="{{$ruta}}" class="">
                         <input class="w-2/3 lg:w-1/2 rounded p-1 border border-gray-300" type="text" name="query" value="{{$query}}" placeholder="Buscar distribuidor"> 
@@ -26,8 +27,8 @@
             </div>
             <div class="flex flex-col lg:flex-row lg:space-x-5 flex items-start justify-center pt-2">
                 <div id="tabla" class="w-full pt-5 flex flex-col"> <!--TABLA DE CONTENIDO-->
-                    <div class="w-full flex justify-center pb-3"><span class="font-semibold text-sm text-gray-700">Registros Distribuidores</span></div>
-                    <div class="w-full flex justify-center px-2 md:inline md:flex md:w-full md:justify-center">
+                    <div class="w-full flex justify-center pb-3"><span class="font-semibold text-sm text-gray-700">Pagos resultado</span></div>
+                    <div class="w-full flex justify-center px-2 hidden md:inline md:flex md:w-full md:justify-center">
                         <div class="table">
                             <div class="table-row-group flex">
                                 <div class="table-row rounded-tl-lg rounded-tr-lg">
@@ -36,7 +37,8 @@
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Estado de<br>Cuenta</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Pago</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipos<br>Previos</center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo<br>Ventas NO Pagadas</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br>Pendientes</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Anticipo<br>Comisiones Pendientes</center></div>
                                 </div>
                                 <?php $color=true; ?>
                                 @foreach($registros as $registro)
@@ -44,14 +46,15 @@
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->numero_distribuidor}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->nombre}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-ttds {{$color?'bg-gray-100':'bg-white'}}">
-                                        <center><a href="/estado_cuenta_distribuidor/{{$id}}/{{$registro->id}}"><i class="fas fa-balance-scale"></i></center></a>
+                                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}"><i class="fas fa-balance-scale"></i></center></a>
                                     </div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->total_pago,0)}}</center></div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->anticipos_extraordinarios,0)}}</center></div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->nuevas_comision_no_pago+$registro->adiciones_comision_no_pago+$registro->renovaciones_comision_no_pago+$registro->nuevas_bono_no_pago+$registro->adiciones_bono_no_pago+$registro->renovaciones_bono_no_pago,0)}}</center></div>
                                     <div class="table-cell border-r border-l border-b border-gray-300 font-ligth text-green-700 {{$color?'bg-gray-100':'bg-white'}}">
                                         <center>
                                             ${{number_format($registro->anticipo_no_pago,0)}}
-                                            <a href="javascript:toogleForma({{$id}},{{$registro->id}});"><i class="far fa-money-bill-alt"></i></a>
+                                            <a href="javascript:toogleForma({{$calculo->id}},{{$registro->id}});"><i class="far fa-money-bill-alt"></i></a>
                                         </center>   
                                      </div>
                                     
@@ -61,8 +64,40 @@
                         
                             </div>
                         </div>
-                    </div>                    
+                    </div>  
+                    <div class="md:hidden w-full flex justify-center px-2">
+                        <div class="table">
+                            <div class="table-row-group flex">
+                                <div class="table-row rounded-tl-lg rounded-tr-lg">
+                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tl-lg"></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Estado de<br>Cuenta</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br>Pendientes</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Anticipo<br>Comisiones Pendientes</center></div>
+                                </div>
+                                <?php $color=true; ?>
+                                @foreach($registros as $registro)
+                                <div class="table-row">
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->nombre}}</div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth text-ttds {{$color?'bg-gray-100':'bg-white'}}">
+                                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}"><i class="fas fa-balance-scale"></i></center></a>
+                                    </div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->nuevas_comision_no_pago+$registro->adiciones_comision_no_pago+$registro->renovaciones_comision_no_pago+$registro->nuevas_bono_no_pago+$registro->adiciones_bono_no_pago+$registro->renovaciones_bono_no_pago,0)}}</center></div>
+                                    <div class="table-cell border-r border-l border-b border-gray-300 font-ligth text-green-700 {{$color?'bg-gray-100':'bg-white'}}">
+                                        <center>
+                                            ${{number_format($registro->anticipo_no_pago,0)}}
+                                            <a href="javascript:toogleForma({{$calculo->id}},{{$registro->id}});"><i class="far fa-money-bill-alt"></i></a>
+                                        </center>   
+                                     </div>
+                                    
+                                </div>
+                                <?php $color=!$color; ?>
+                                @endforeach
+                        
+                            </div>
+                        </div>
+                    </div>                  
                 </div><!--FIN DE TABLA -->
+                
                 <div id=forma class="hidden w-full lg:w-1/3 flex justify-center pt-8 flex-col"> <!--FORMA DETALLES-->
                     <div class="w-full bg-ttds-encabezado p-1 px-3 flex flex-col border-b border-gray-800 rounded-t"> <!--ENCABEZADO-->
                         <div class="w-full text-base font-semibold text-gray-100">Detalles</div>            

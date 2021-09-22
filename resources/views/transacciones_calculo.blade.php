@@ -33,27 +33,27 @@ header("Expires: 0");
 foreach ($query as $transaccion) {
 	?>
 	<tr>
-	<td>{{\App\Models\User::find($transaccion->user_id)->name}}</td>
-	<td>{{$transaccion->fecha}}</td>
-	<td>{{$transaccion->cliente}}</td>
-	<td>{{$transaccion->dn}}</td>
-	<td>{{$transaccion->cuenta}}</td>
-	<td>{{$transaccion->tipo}}</td>
-	<td>{{$transaccion->folio}}</td>
-	<td>{{$transaccion->ciudad}}</td>
-	<td>{{$transaccion->plan}}</td>
-	<td>{{$transaccion->renta}}</td>
-	<td>{{$transaccion->equipo}}</td>
-	<td>{{$transaccion->plazo}}</td>
-	<td>{{$transaccion->descuento_multirenta}}</td>
-	<td>{{$transaccion->afectacion_comision}}</td>
+	<td>{{$transaccion->venta->user->name}}</td>
+	<td>{{$transaccion->venta->fecha}}</td>
+	<td>{{$transaccion->venta->cliente}}</td>
+	<td>{{$transaccion->venta->dn}}</td>
+	<td>{{$transaccion->venta->cuenta}}</td>
+	<td>{{$transaccion->venta->tipo}}</td>
+	<td>{{$transaccion->venta->folio}}</td>
+	<td>{{$transaccion->venta->ciudad}}</td>
+	<td>{{$transaccion->venta->plan}}</td>
+	<td>{{$transaccion->venta->renta}}</td>
+	<td>{{$transaccion->venta->equipo}}</td>
+	<td>{{$transaccion->venta->plazo}}</td>
+	<td>{{$transaccion->venta->descuento_multirenta}}</td>
+	<td>{{$transaccion->venta->afectacion_comision}}</td>
     <td style="color:#0000FF">{{$transaccion->upfront}}</td>
     <td style="color:#0000FF">{{$transaccion->bono}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_tipo}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_renta}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_plazo}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_descuento_multirenta}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_afectacion_comision}}</td>
+	<td style="color:#0000FF">{{$transaccion->tipo}}</td>
+	<td style="color:#0000FF">{{$transaccion->renta}}</td>
+	<td style="color:#0000FF">{{$transaccion->plazo}}</td>
+	<td style="color:#0000FF">{{$transaccion->descuento_multirenta}}</td>
+	<td style="color:#0000FF">{{$transaccion->afectacion_comision}}</td>
 	</tr>
 <?php
 }

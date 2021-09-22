@@ -13,7 +13,7 @@
             <div class="w-full flex flex-col lg:flex-row justify-between space-y-3 lg:space-y-0">
                 <div class="w-full lg:w-1/2">
                     <form action="{{route('ventas_review')}}" class="">
-                        <input class="w-2/3 lg:w-1/2 rounded p-1 border border-gray-300" type="text" name="query" value="{{$query}}" placeholder="Buscar Cliente/DN/Cuenta"> 
+                        <input class="w-2/3 lg:w-1/2 rounded p-1 border border-gray-300" type="text" name="query" value="{{$query}}" placeholder="Buscar Cliente/DN/Cuenta/Folio"> 
                         <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Buscar</button>
                     </form>
                 </div>
@@ -63,17 +63,17 @@
                             <div class="table-row-group flex">
                                 <div class="table-row rounded-tl-lg rounded-tr-lg">
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tl-lg"></div>
-                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"></div>
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm">Cliente</div>
-                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg">DN</div>
+                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm">DN</div>
+                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg">Contrato</div>
                                 </div>
                                 <?php $color=true; ?>
                                 @foreach($registros as $registro)
                                 <div class="table-row">
                                     <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><a href="javascript:toogleForma({{$registro->id}})"><i class="far fa-edit"></i></a></div>
-                                    <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->name}}</div>
                                     <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->cliente}}</div>
-                                    <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->dn}}</div>                                    
+                                    <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->dn}}</div>
+                                    <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->folio}}</div>                                    
                                 </div>
                                 <?php $color=!$color; ?>
                                 @endforeach

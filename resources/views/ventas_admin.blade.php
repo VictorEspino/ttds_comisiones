@@ -5,7 +5,14 @@
 
     <div class="flex flex-col w-full bg-white text-gray-700 shadow-lg rounded-lg">
         <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-col border-b border-gray-800"> <!--ENCABEZADO-->
-            <div class="w-full text-lg font-semibold text-gray-100">Ventas pendientes de validacion</div>            
+            <div class="w-full flex flex-row justify-between">
+                <div class="w-10/12 text-lg font-semibold text-gray-100">Ventas pendientes de validacion</div>
+                <div class="w-2/12 flex justify-end text-white">
+                    <a href="{{route('export_validacion')}}">
+                        <i class="text-xl text-white fas fa-file-excel"></i> Export
+                    </a>
+                </div>  
+            </div>
             <div class="w-full text-sm font-semibold text-gray-100">{{Auth::user()->name}}</div>            
         </div> <!--FIN ENCABEZADO-->
         
@@ -13,7 +20,7 @@
             <div class="w-full flex flex-col lg:flex-row justify-between space-y-3 lg:space-y-0">
                 <div class="w-full lg:w-1/2">
                     <form action="{{route('ventas_admin')}}" class="">
-                        <input class="w-2/3 lg:w-1/2 rounded p-1 border border-gray-300" type="text" name="query" value="{{$query}}" placeholder="Buscar Cliente/DN/Cuenta"> 
+                        <input class="w-2/3 lg:w-1/2 rounded p-1 border border-gray-300" type="text" name="query" value="{{$query}}" placeholder="Buscar Cliente/DN/Cuenta/Folio"> 
                         <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Buscar</button>
                     </form>
                 </div>
@@ -21,6 +28,7 @@
                 {{$registros->links()}}
                 </div>
             </div>
+            
             <div class="flex flex-col lg:flex-row lg:space-x-5 flex items-start justify-center pt-2">
                 <div id="tabla" class="w-full pt-5 flex flex-col"> <!--TABLA DE CONTENIDO-->
                     <div class="w-full flex justify-center pb-3"><span class="font-semibold text-sm text-gray-700">Registros de Venta</span></div>
@@ -63,17 +71,17 @@
                             <div class="table-row-group flex">
                                 <div class="table-row rounded-tl-lg rounded-tr-lg">
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tl-lg"></div>
-                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"></div>
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm">Cliente</div>
-                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg">DN</div>
+                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm">DN</div>
+                                    <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg">Folio</div>
                                 </div>
                                 <?php $color=true; ?>
                                 @foreach($registros as $registro)
                                 <div class="table-row">
                                     <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><a href="javascript:toogleForma({{$registro->id}})"><i class="far fa-edit"></i></a></div>
-                                    <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->name}}</div>
                                     <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->cliente}}</div>
-                                    <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->dn}}</div>                                    
+                                    <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->dn}}</div> 
+                                    <div class="table-cell border-l border-b border-r border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->folio}}</div>                                    
                                 </div>
                                 <?php $color=!$color; ?>
                                 @endforeach

@@ -50,10 +50,10 @@ class ProcessViewController extends Controller
 
     public function transacciones_calculo(Request $request)
     {
-    $sql_consulta="SELECT a.upfront,a.bono,a.tipo as c_tipo,a.renta as c_renta,a.plazo as c_plazo,a.descuento_multirenta as c_descuento_multirenta,a.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b WHERE a.calculo_id='".$request->id."' and a.venta_id=b.id and a.estatus='".$request->estatus."'";
-    $query=DB::select(DB::raw(
-        $sql_consulta
-       ));
+    $query=ComisionVenta::with('venta','venta.user')
+        ->where('calculo_id',$request->id)
+        ->where('estatus',$request->estatus)
+        ->get();
     return(view('transacciones_calculo',['query'=>$query,'pago'=>$request->estatus]));
     }
 
@@ -67,6 +67,7 @@ class ProcessViewController extends Controller
                                 ->where(function($query){
                                     $query->where('ventas.cliente','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.dn','like','%'.$_GET["query"].'%')
+                                          ->orWhere('ventas.folio','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.cuenta','like','%'.$_GET["query"].'%');
                                         })
                                 ->where('ventas.validado',false)
@@ -78,6 +79,7 @@ class ProcessViewController extends Controller
                                 ->select(DB::raw('distinct users.id,users.name'))
                                 ->where(function($query){
                                     $query->where('ventas.cliente','like','%'.$_GET["query"].'%')
+                                          ->orWhere('ventas.folio','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.dn','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.cuenta','like','%'.$_GET["query"].'%');
                                         })
@@ -192,6 +194,7 @@ class ProcessViewController extends Controller
     public function acciones_distribuidores_calculo(Request $request)
     {
         $id_calculo=$request->id;
+        $calculo=Calculo::find($id_calculo);
         if(isset($_GET['query']))
         {
             $registros=Distribuidor::where('nombre','like','%'.$_GET["query"].'%')
@@ -199,13 +202,23 @@ class ProcessViewController extends Controller
                                     ->paginate(10);
             $registros=DB::table('pagos_distribuidors')
                                     ->join('users', 'users.id', '=', 'pagos_distribuidors.user_id')
-                                    ->select('users.id',DB::raw('users.user as numero_distribuidor'),DB::raw('users.name as nombre'),'pagos_distribuidors.total_pago','pagos_distribuidors.anticipos_extraordinarios','pagos_distribuidors.anticipo_no_pago')
+                                    ->select('users.id',DB::raw('users.user as numero_distribuidor'),DB::raw('users.name as nombre'),
+                                                                'pagos_distribuidors.total_pago',
+                                                                'pagos_distribuidors.anticipos_extraordinarios',
+                                                                'pagos_distribuidors.anticipo_no_pago',
+                                                                'pagos_distribuidors.nuevas_comision_no_pago',
+                                                                'pagos_distribuidors.adiciones_comision_no_pago',
+                                                                'pagos_distribuidors.renovaciones_comision_no_pago',
+                                                                'pagos_distribuidors.nuevas_bono_no_pago',
+                                                                'pagos_distribuidors.adiciones_bono_no_pago',
+                                                                'pagos_distribuidors.renovaciones_bono_no_pago',
+                                                                )
                                     ->where('pagos_distribuidors.calculo_id',$id_calculo)
                                     ->where('users.name','like','%'.$_GET["query"].'%')
                                     ->orderBy('users.name','asc')
                                     ->paginate(10);
             $registros->appends($request->all());
-            return(view('acciones_distribuidores_calculo',['id'=>$id_calculo,
+            return(view('acciones_distribuidores_calculo',['calculo'=>$calculo,
                                                            'registros'=>$registros,'query'=>$_GET['query']
                                                           ]));
         }
@@ -213,11 +226,21 @@ class ProcessViewController extends Controller
         {
             $registros=DB::table('pagos_distribuidors')
                                 ->join('users', 'users.id', '=', 'pagos_distribuidors.user_id')
-                                ->select('users.id',DB::raw('users.user as numero_distribuidor'),DB::raw('users.name as nombre'),'pagos_distribuidors.total_pago','pagos_distribuidors.anticipos_extraordinarios','pagos_distribuidors.anticipo_no_pago')
+                                ->select('users.id',DB::raw('users.user as numero_distribuidor'),DB::raw('users.name as nombre'),
+                                                                'pagos_distribuidors.total_pago',
+                                                                'pagos_distribuidors.anticipos_extraordinarios',
+                                                                'pagos_distribuidors.anticipo_no_pago',
+                                                                'pagos_distribuidors.nuevas_comision_no_pago',
+                                                                'pagos_distribuidors.adiciones_comision_no_pago',
+                                                                'pagos_distribuidors.renovaciones_comision_no_pago',
+                                                                'pagos_distribuidors.nuevas_bono_no_pago',
+                                                                'pagos_distribuidors.adiciones_bono_no_pago',
+                                                                'pagos_distribuidors.renovaciones_bono_no_pago',
+                                                                )
                                 ->where('pagos_distribuidors.calculo_id',$id_calculo)
                                 ->orderBy('users.name','asc')
                                 ->paginate(10);
-            return(view('acciones_distribuidores_calculo',['id'=>$id_calculo,
+            return(view('acciones_distribuidores_calculo',['calculo'=>$calculo,
                                 'registros'=>$registros,'query'=>'',
                                ]));
         }
@@ -288,6 +311,7 @@ class ProcessViewController extends Controller
                                 ->select('ventas.*','users.user','users.name')
                                 ->where(function($query){
                                     $query->where('ventas.cliente','like','%'.$_GET["query"].'%')
+                                          ->orWhere('ventas.folio','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.dn','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.cuenta','like','%'.$_GET["query"].'%');
                                         })
@@ -308,6 +332,11 @@ class ProcessViewController extends Controller
             return(view('ventas_review',['registros'=>$registros,'query'=>'']));
         }
 
+    }
+    public function export_validacion(Request $request)
+    {
+        $query=Venta::with('user')->where('validado',false)->get();
+        return(view('transacciones_validacion',['query'=>$query]));
     }
     
 }

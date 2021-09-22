@@ -22,7 +22,7 @@ class ProcessFormsController extends Controller
             'nombre_cliente'=> ' required|max:255',
             'tipo'=> 'required',
             'propiedad'=> 'required',
-            'dn'=> 'required|digits:10|unique:ventas,dn',
+            'dn'=> 'required|digits:10',
             'plan'=> ' required',
             'plazo'=> ' required',
             'renta'=> ' required|numeric',
@@ -32,6 +32,34 @@ class ProcessFormsController extends Controller
             'contrato'=> ' required',
             'fecha_movimiento' => 'required|date_format:Y-m-d'
         ]);
+
+        $ocurrencias=Venta::select(DB::raw('dn,count(*) as ocurrencias'))
+                            ->whereRaw('lpad(fecha,7,0)=?',[substr($request->fecha_movimiento,0,7)])
+                            ->where('dn',$request->dn)
+                            ->groupBy('dn')
+                            ->get()
+                            ->first();
+        if(!is_null($ocurrencias))
+        {
+            return(view('mensaje_venta_nueva',['estatus'=>'FAIL',
+                                'mensaje'=> 'El DN ('.$request->dn.') ya se encuentra en los registros del periodo',
+                                'liga'=>$request->liga,
+                                'parametros'=> '']));
+        }
+        $ocurrencias=Venta::select(DB::raw('folio,count(*) as ocurrencias'))
+                            ->whereRaw('lpad(fecha,7,0)=?',[substr($request->fecha_movimiento,0,7)])
+                            ->where('folio',$request->folio)
+                            ->groupBy('folio')
+                            ->get()
+                            ->first();
+        if(!is_null($ocurrencias))
+        {
+            return(view('mensaje_venta_nueva',['estatus'=>'FAIL',
+                                'mensaje'=> 'El Folio ('.$request->folio.') ya se encuentra en los registros del periodo',
+                                'liga'=>$request->liga,
+                                'parametros'=> '']));
+        }
+
             $registro=new Venta;
             $registro->user_id=Auth::user()->id;
             $registro->cuenta=$request->cuenta;
@@ -52,6 +80,7 @@ class ProcessFormsController extends Controller
             $registro->validado=!(Auth::user()->perfil=='distribuidor');
             $registro->user_id_carga=Auth::user()->id;
             $registro->user_id_validacion=0;
+            $registro->carga_id=0;
             $registro->save();
 
         $parametros="?complete=OK";
@@ -64,7 +93,7 @@ class ProcessFormsController extends Controller
         $parametros=$parametros."&fecha_movimiento=".$request->fecha_movimiento;
         
         return(view('mensaje_venta_nueva',['estatus'=>'OK',
-                                'mensaje'=> 'El registro de venta con DN y Contrato ('.$request->mdn.', '.$request->contrato.') se ha realizado con exito',
+                                'mensaje'=> 'El registro de venta con DN y Folio ('.$request->dn.', '.$request->folio.') se ha realizado con exito',
                                 'liga'=>$request->liga,
                                 'parametros'=> $parametros
         ]));
@@ -195,6 +224,7 @@ class ProcessFormsController extends Controller
             'propiedad'=> 'required',
             'dn'=> 'required|digits:10',
             'plan'=> ' required',
+            'folio'=>'required|numeric',
             'plazo'=> ' required',
             'renta'=> ' required|numeric',
             'descuento_multirenta'=> ' required|numeric',
@@ -208,6 +238,8 @@ class ProcessFormsController extends Controller
                   'cuenta' => $request->cuenta,
                   'tipo' => $request->tipo,
                   'propiedad' => $request->propiedad,
+                  'folio'=>$request->folio,
+                  'ciudad'=>$request->ciudad,
                   'dn' => $request->dn,
                   'plan' => $request->plan,
                   'plazo' => $request->plazo,

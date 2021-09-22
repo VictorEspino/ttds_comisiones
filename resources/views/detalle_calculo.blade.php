@@ -6,16 +6,17 @@
     </x-slot>
     <div class="flex flex-col w-full bg-white text-gray-700 shadow-lg rounded-lg">
         <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-col border-b border-gray-800"> <!--ENCABEZADO-->
-            <div class="w-full text-lg font-semibold text-gray-100">Detalles</div>            
-            <div class="w-full text-sm font-semibold text-gray-100">{{Auth::user()->name}}</div>            
+            <div class="w-full text-xl font-bold text-gray-100">Calculo de comisiones</div>
+            <div class="w-full text-lg font-semibold text-gray-100">{{$descripcion}}</div>            
+            <div class="w-full text-xs font-semibold text-gray-100">De {{$fecha_inicio}} a {{$fecha_fin}}</div>                        
         </div> <!--FIN ENCABEZADO-->
         @if(session('status')!='')
             <div class="w-full flex justify-center p-3 bg-green-300">
                 <span class="font-semibold text-sm text-gray-600">{{session('status')}}</span>
             </div>    
         @endif
-        <div class="flex flex-row space-x-5  items-start">
-            <div class="w-1/2 flex flex-col justify-center p-5">
+        <div class="flex flex-col md:space-x-5 md:space-y-0 items-start md:flex-row">
+            <div class="w-full md:w-1/2 flex flex-col justify-center md:p-5 p-3">
                 <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Validacion Ventas</div>
                 <div class="w-full flex flex-row border rounded-b-lg shadow-lg">  
                     <div class="w-2/3 px-3 pt-2">
@@ -49,7 +50,7 @@
                     </div> 
                 </div>
             </div>
-            <div class="w-1/2 p-5 flex flex-col">
+            <div class="w-full p-3 md:w-1/2 md:p-5 flex flex-col">
                 <div class="w-full bg-gray-200 p-2 rounded-t-lg">Callidus</div>
                 <div class="w-full border-r border-l p-2 flex flex-col">
                     <div class="w-full flex justify-center text-4xl font-semibold text-ttds">{{$n_callidus}}</div>
@@ -77,8 +78,8 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-row space-x-5  items-start">
-            <div class="w-1/2 flex flex-col justify-center p-5">
+        <div class="flex flex-col md:space-x-5 md:space-y-0 items-start md:flex-row">
+            <div class="w-full md:w-1/2 flex flex-col justify-center md:p-5 p-3">
                 <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Calculo de Comisiones</div>
                 <div class="w-full flex flex-row border rounded-b-lg shadow-lg p-3">  
                     <form class="w-full" method="post" action="{{route('calculo_ejecutar')}}">
@@ -90,7 +91,7 @@
                     </form>
                 </div>
             </div>
-            <div class="w-1/2 flex flex-col justify-center p-5">
+            <div class="w-full md:w-1/2 flex flex-col justify-center md:p-5 p-3">
                 <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Resumen de Pago</div>
                 <div class="w-full flex flex-row border rounded-b-lg shadow-lg">  
                     <div class="w-2/3 px-3 pt-2">
@@ -122,6 +123,19 @@
                     <div class="w-1/3 flex justify-center p-3">
                         <div class="flex justify-center" id="chart_div_2" style="width: 400px; height: 120px;"></div>
                     </div> 
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col md:space-x-5 md:space-y-0 items-start md:flex-row">
+            <div class="w-full md:w-1/2 flex flex-col justify-center md:p-5 p-3">
+                <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Detalles Distribuidor</div>
+                <div class="w-full flex flex-row border rounded-b-lg shadow-lg p-3">  
+                    <form class="w-full" method="get" action="{{route('acciones_distribuidores_calculo',['id'=>$id_calculo])}}">
+                        @csrf
+                        <button class="bg-green-500 text-gray-200 text-4xl font-semibold rounded-lg hover:bg-green-700 shadow-lg w-full border p-5">
+                            Pagos
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

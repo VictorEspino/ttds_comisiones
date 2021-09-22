@@ -10,7 +10,6 @@ header("Expires: 0");
 <br>
 <table border=1>
 <tr style="background-color:#777777;color:#FFFFFF">
-<td><b>distribuidor</td>
 <td><b>fecha</td>
 <td><b>cliente</td>
 <td><b>dn</td>
@@ -37,7 +36,6 @@ header("Expires: 0");
 foreach ($query as $transaccion) {
 	?>
 	<tr>
-	<td>{{\App\Models\User::find($transaccion->user_id)->name}}</td>
 	<td>{{$transaccion->fecha}}</td>
 	<td>{{$transaccion->cliente}}</td>
 	<td>{{$transaccion->dn}}</td>
@@ -67,13 +65,12 @@ foreach ($query as $transaccion) {
 <br>
 <br>
 <br>
-<span style="color:rgb(10, 71, 161);font-size:40px;">VENTAS NO PAGADAS</span>
+<span style="color:rgb(10, 71, 161);font-size:40px;">COMISIONES PENDIENTES</span>
 <br>
 <br>
 <br>
 <table border=1>
 	<tr style="background-color:#777777;color:#FFFFFF">
-	<td><b>distribuidor</td>
 	<td><b>fecha</td>
 	<td><b>cliente</td>
 	<td><b>dn</td>
@@ -100,7 +97,6 @@ foreach ($query as $transaccion) {
 	foreach ($query_no_pago as $transaccion) {
 		?>
 		<tr>
-		<td>{{\App\Models\User::find($transaccion->user_id)->name}}</td>
 		<td>{{$transaccion->fecha}}</td>
 		<td>{{$transaccion->cliente}}</td>
 		<td>{{$transaccion->dn}}</td>

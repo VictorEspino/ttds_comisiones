@@ -29,4 +29,9 @@ class Venta extends Model
                             'carga_id'
                     ];
     use HasFactory;
+    
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
