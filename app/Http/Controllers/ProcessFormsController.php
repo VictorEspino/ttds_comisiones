@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Venta;
+use App\Models\ComisionVenta;
 use App\Models\User;
 use App\Models\Distribuidor;
 use App\Models\Calculo;
 use App\Models\AnticipoNoPago;
 use App\Models\AnticipoExtraordinario;
 use App\Models\PagosDistribuidor;
+use App\Models\Reclamo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -308,5 +310,59 @@ class ProcessFormsController extends Controller
     {
         AnticipoExtraordinario::find($request->id)->delete();
         return('OK');
+    }
+    public function accion_inconsistencia(Request $request)
+    {
+        
+        if($request->accion=="aclara")
+        {
+            $razon='Diferencia en ';
+            $dif_renta=floatval($request->renta)-floatval($request->c_renta);
+            if($dif_renta<(-1) || $dif_renta>(1))
+            {$razon=$razon.', renta (debe ser :'.$request->renta.')';}
+            if($request->plazo!=$request->c_plazo)
+            {$razon=$razon.', plazo (debe ser :'.$request->plazo.')';}
+            if($request->descuento_multirenta!=$request->c_descuento_multirenta)
+            {$razon=$razon.', descuento multirenta (debe ser :'.$request->descuento_multirenta.'%)';}
+            if($request->afectacion_comision!=$request->c_afectacion_comision)
+            {$razon=$razon.', afectacion comision (debe ser :'.$request->afectacion_comision.'%)';}
+
+            $actualizados=Reclamo::where('venta_id',$request->id_venta)
+                        ->where('calculo_id',$request->id_calculo)
+                        ->where('tipo','Inconsistencia')
+                        ->update(['razon'=>$razon]);
+
+            if($actualizados==0)
+            {
+                $reclamo=new Reclamo;
+                $reclamo->venta_id=$request->id_venta;
+                $reclamo->calculo_id=$request->id_calculo;
+                $reclamo->monto=0;
+                $reclamo->razon=$razon;
+                $reclamo->tipo="Inconsistencia";
+                $reclamo->save();
+            }
+            return(back()->withStatus('Registro de aclaracion generado con exito'));
+        }
+        if($request->accion=="corrige")
+        {
+            $venta=Venta::find($request->id_venta);
+            $venta->renta=$request->c_renta;
+            $venta->plazo=$request->c_plazo;
+            $venta->afectacion_comision=$request->c_afectacion_comision;
+            $venta->descuento_multirenta=$request->c_descuento_multirenta;
+            $venta->save();
+
+            ComisionVenta::where('venta_id',$request->id_venta)
+                        ->where('calculo_id_proceso',$request->id_calculo)
+                        ->update(['consistente'=>1,'estatus_final'=>'VENTA PAGADA']);
+
+            Reclamo::where('venta_id',$request->id_venta)
+                        ->where('calculo_id',$request->id_calculo)
+                        ->where('tipo','Inconsistencia')
+                        ->delete();
+
+            return(back()->withStatus('Correccion de registros internos realizada con exito'));
+        }
     }
 }

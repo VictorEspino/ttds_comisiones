@@ -26,4 +26,9 @@ class CallidusVenta extends Model
                             'calculo_id'
                     ];
     use HasFactory;
+
+    public function pagada()
+    {
+        return($this->hasOne(ComisionVenta::class,'callidus_venta_id'));
+    }
 }

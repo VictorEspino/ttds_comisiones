@@ -17,10 +17,19 @@ class CreateComisionVentasTable extends Migration
             $table->id();
             $table->foreignId('venta_id');
             $table->foreignId('calculo_id');
-            $table->foreignId('calculo_id_proceso');
-            $table->float('upfront');
-            $table->float('bono');
-            $table->string('estatus');
+            $table->foreignId('calculo_id_proceso')->default(0);
+            $table->foreignId('calculo_id_consistencia')->default(0); //De manera original debe ser 0
+            $table->foreignId('callidus_venta_id')->default(0);
+            $table->string('estatus_inicial',10);
+            $table->boolean('consistente'); //se llena en el proceso que lo paga
+            $table->string('estatus_final');
+            $table->float('upfront')->default(0);
+            $table->float('bono')->default(0);
+            $table->float('upfront_final')->default(0); //se van a modificar cuando caiga el recalculo por inconsistencia
+            $table->float('bono_final')->default(0); //se van a modificar cuando caiga el recalculo por inconsistencia
+            $table->float('diferencia_inconsistencia')->default(0); ////se van a modificar cuando caiga el recalculo por inconsistencia
+            
+            
             $table->timestamps();
         });
 

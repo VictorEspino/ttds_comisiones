@@ -6,27 +6,26 @@ header("Expires: 0");
 ?>
 <table border=1>
 <tr style="background-color:#777777;color:#FFFFFF">
-<td><b>distribuidor</td>
-<td><b>fecha</td>
-<td><b>cliente</td>
-<td><b>dn</td>
-<td><b>cuenta</td>
-<td><b>tipo</td>
-<td><b>folio</td>
-<td><b>ciudad</td>
-<td><b>plan</td>
-<td><b>renta</td>
-<td><b>equipo</td>
-<td><b>plazo</td>
-<td><b>descuento_multirenta</td>
-<td><b>afectacion_comision</td>
-<td style="background-color:#0000FF;color:#FFFFFF"><b>comision</td>
-<td style="background-color:#0000FF;color:#FFFFFF"><b>bono</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>C_tipo</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>C_renta</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>C_plazo</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>C_descuento_multirenta</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>C_afectacion_comision</td>
+<td><b>Distribuidor</td>
+<td><b>Fecha</td>
+<td><b>Cliente</td>
+<td><b>DN</td>
+<td><b>Cuenta</td>
+<td><b>Tipo</td>
+<td><b>Folio</td>
+<td><b>Ciudad</td>
+<td><b>Plan</td>
+<td><b>Renta</td>
+<td><b>Equipo</td>
+<td><b>Plazo</td>
+<td><b>Descuento_multirenta</td>
+<td><b>Afectacion_comision</td>
+<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_renta</td>
+<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_plazo</td>
+<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_descuento_multirenta</td>
+<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_afectacion_comision</td>
+<td style="background-color:#0000FF;color:#FFFFFF"><b>Comision</td>
+<td style="background-color:#0000FF;color:#FFFFFF"><b>Bono</td>
 </tr>
 <?php
 
@@ -47,13 +46,12 @@ foreach ($query as $transaccion) {
 	<td>{{$transaccion->venta->plazo}}</td>
 	<td>{{$transaccion->venta->descuento_multirenta}}</td>
 	<td>{{$transaccion->venta->afectacion_comision}}</td>
-    <td style="color:#0000FF">{{$transaccion->upfront}}</td>
+	<td style="color:#0000FF">{{$pago=="PAGO"?$transaccion->callidus->renta:'0'}}</td>
+	<td style="color:#0000FF">{{$pago=="PAGO"?$transaccion->callidus->plazo:'0'}}</td>
+	<td style="color:#0000FF">{{$pago=="PAGO"?$transaccion->callidus->descuento_multirenta:'0'}}</td>
+	<td style="color:#0000FF">{{$pago=="PAGO"?$transaccion->callidus->afectacion_comision:'0'}}</td>
+	<td style="color:#0000FF">{{$transaccion->upfront}}</td>
     <td style="color:#0000FF">{{$transaccion->bono}}</td>
-	<td style="color:#0000FF">{{$transaccion->tipo}}</td>
-	<td style="color:#0000FF">{{$transaccion->renta}}</td>
-	<td style="color:#0000FF">{{$transaccion->plazo}}</td>
-	<td style="color:#0000FF">{{$transaccion->descuento_multirenta}}</td>
-	<td style="color:#0000FF">{{$transaccion->afectacion_comision}}</td>
 	</tr>
 <?php
 }

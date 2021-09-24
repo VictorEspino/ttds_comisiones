@@ -126,20 +126,136 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-col md:space-x-5 md:space-y-0 items-start md:flex-row">
-            <div class="w-full md:w-1/2 flex flex-col justify-center md:p-5 p-3">
-                <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Detalles Distribuidor</div>
-                <div class="w-full flex flex-row border rounded-b-lg shadow-lg p-3">  
-                    <form class="w-full" method="get" action="{{route('acciones_distribuidores_calculo',['id'=>$id_calculo])}}">
-                        @csrf
-                        <button class="bg-green-500 text-gray-200 text-4xl font-semibold rounded-lg hover:bg-green-700 shadow-lg w-full border p-5">
-                            Pagos
-                        </button>
-                    </form>
-                </div>
+        <div class="w-full flex flex-col items-start">
+            <div class="w-full flex flex-col justify-center md:p-5 p-3">
+                <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Acciones y Resultados</div>
+                <div class="w-full flex flex-col border rounded-b-lg shadow-lg p-2"> 
+                    <div class="w-full flex flex-row pt-3">
+                        <div class="w-1/2 flex flex-col justify-center items-center">
+                            <div class="w-full flex justify-center">
+                                <a href="{{route('acciones_distribuidores_calculo',['id'=>$id_calculo])}}">
+                                    <i class="text-green-700 text-6xl fas fa-balance-scale"></i>
+                                </a>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">Pagos para {{$n_pagos}} distribuidores</span>
+                            </div>
+                        </div>
+                        <div class="w-1/2 flex flex-col">
+                            <div><span class="text-2xl font-semibold text-gray-700">Pagos</span></div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Revisa los estados de cuenta de cada distribuidor
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Aplique adelantos por comisiones pendientes
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row pt-3 pt-8">
+                        <div class="w-1/2 flex flex-col justify-center items-center">
+                            <div class="w-full flex justify-center">
+                                <a href="{{route('pagos_export',['id'=>$id_calculo])}}">
+                                    <span class="text-blue-500 text-6xl font-bold fas fa-file-invoice-dollar"></span>
+                                </a>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">Pagos para {{$n_pagos}} distribuidores</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-1/2 flex flex-col">
+                            <div><span class="text-2xl font-semibold text-gray-700">Formato de Pagos</span></div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Obtenga el formato de pagos por comisones generadas de cada distribuidor
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row pt-3">
+                        <div class="w-1/2 flex flex-col justify-center items-center">
+                            <div class="w-full flex justify-center">
+                                <a href="{{route('ventas_inconsistencias',['id'=>$id_calculo])}}">
+                                    <span class="text-yellow-400 text-6xl font-bold">{{$n_inconsistencias}}</span>
+                                </a>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">Inconsistencias encontradas</span>
+                            </div>
+                        </div>
+                        <div class="w-1/2 flex flex-col">
+                            <div><span class="text-2xl font-semibold text-gray-700">Inconsistencias</span></div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Le permite revisar los registros que fueron encontrados en Callidus y que presentan diferencias con los parametros de la base de ventas, como el plazo, la renta, descuento multirenta y afectacion en comision.
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -En caso de que la inconsistencia persista le permite agregar dicha inconsistencia en el formato de aclaracion.
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Si la inconsistencia proviene de una falla en nuestro reporte interno de ventas, le permite la correccion interna y la eliminacion de la alerta.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row pt-3 pb-3">
+                        <div class="w-1/2 flex flex-col justify-center items-center">
+                            <div class="w-full flex justify-center">
+                                <a href="{{route('reclamos_export',['id'=>$id_calculo])}}">
+                                    <span class="text-red-500 text-6xl font-bold far fa-file-alt"></span>
+                                </a>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">{{$n_reclamos}} registros generados</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-1/2 flex flex-col">
+                            <div><span class="text-2xl font-semibold text-gray-700">Formato de Aclaracion</span></div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Obtenga el formato de aclaraciones que debe ser enviado a AT&T
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row pt-3 pb-6">
+                        <div class="w-1/2 flex flex-col justify-center items-center">
+                            <div class="w-full flex justify-center">
+                                <a href="{{route('callidus_no_usados',['id'=>$id_calculo])}}">
+                                    <span class="text-gray-500 text-6xl font-bold fas fa-database"></span>
+                                </a>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">{{$n_callidus_sin_usar}} registros sin correspondiencia</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-1/2 flex flex-col">
+                            <div><span class="text-2xl font-semibold text-gray-700">Registros de Callidus sin pago</span></div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Le permite revisar los registros de Callidus que no encontraron relacion con algun registro interno de ventas
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Use esta informacion para identificar si algun identificador de los registros no pagados (folio/contrato, dn , cuenta) estan correctamente capturados en el reporte interno de ventas, cuya correccion le permita pasar a pago.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
             </div>
         </div>
-
     </div>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
