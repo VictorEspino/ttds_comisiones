@@ -75,8 +75,6 @@ class ExcelController extends Controller
         catch(\Maatwebsite\Excel\Validators\ValidationException $e) {
             return back()->withFailures($e->failures());
         }    
-        Calculo::where('id',$request->id_calculo)
-                ->update(['callidus'=>1]);
         return back()->withStatus('Archivo cargado con exito!');
     }
     public function validar_carga($id_carga)

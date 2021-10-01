@@ -5,6 +5,7 @@ use App\Http\Controllers\ProcessFormsController;
 use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\ProcessViewController;
 use App\Http\Controllers\CalculoComisiones;
+use App\Http\Controllers\CalculoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,14 +49,16 @@ Route::get('/anticipos_extraordinarios_borrar/{id}',[ProcessFormsController::cla
 
 //RUTAS DE CALCULO DE COMISIONES
 
-Route::post('/calculo_nuevo',[ProcessFormsController::class,'calculo_nuevo'])->name('calculo_nuevo')->middleware('auth');
-Route::get('/calculo_nuevo',function(){return view('calculo_nuevo');})->name('calculo_nuevo')->middleware('auth');
-Route::get('/seguimiento_calculos',[ProcessViewController::class,'seguimiento_calculos'])->name('seguimiento_calculos')->middleware('auth');
-Route::get('/detalle_calculo/{id}',[ProcessViewController::class,'detalle_calculo'])->name('detalle_calculo')->middleware('auth');
+Route::post('/calculo_nuevo',[CalculoController::class,'calculo_nuevo'])->name('calculo_nuevo')->middleware('auth');
+Route::get('/calculo_nuevo',[CalculoController::class,'vista_nuevo'])->name('calculo_nuevo')->middleware('auth');
+Route::get('/seguimiento_calculos',[CalculoController::class,'seguimiento_calculos'])->name('seguimiento_calculos')->middleware('auth');
+Route::get('/detalle_calculo/{id}',[CalculoController::class,'detalle_calculo'])->name('detalle_calculo')->middleware('auth');
 Route::post('/calculo_ejecutar',[CalculoComisiones::class,'ejecutar_calculo'])->name('calculo_ejecutar')->middleware('auth');
-Route::get('/transacciones_resumen_calculo/{id}/{estatus}',[ProcessViewController::class,'transacciones_calculo'])->middleware('auth');
+Route::post('/calculo_terminar',[CalculoComisiones::class,'terminar_calculo'])->name('calculo_terminar')->middleware('auth');
+
+Route::get('/transacciones_resumen_calculo/{id}/{estatus}/{version}',[ProcessViewController::class,'transacciones_calculo'])->middleware('auth');
 Route::post('/callidus_import', [ExcelController::class,'callidus_import'])->middleware('auth')->name('callidus_import')->middleware('auth');
-Route::get('/pagos_export/{id}',[ProcessViewController::class,'pagos_export'])->name('pagos_export')->middleware('auth');
+Route::get('/pagos_export/{id}/{version}',[ProcessViewController::class,'pagos_export'])->name('pagos_export')->middleware('auth');
 Route::get('/reclamos_export/{id}',[ProcessViewController::class,'reclamos_export'])->name('reclamos_export')->middleware('auth');
 Route::get('/callidus_no_usados/{id}',[ProcessViewController::class,'callidus_no_usados'])->name('callidus_no_usados')->middleware('auth');
 
@@ -71,10 +74,10 @@ Route::get('/export_validacion',[ProcessViewController::class,'export_validacion
 
 //RUTAS DE ESTADO DE CUENTA
 
-Route::get('/estado_cuenta_distribuidor/{id}/{id_user}',[ProcessViewController::class,'estado_cuenta_distribuidor'])->middleware('auth');
-Route::get('/acciones_distribuidores_calculo/{id}',[ProcessViewController::class,'acciones_distribuidores_calculo'])->name('acciones_distribuidores_calculo')->middleware('auth');
-Route::get('/transacciones_pago_distribuidor/{id}/{id_user}',[ProcessViewController::class,'transacciones_pago_distribuidor'])->middleware('auth');
-Route::get('/distribuidores_consulta_pago/{id}/{user_id}',[ProcessViewController::class,'distribuidores_consulta_pago'])->middleware('auth');
+Route::get('/estado_cuenta_distribuidor/{id}/{id_user}/{version}',[ProcessViewController::class,'estado_cuenta_distribuidor'])->middleware('auth');
+Route::get('/acciones_distribuidores_calculo/{id}/{version}',[ProcessViewController::class,'acciones_distribuidores_calculo'])->name('acciones_distribuidores_calculo')->middleware('auth');
+Route::get('/transacciones_pago_distribuidor/{id}/{id_user}/{version}',[ProcessViewController::class,'transacciones_pago_distribuidor'])->middleware('auth');
+Route::get('/distribuidores_consulta_pago/{id}/{user_id}/{version}',[ProcessViewController::class,'distribuidores_consulta_pago'])->middleware('auth');
 Route::post('/distribuidores_anticipo_no_pago',[ProcessFormsController::class,'distribuidores_anticipo_no_pago'])->name('distribuidores_anticipo_no_pago')->middleware('auth');
-Route::get('/ventas_inconsistencias/{id}',[ProcessViewController::class,'ventas_inconsistencias'])->name('ventas_inconsistencias')->middleware('auth');
+Route::get('/ventas_inconsistencias/{id}/{version}',[ProcessViewController::class,'ventas_inconsistencias'])->name('ventas_inconsistencias')->middleware('auth');
 Route::post('/accion_inconsistencia',[ProcessFormsController::class,'accion_inconsistencia'])->name('accion_inconsistencia')->middleware('auth');

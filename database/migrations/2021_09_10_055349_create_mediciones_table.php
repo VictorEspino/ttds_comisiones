@@ -17,6 +17,7 @@ class CreateMedicionesTable extends Migration
             $table->id();
             $table->foreignId('calculo_id');
             $table->foreignId('user_id');
+            $table->integer('version'); //Se refiere a si es una medicion de adelanto o cierre
             $table->integer('nuevas');
             $table->float('renta_nuevas');
             $table->integer('adiciones');

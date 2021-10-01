@@ -7,14 +7,14 @@
         <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-col border-b border-gray-800"> <!--ENCABEZADO-->
             <div class="w-full text-xl font-bold text-gray-100">Pagos</div>
             <div class="w-full text-lg font-semibold text-gray-100">{{$calculo->descripcion}}</div>            
-            <div class="w-full text-xs font-semibold text-gray-100">De {{$calculo->fecha_inicio}} a {{$calculo->fecha_fin}}</div>            
+            <div class="w-full text-xs font-semibold text-gray-100">De {{$calculo->periodo->fecha_inicio}} a {{$calculo->periodo->fecha_fin}}</div>            
         </div> <!--FIN ENCABEZADO-->
         
         <div class="w-full rounded-b-lg bg-ttds-secundario p-3 pb-7 flex flex-col"> <!--CONTENIDO-->
             <div class="w-full flex flex-col lg:flex-row justify-between space-y-3 lg:space-y-0">
                 <div class="w-full lg:w-1/2">
                     <?php
-                    $ruta=route('acciones_distribuidores_calculo',['id'=>$calculo->id]);
+                    $ruta=route('acciones_distribuidores_calculo',['id'=>$calculo->id,'version'=>$version]);
                     ?>
                     <form action="{{$ruta}}" class="">
                         <input class="w-2/3 lg:w-1/2 rounded p-1 border border-gray-300" type="text" name="query" value="{{$query}}" placeholder="Buscar distribuidor"> 
@@ -36,9 +36,13 @@
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Estado de<br>Cuenta</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Pago</center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipos<br>Previos</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br><span class="text-red-700">{{$version=="1"?'50%':''}}</span></center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipos<br>Extraordinarios<br><span class="text-red-700">{{$version=="1"?'50%':''}}</center></center></div>
+                                    @if($version=="2")
+                                        <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo<br>Ordinario<br><span class="text-red-700">{{$version=="1"?'50%':''}}</center></center></div>
+                                    @endif
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br>Pendientes</center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Anticipo<br>Comisiones Pendientes</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Anticipo {{$version=="1"?'para cierre':'Aplicado'}}<br>Comisiones Pendientes</center></div>
                                 </div>
                                 <?php $color=true; ?>
                                 @foreach($registros as $registro)
@@ -46,15 +50,22 @@
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->numero_distribuidor}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->nombre}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-ttds {{$color?'bg-gray-100':'bg-white'}}">
-                                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}"><i class="fas fa-balance-scale"></i></center></a>
+                                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}/{{$version}}"><i class="fas fa-balance-scale"></i></center></a>
                                     </div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->total_pago,0)}}</center></div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->comisiones,0)}}</center></div>
+                                    
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->anticipos_extraordinarios,0)}}</center></div>
-                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->nuevas_comision_no_pago+$registro->adiciones_comision_no_pago+$registro->renovaciones_comision_no_pago+$registro->nuevas_bono_no_pago+$registro->adiciones_bono_no_pago+$registro->renovaciones_bono_no_pago,0)}}</center></div>
+                                    @if($version=="2")
+                                        <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->anticipo_ordinario,0)}}</center></div>
+                                    @endif
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->comisiones_pendientes,0)}}</center></div>
                                     <div class="table-cell border-r border-l border-b border-gray-300 font-ligth text-green-700 {{$color?'bg-gray-100':'bg-white'}}">
                                         <center>
                                             ${{number_format($registro->anticipo_no_pago,0)}}
-                                            <a href="javascript:toogleForma({{$calculo->id}},{{$registro->id}});"><i class="far fa-money-bill-alt"></i></a>
+                                            @if((($etapa_cierre=="0" && $version=="1") || ($etapa_cierre=="1" && $version=="2")) && $terminado=="0")
+                                            <a href="javascript:toogleForma({{$calculo->id}},{{$registro->id}},'{{$registro->nombre}}');"><i class="far fa-money-bill-alt"></i></a>
+                                            @endif
                                         </center>   
                                      </div>
                                     
@@ -72,7 +83,7 @@
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tl-lg"></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Estado de<br>Cuenta</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br>Pendientes</center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Anticipo<br>Comisiones Pendientes</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Anticipo {{$version=="1"?'Programado':'Aplicado'}}<br>Comisiones Pendientes</center></div>
                                 </div>
                                 <?php $color=true; ?>
                                 @foreach($registros as $registro)
@@ -81,11 +92,13 @@
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-ttds {{$color?'bg-gray-100':'bg-white'}}">
                                         <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}"><i class="fas fa-balance-scale"></i></center></a>
                                     </div>
-                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->nuevas_comision_no_pago+$registro->adiciones_comision_no_pago+$registro->renovaciones_comision_no_pago+$registro->nuevas_bono_no_pago+$registro->adiciones_bono_no_pago+$registro->renovaciones_bono_no_pago,0)}}</center></div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->comisiones_pendientes,0)}}</center></div>
                                     <div class="table-cell border-r border-l border-b border-gray-300 font-ligth text-green-700 {{$color?'bg-gray-100':'bg-white'}}">
                                         <center>
                                             ${{number_format($registro->anticipo_no_pago,0)}}
-                                            <a href="javascript:toogleForma({{$calculo->id}},{{$registro->id}});"><i class="far fa-money-bill-alt"></i></a>
+                                            @if((($etapa_cierre=="0" && $version=="1") || ($etapa_cierre=="1" && $version=="2")) && $terminado=="0")
+                                            <a href="javascript:toogleForma({{$calculo->id}},{{$registro->id}},'{{$registro->nombre}}');"><i class="far fa-money-bill-alt"></i></a>
+                                            @endif
                                         </center>   
                                      </div>
                                     
@@ -105,18 +118,25 @@
                     <div class="w-full flex flex-col border border-gray-300 bg-white rounded-b">
                         <form action="{{route('distribuidores_anticipo_no_pago')}}" method="POST">
                             @csrf
+                            <input class="hidden" type="text" name="version" id="version" value="{{old('version')}}">
                             <input class="hidden" type="text" name="id_distribuidor" id="id_distribuidor" value="{{old('id_distribuidor')}}">
                             <input class="hidden" type="text" name="id_calculo" id="id_calculo" value="{{old('id_calculo')}}">
                             <div class="w-full px-2 flex flex-row">
+                                <div class="w-full">
+                                    <input class="w-full border border-white rounded" type="text" value="{{old('nombre')}}" id="nombre" name="nombre" readonly>
+                                </div>
+                            </div>
+                            <div class="w-full px-2 flex flex-row">
                                 <div class="w-1/2">
-                                    <span class="text-xs text-ttds">Comisiones</span><br>
+                                    <span class="text-xs text-ttds">Comisiones <span class="text-red-700">{{$version=="1"?'50%':''}}</span></span><br>
                                     <input class="w-full border border-white rounded" type="text" value="{{old('comisiones')}}" id="comisiones" name="comisiones" readonly>
                                 </div>
                                 <div class="w-1/2">
-                                    <span class="text-xs text-ttds">Bonos</span><br>
+                                    <span class="text-xs text-ttds">Bonos <span class="text-red-700">{{$version=="1"?'50%':''}}</span></span><br>
                                     <input class="w-full border border-white rounded" type="text" value="{{old('bonos')}}" id="bonos" name="bonos" readonly>
                                 </div>
                             </div>
+                            @if($version=="2")
                             <div class="w-full px-2 flex flex-row">
                                 <div class="w-1/2">
                                     <span class="text-xs text-ttds">Residual</span><br>
@@ -127,15 +147,18 @@
                                     <input class="w-full border border-white rounded" type="text" value="{{old('charge_back')}}" id="charge_back" name="charge_back" readonly>
                                 </div>
                             </div>
+                            @endif
                             <div class="w-full px-2 flex flex-row">
                                 <div class="w-1/2">
-                                    <span class="text-xs text-ttds">Anticipos Extraordinarios</span><br>
+                                    <span class="text-xs text-ttds">Anticipos Extraordinarios <span class="text-red-700">{{$version=="1"?'50%':''}}</span></span><br>
                                     <input class="w-full border border-white rounded" type="text" value="{{old('anticipos_extraordinarios')}}" id="anticipos_extraordinarios" name="anticipos_extraordinarios" readonly>
                                 </div>
+                                @if($version=="2")
                                 <div class="w-1/2">
                                     <span class="text-xs text-ttds">Retroactivos (Reproceso)</span><br>
                                     <input class="w-full border border-white rounded" type="text" value="{{old('retroactivos_reproceso')}}" id="retroactivos_reproceso" name="retroactivos_reproceso" readonly>
                                 </div>
+                                @endif
                             </div>
                             <div class="w-full px-2 flex flex-row">
                                 <div class="w-1/3">
@@ -190,12 +213,13 @@
             document.getElementById('notas').style.display="none";
             
         }
-        function toogleForma(id,user_id)
+        function toogleForma(id,user_id,nombre)
         {
+            document.getElementById('nombre').value=nombre;
             document.getElementById('forma').style.display="block";
             document.getElementById('tabla').classList.remove("w-full");
-            document.getElementById('tabla').classList.add("w-full")
-            document.getElementById('tabla').classList.add("lg:w-1/2");
+            //document.getElementById('tabla').classList.add("w-full")
+            //document.getElementById('tabla').classList.add("lg:w-1/2");
             var xmlhttp = new XMLHttpRequest();
             xmlhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
@@ -216,12 +240,17 @@
                         formatter.format(2500); /* $2,500.00 */
                         document.getElementById("id_distribuidor").value=respuesta.user_id;
                         document.getElementById("id_calculo").value=respuesta.calculo_id;
+                        document.getElementById("version").value={{$version}};
+                        
                         document.getElementById("comisiones").value=formatter.format(parseFloat(respuesta.comision_adiciones)+parseFloat(respuesta.comision_nuevas)+parseFloat(respuesta.comision_renovaciones));
                         document.getElementById("bonos").value=formatter.format(parseFloat(respuesta.bono_adiciones)+parseFloat(respuesta.bono_nuevas)+parseFloat(respuesta.bono_renovaciones));
+                        @if($version=="2")
                         document.getElementById("residual").value=formatter.format(respuesta.residual);
                         document.getElementById("charge_back").value=formatter.format(respuesta.charge_back);
-                        document.getElementById("anticipos_extraordinarios").value=formatter.format(respuesta.anticipos_extraordinarios);
                         document.getElementById("retroactivos_reproceso").value=formatter.format(respuesta.retroactivos_reproceso);
+                        @endif
+                        document.getElementById("anticipos_extraordinarios").value=formatter.format(respuesta.anticipos_extraordinarios);
+                        
                         document.getElementById("lineas_pendientes").value=parseInt(respuesta.adiciones_no_pago)+parseInt(respuesta.nuevas_no_pago)+parseInt(respuesta.renovaciones_no_pago);
                         document.getElementById("comision_pendiente").value=formatter.format(parseFloat(respuesta.adiciones_comision_no_pago)+parseFloat(respuesta.nuevas_comision_no_pago)+parseFloat(respuesta.renovaciones_comision_no_pago));
                         document.getElementById("bono_pendiente").value=formatter.format(parseFloat(respuesta.adiciones_bono_no_pago)+parseFloat(respuesta.nuevas_bono_no_pago)+parseFloat(respuesta.renovaciones_bono_no_pago));
@@ -237,7 +266,7 @@
     
                 }
             };  
-            xmlhttp.open("GET", "/distribuidores_consulta_pago/" + id + "/" + user_id, true);
+            xmlhttp.open("GET", "/distribuidores_consulta_pago/" + id + "/" + user_id + "/{{$version}}", true);
             xmlhttp.send();
         }
     <?php
@@ -246,8 +275,8 @@
     ?>  
             document.getElementById('forma').style.display="block";
             document.getElementById('tabla').classList.remove("w-full");
-            document.getElementById('tabla').classList.add("w-full")
-            document.getElementById('tabla').classList.add("lg:w-1/2");
+            //document.getElementById('tabla').classList.add("w-full")
+            //document.getElementById('tabla').classList.add("lg:w-1/2");
     <?php
         }
     ?>

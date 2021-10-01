@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAnticipoExtraordinariosTable extends Migration
+class CreatePeriodosTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,13 @@ class CreateAnticipoExtraordinariosTable extends Migration
      */
     public function up()
     {
-        Schema::create('anticipo_extraordinarios', function (Blueprint $table) {
+        Schema::create('periodos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
-            $table->foreignId('periodo_id');
-            $table->foreignId('calculo_id_aplicado')->default(0);
             $table->string('descripcion');
-            $table->float('anticipo');
-            $table->boolean('en_adelanto')->default(0);
+            $table->date('fecha_inicio');
+            $table->date('fecha_fin');
+            $table->integer('mes');
+            $table->integer('año');
             $table->timestamps();
         });
     }
@@ -32,6 +31,6 @@ class CreateAnticipoExtraordinariosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('anticipo_extraordinarios');
+        Schema::dropIfExists('periodos');
     }
 }

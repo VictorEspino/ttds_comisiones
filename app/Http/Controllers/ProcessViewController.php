@@ -13,6 +13,7 @@ use App\Models\ComisionVenta;
 use App\Models\Mediciones;
 use App\Models\CallidusVenta;
 use App\Models\Reclamo;
+use App\Models\Periodo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -44,16 +45,14 @@ class ProcessViewController extends Controller
     {
         return(view('distribuidores_nuevo'));
     }
-    public function seguimiento_calculos(Request $request)
-    {
-        return(view('seguimiento_calculos',['calculos'=>Calculo::all()]));
-    }
+    
 
     public function transacciones_calculo(Request $request)
     {
         $query=ComisionVenta::with('venta','venta.user','callidus')
             ->where('calculo_id',$request->id)
             ->where('estatus_inicial',$request->estatus)
+            ->where('version',$request->version)
             ->get();
         return(view('transacciones_calculo',['query'=>$query,'pago'=>$request->estatus]));
     }
@@ -111,164 +110,68 @@ class ProcessViewController extends Controller
     {
         return(Venta::find($request->id));
     }
-    public function detalle_calculo(Request $request)
-    {
-        $calculo=Calculo::find($request->id);
-        $validaciones=Venta::select(DB::raw('validado,count(*) as n'))
-                    ->whereBetween('fecha', [$calculo->fecha_inicio,$calculo->fecha_fin ])
-                    ->groupBy('validado')
-                    ->get();
-        $totales=0;
-        $validados=0;
-        $no_validados=0;
-        foreach($validaciones as $validacion)
-        {
-            $totales=$totales+$validacion->n;
-            if($validacion->validado=="1")
-            {
-                $validados=$validacion->n;
-            }
-            else
-            {
-                $no_validados=$validacion->n;
-            }
-        }
-        $porcentaje_validacion=0;
-        try{
-            $porcentaje_validacion=intval(100*$validados/$totales);
-        }
-        catch(\Exception $e){
-            $porcentaje_validacion=0;
-        }
-        $n_callidus=CallidusVenta::select(DB::raw('count(*) as n'))
-                        ->where('calculo_id',$request->id)
-                        ->get()
-                        ->first();
-
-        $totales_comision=0;
-        $pagados=0;
-        $no_pagados=0;
-        $porcentaje_comisionado=0;
-        $procesados=ComisionVenta::select(DB::raw('estatus_inicial,count(*) as n'))
-                    ->where('calculo_id',$request->id)
-                    ->groupBy('estatus_inicial')
-                    ->get();
-        foreach($procesados as $procesado)
-        {
-            $totales_comision=$totales_comision+$procesado->n;
-            if($procesado->estatus_inicial=="PAGO")
-            {
-                $pagados=$procesado->n;
-            }
-            else
-            {
-                $no_pagados=$procesado->n;
-            }
-        }
-        $porcentaje_comisionado=0;
-        try{
-            $porcentaje_comisionado=intval(100*$pagados/$totales_comision);
-        }
-        catch(\Exception $e){
-            $porcentaje_comisionado=0;
-        }
-
-        $n_pagos=PagosDistribuidor::select(DB::raw('count(*) as n'))
-                        ->where('calculo_id',$request->id)
-                        ->get()
-                        ->first();
-
-        $n_inconsistencias=ComisionVenta::select(DB::raw('count(*) as n'))
-                        ->where('calculo_id_proceso',$request->id)
-                        ->where('consistente',false)
-                        ->get()
-                        ->first();
-
-        $n_reclamos=Reclamo::select(DB::raw('count(*) as n'))
-                        ->where('calculo_id',$request->id)
-                        ->get()
-                        ->first();
-        
-        $n_callidus_usados=ComisionVenta::select(DB::raw('count(*) as n'))
-                        ->where('calculo_id_proceso',$request->id)
-                        ->get()
-                        ->first();
-
-        $n_callidus_sin_usar=$n_callidus->n-$n_callidus_usados->n;
-
-
-        return(view('detalle_calculo',['id_calculo'=>$calculo->id,
-                                       'callidus'=>$calculo->callidus,
-                                       'n_callidus'=>$n_callidus->n,
-                                       'porcentaje_validacion'=>$porcentaje_validacion,
-                                       'fecha_inicio'=>$calculo->fecha_inicio,
-                                       'fecha_fin'=>$calculo->fecha_fin,
-                                       'descripcion'=>$calculo->descripcion,
-                                       'tipo'=>$calculo->tipo,
-                                       'validados'=>$validados,
-                                       'no_validados'=>$no_validados,
-                                       'totales'=>$totales,
-                                       'totales_comision'=>$totales_comision,
-                                       'pagados'=>$pagados,
-                                       'no_pagados'=>$no_pagados,
-                                       'porcentaje_comisionado'=>$porcentaje_comisionado,
-                                       'n_pagos'=>$n_pagos->n,
-                                       'n_inconsistencias'=>$n_inconsistencias->n,
-                                       'n_reclamos'=>$n_reclamos->n,
-                                       'n_callidus_sin_usar'=>$n_callidus_sin_usar,
-                                    ]));
-    }
+    
     public function acciones_distribuidores_calculo(Request $request)
     {
         $id_calculo=$request->id;
-        $calculo=Calculo::find($id_calculo);
+        $calculo=Calculo::with('periodo')->find($id_calculo);
+        $etapa_cierre=$calculo->cierre;
+        $version=$request->version;
+        $terminado=$calculo->terminado;
         if(isset($_GET['query']))
         {
-            $registros=Distribuidor::where('nombre','like','%'.$_GET["query"].'%')
-                                    ->orderBy('nombre','asc')
-                                    ->paginate(10);
             $registros=DB::table('pagos_distribuidors')
                                     ->join('users', 'users.id', '=', 'pagos_distribuidors.user_id')
+                                    ->leftJoin(DB::raw('(select user_id,anticipo from anticipo_no_pagos where calculo_id='.$id_calculo.') as anp'),
+                                            'anp.user_id','=','pagos_distribuidors.user_id'
+                                            )
                                     ->select('users.id',DB::raw('users.user as numero_distribuidor'),DB::raw('users.name as nombre'),
                                                                 'pagos_distribuidors.total_pago',
+                                                                DB::raw('pagos_distribuidors.comision_nuevas + pagos_distribuidors.bono_nuevas +  pagos_distribuidors.comision_adiciones + pagos_distribuidors.bono_adiciones +pagos_distribuidors.comision_renovaciones + pagos_distribuidors.bono_renovaciones as comisiones'),
+                                                                DB::raw('pagos_distribuidors.nuevas_comision_no_pago + pagos_distribuidors.nuevas_bono_no_pago +  pagos_distribuidors.adiciones_comision_no_pago + pagos_distribuidors.adiciones_bono_no_pago + pagos_distribuidors.renovaciones_comision_no_pago + pagos_distribuidors.renovaciones_bono_no_pago as comisiones_pendientes'),
+                                                                'pagos_distribuidors.anticipo_ordinario',
                                                                 'pagos_distribuidors.anticipos_extraordinarios',
                                                                 'pagos_distribuidors.anticipo_no_pago',
-                                                                'pagos_distribuidors.nuevas_comision_no_pago',
-                                                                'pagos_distribuidors.adiciones_comision_no_pago',
-                                                                'pagos_distribuidors.renovaciones_comision_no_pago',
-                                                                'pagos_distribuidors.nuevas_bono_no_pago',
-                                                                'pagos_distribuidors.adiciones_bono_no_pago',
-                                                                'pagos_distribuidors.renovaciones_bono_no_pago',
+                                                                DB::raw('anp.anticipo as anticipo_no_pago')
                                                                 )
                                     ->where('pagos_distribuidors.calculo_id',$id_calculo)
+                                    ->where('pagos_distribuidors.version',$version)
                                     ->where('users.name','like','%'.$_GET["query"].'%')
                                     ->orderBy('users.name','asc')
                                     ->paginate(10);
             $registros->appends($request->all());
             return(view('acciones_distribuidores_calculo',['calculo'=>$calculo,
-                                                           'registros'=>$registros,'query'=>$_GET['query']
+                                                           'registros'=>$registros,'query'=>$_GET['query'],
+                                                           'version'=>$version,
+                                                           'etapa_cierre'=>$etapa_cierre,
+                                                           'terminado'=>$terminado
                                                           ]));
         }
         else
         {
             $registros=DB::table('pagos_distribuidors')
                                 ->join('users', 'users.id', '=', 'pagos_distribuidors.user_id')
+                                ->leftJoin(DB::raw('(select user_id,anticipo from anticipo_no_pagos where calculo_id='.$id_calculo.') as anp'),
+                                            'anp.user_id','=','pagos_distribuidors.user_id'
+                                            )
                                 ->select('users.id',DB::raw('users.user as numero_distribuidor'),DB::raw('users.name as nombre'),
                                                                 'pagos_distribuidors.total_pago',
+                                                                DB::raw('pagos_distribuidors.comision_nuevas + pagos_distribuidors.bono_nuevas +  pagos_distribuidors.comision_adiciones + pagos_distribuidors.bono_adiciones +pagos_distribuidors.comision_renovaciones + pagos_distribuidors.bono_renovaciones as comisiones'),
+                                                                DB::raw('pagos_distribuidors.nuevas_comision_no_pago + pagos_distribuidors.nuevas_bono_no_pago +  pagos_distribuidors.adiciones_comision_no_pago + pagos_distribuidors.adiciones_bono_no_pago + pagos_distribuidors.renovaciones_comision_no_pago + pagos_distribuidors.renovaciones_bono_no_pago as comisiones_pendientes'),
+                                                                'pagos_distribuidors.anticipo_ordinario',
                                                                 'pagos_distribuidors.anticipos_extraordinarios',
                                                                 'pagos_distribuidors.anticipo_no_pago',
-                                                                'pagos_distribuidors.nuevas_comision_no_pago',
-                                                                'pagos_distribuidors.adiciones_comision_no_pago',
-                                                                'pagos_distribuidors.renovaciones_comision_no_pago',
-                                                                'pagos_distribuidors.nuevas_bono_no_pago',
-                                                                'pagos_distribuidors.adiciones_bono_no_pago',
-                                                                'pagos_distribuidors.renovaciones_bono_no_pago',
+                                                                DB::raw('anp.anticipo as anticipo_no_pago')
                                                                 )
                                 ->where('pagos_distribuidors.calculo_id',$id_calculo)
+                                ->where('pagos_distribuidors.version',$version)
                                 ->orderBy('users.name','asc')
                                 ->paginate(10);
             return(view('acciones_distribuidores_calculo',['calculo'=>$calculo,
                                 'registros'=>$registros,'query'=>'',
+                                'version'=>$version,
+                                'etapa_cierre'=>$etapa_cierre,
+                                'terminado'=>$terminado
                                ]));
         }
     }
@@ -277,25 +180,27 @@ class ProcessViewController extends Controller
     {
         $id_calculo=$request->id;
         $id_user=$request->id_user;
-        $calculo=Calculo::find($id_calculo);
+        $version=$request->version;
+        $calculo=Calculo::with('periodo')->find($id_calculo);
         $user=User::find($id_user);
-        $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->get()->first();
-        $anticipos_aplicados=AnticipoExtraordinario::where('aplicado_calculo_id',$id_calculo)->where('user_id',$id_user)->get();
+        $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->where('version',$version)->get()->first();
+        $anticipos_aplicados=AnticipoExtraordinario::with('periodo')->where('calculo_id_aplicado',$id_calculo)->where('user_id',$id_user)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
         return(view('estado_cuenta_distribuidor',[  'calculo'=>$calculo,
                                                     'user'=>$user,
                                                     'pago'=>$pago,
                                                     'anticipos_aplicados'=>$anticipos_aplicados,
+                                                    'version'=>$version
                                                 ]));
     }
     public function transacciones_pago_distribuidor(Request $request)
     {
 
-    $sql_consulta="SELECT a.upfront,a.bono,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='PAGO'";
+    $sql_consulta="SELECT a.upfront,a.bono,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='PAGO' and a.version='".$request->version."'";
     $query=DB::select(DB::raw(
         $sql_consulta
        ));
 
-    $sql_consulta_no_pago="SELECT a.upfront,a.bono,0 as c_renta,0 as c_plazo,0 as c_descuento_multirenta,0 as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='NO PAGO'";
+    $sql_consulta_no_pago="SELECT a.upfront,a.bono,0 as c_renta,0 as c_plazo,0 as c_descuento_multirenta,0 as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='NO PAGO' and a.version='".$request->version."'";
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
@@ -304,29 +209,34 @@ class ProcessViewController extends Controller
 
     public function distribuidores_consulta_pago(Request $request)
     {
-        return(PagosDistribuidor::where('calculo_id',$request->id)->where('user_id',$request->user_id)->get()->first());
+        return(PagosDistribuidor::where('calculo_id',$request->id)->where('user_id',$request->user_id)->where('version',$request->version)->get()->first());
     }
 
     public function distribuidores_anticipos_extraordinarios(Request $request)
     {
+        $años=Periodo::select(DB::raw('distinct(año) as valor'))
+                    ->whereRaw('fecha_fin>=(now()-60)')
+                    ->get()
+                    ->take(2);
+
         if(isset($_GET['query']))
         {
             $registros=Distribuidor::where('nombre','like','%'.$_GET["query"].'%')
                                     ->orderBy('nombre','asc')
                                     ->paginate(10);
             $registros->appends($request->all());
-            return(view('distribuidores_anticipos_extraordinarios',['registros'=>$registros,'query'=>$_GET['query']]));
+            return(view('distribuidores_anticipos_extraordinarios',['registros'=>$registros,'query'=>$_GET['query'],'años'=>$años]));
         }
         else
         {
             $registros=Distribuidor::orderBy('nombre','asc')
                                     ->paginate(10);
-            return(view('distribuidores_anticipos_extraordinarios',['registros'=>$registros,'query'=>'']));
+            return(view('distribuidores_anticipos_extraordinarios',['registros'=>$registros,'query'=>'','años'=>$años]));
         }
     }
     public function anticipos_extraordinarios_consulta(Request $request)
     {
-        return(AnticipoExtraordinario::where('user_id',$request->user_id)->where('aplicado',false)->get());
+        return(AnticipoExtraordinario::with('periodo')->where('user_id',$request->user_id)->where('calculo_id_aplicado',0)->get());
     }
     public function ventas_review(Request $request)
     {
@@ -362,6 +272,7 @@ class ProcessViewController extends Controller
     public function ventas_inconsistencias(Request $request)
     {
         $calculo=Calculo::find($request->id);
+        $version=$request->version;
         if(isset($_GET['query']))
         {
             $registros=DB::table('comision_ventas')
@@ -375,6 +286,7 @@ class ProcessViewController extends Controller
                                 ->join('callidus_ventas', 'comision_ventas.callidus_venta_id', '=', 'callidus_ventas.id')
                                 ->where('comision_ventas.calculo_id_proceso',$request->id)
                                 ->where('comision_ventas.consistente',0)
+                                ->where('comision_ventas.version',$version)
                                 ->where(function($query){
                                     $query->where('ventas.cliente','like','%'.$_GET["query"].'%')
                                           ->orWhere('ventas.folio','like','%'.$_GET["query"].'%')
@@ -384,7 +296,7 @@ class ProcessViewController extends Controller
                                 ->paginate(10);
             $registros->appends($request->all());
             
-            return(view('ventas_inconsistencias',['calculo'=>$calculo,'registros'=>$registros,'query'=>$_GET['query']]));
+            return(view('ventas_inconsistencias',['calculo'=>$calculo,'registros'=>$registros,'query'=>$_GET['query'],'version'=>$version]));
         }
         else
         {
@@ -399,8 +311,9 @@ class ProcessViewController extends Controller
                                 ->join('callidus_ventas', 'comision_ventas.callidus_venta_id', '=', 'callidus_ventas.id')
                                 ->where('comision_ventas.calculo_id_proceso',$request->id)
                                 ->where('comision_ventas.consistente',0)
+                                ->where('comision_ventas.version',$version)
                                 ->paginate(10);
-            return(view('ventas_inconsistencias',['calculo'=>$calculo,'registros'=>$registros,'query'=>'']));
+            return(view('ventas_inconsistencias',['calculo'=>$calculo,'registros'=>$registros,'query'=>'','version'=>$version]));
         }
 
     }
@@ -411,7 +324,7 @@ class ProcessViewController extends Controller
     }
     public function pagos_export(Request $request)
     {
-        $query=PagosDistribuidor::with('user')->where('calculo_id',$request->id)->get();
+        $query=PagosDistribuidor::with('user')->where('calculo_id',$request->id)->where('version',$request->version)->get();
         return(view('pagos_export',['query'=>$query]));
     }
     public function reclamos_export(Request $request)

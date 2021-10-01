@@ -9,7 +9,8 @@
             <div class="w-full md:w-5/12 p-3 flex flex-col">
                 <div class="font-semibold text-2xl text-gray-700">{{$user->name}}</div>
                 <div class="font-semibold text-lg text-gray-700">{{$calculo->descripcion}}</div>
-                <div class="text-sm text-gray-700">De {{$calculo->fecha_inicio}} a {{$calculo->fecha_fin}}</div>
+                <div class="text-sm text-gray-700">De {{$calculo->periodo->fecha_inicio}} a {{$calculo->periodo->fecha_fin}}</div>
+                <div class="font-semibold text-2xl text-red-700 pt-2">{{$version=="1"?'Anticipo Ordinario':'Calculo Final'}}</div>
             </div> 
             <div class="w-full md:w-3/12 flex flex-col bg-gradient-to-br from-blue-700 to-green-300 rounded-lg p-4 shadow-xl">
                 <div class="w-full flex flex-row justify-between">
@@ -41,18 +42,20 @@
                         <span class="text-sm font-semibold text-yellow-300">{{number_format($pago->adiciones_no_pago,0)}}</span>
                     </div>
                 </div>
-                <div class="w-full py-3 flex flex-col">
-                    <div>
-                        <span class="text-xl font-semibold text-yellow-300">
-                            ${{number_format($pago->adiciones_comision_no_pago,0)}}
-                        </span>
+                    @if($version=="2")
+                    <div class="w-full py-3 flex flex-col">
+                        <div>
+                            <span class="text-xl font-semibold text-yellow-300">
+                                ${{number_format($pago->adiciones_comision_no_pago,0)}}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-semibold text-yellow-300">
+                                Bono: ${{number_format($pago->adiciones_bono_no_pago,0)}}
+                            </span>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-xs font-semibold text-yellow-300">
-                            Bono: ${{number_format($pago->adiciones_bono_no_pago,0)}}
-                        </span>
-                    </div>
-                </div>
+                    @endif
                 @endif
             </div>
             <div class="w-full md:w-3/12 flex flex-col bg-gradient-to-br from-pink-600 to-yellow-300 rounded-lg p-4 shadow-xl">
@@ -85,6 +88,7 @@
                         <span class="text-sm font-semibold text-yellow-300">{{number_format($pago->nuevas_no_pago,0)}}</span>
                     </div>
                 </div>
+                @if($version=="2")
                 <div class="w-full py-3 flex flex-col">
                     <div>
                         <span class="text-xl font-semibold text-yellow-300">
@@ -97,6 +101,7 @@
                         </span>
                     </div>
                 </div>
+                @endif
                 @endif
             </div>
             <div class="w-full md:w-3/12 flex flex-col bg-gradient-to-br from-purple-700 to-pink-300 rounded-lg p-4 shadow-xl">
@@ -122,6 +127,7 @@
                         <span class="text-sm font-semibold text-yellow-300">{{number_format($pago->renovaciones_no_pago,0)}}</span>
                     </div>
                 </div>
+                @if($version=="2")
                 <div class="w-full py-3 flex flex-col">
                     <div>
                         <span class="text-xl font-semibold text-yellow-300">
@@ -129,6 +135,7 @@
                         </span>
                     </div>
                 </div>
+                @endif
                 @endif
             </div>
         </div>
@@ -159,22 +166,28 @@
                     <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
                             <center>
-                                <a href="/transacciones_pago_distribuidor/{{$calculo->id}}/{{$user->id}}">
+                                <a href="/transacciones_pago_distribuidor/{{$calculo->id}}/{{$user->id}}/{{$version}}">
                                     <i class="fas fa-file-excel"></i>
                                 </a>
                             </td>
-                        <td class="border-b border-gray-500 px-3">Comisiones</td>
+                        <td class="border-b border-gray-500 px-3">Comisiones <span class="text-red-700">{{$version=="1"?'50%':'100%'}}</span></td>
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones,0)}}</center></td>
                     </tr>
                     <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"></td>
-                        <td class="border-b border-gray-500 px-3">Bonos</td>
+                        <td class="border-b border-gray-500 px-3">Bonos <span class="text-red-700">{{$version=="1"?'50%':'100%'}}</span></td>
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->bono_nuevas+$pago->bono_adiciones+$pago->bono_renovaciones,0)}}</center></td>
                     </tr>
+                    @if($version=="2")
                     <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center><i class="fas fa-file-excel"></i></td>
                         <td class="border-b border-gray-500 px-3">Residual</td>
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->residual,0)}}</center></td>
+                    </tr>
+                    <tr class="border-l border-r border-gray-300">
+                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center></td>
+                        <td class="border-b border-gray-500 px-3">Retroactivos</td>
+                        <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->retroactivos_reproceso,0)}}</center></td>
                     </tr>
                     <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 "></td>
@@ -183,9 +196,22 @@
                     </tr>
                     <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 "></td>
-                        <td class="border-b border-gray-500 px-3">Anticipo previo</td>
+                        <td class="border-b border-gray-500 px-3">Anticipo ordinario</td>
+                        <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipo_ordinario,0)}}</center></td>
+                    </tr>
+                    @endif
+                    <tr class="border-l border-r border-gray-300">
+                        <td class="border-b border-gray-500 "></td>
+                        <td class="border-b border-gray-500 px-3">Anticipos extraordinarios</td>
                         <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipos_extraordinarios,0)}}</center></td>
                     </tr>
+                    @if($version=="2")
+                    <tr class="border-l border-r border-gray-300">
+                        <td class="border-b border-gray-500 "></td>
+                        <td class="border-b border-gray-500 px-3">Charge-Back</td>
+                        <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->charge_back,0)}}</center></td>
+                    </tr>
+                    @endif
                     <tr class="rounded-b-lg shadow-lg bg-black text-gray-200 font-bold">
                         <td class="rounded-bl-lg"></td>
                         <td class="p-3">Saldo a pagar</td>
@@ -200,15 +226,19 @@
             <div class="w-full p-3 text-base bg-white rounded-b-lg shaddow-xl">
                 <table>
                     <tr>
-                        <td class="p-3 text-ttds">Fecha referencia</td>
+                        <td class="p-3 text-ttds">Periodo</td>
                         <td class="p-3 text-ttds">Anticipo</td>
                         <td class="p-3 text-ttds">Descripcion</td>
+                        <td class="p-3 text-ttds">% Aplicado</td>
+                        <td class="p-3 text-ttds"></td>
                     </tr>
                     @foreach($anticipos_aplicados as $anticipo)
                     <tr>
-                        <td class="px-3 text-gray-600">{{$anticipo->fecha_relacionada}}</td>
+                        <td class="px-3 text-gray-600">{{$anticipo->periodo->descripcion}}</td>
                         <td class="px-3 text-gray-600">${{number_format($anticipo->anticipo,0)}}</td>
                         <td class="px-3 text-gray-600">{{$anticipo->descripcion}}</td>
+                        <td class="px-3 {{$version=="1"?'text-red-700':'text-green-700'}}"><center>{{$version=="1"?'50':'100'}}%</center></td>
+                        <td class="px-3 text-gray-600 text-xs"><center>{{$version=="1"?'Aplicacion de referencia':'Saldado'}}</center></td>
                     </tr>
                     @endforeach
                 </table>

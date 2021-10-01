@@ -61,11 +61,10 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
             '*.tipo' => ['required',Rule::in(['NUEVA','ADICION','RENOVACION'])],
             '*.fecha' => ['required'],
             '*.folio'=>['required','numeric'],
-            //'*.propiedad' => ['required',Rule::in(['NUEVO','PROPIO'])],
+            '*.propiedad' => ['required',Rule::in(['NUEVO','PROPIO'])],
             '*.plan' => ['required'],
             '*.plazo' => ['required','numeric',Rule::in(['12','18','24'])],
             '*.renta' => ['required','numeric'],
-            '*.equipo' => ['required'],
             '*.descuento_multirenta' => ['required','numeric'],
             '*.afectacion_comision' => ['required','numeric'],
         ];

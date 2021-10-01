@@ -12,9 +12,8 @@
         @foreach($calculos as $calculo)
         <div class="w-full flex flex-col justify-center p-10">
             <div class="w-full text-lg font-semibold flex justify-center">{{$calculo->descripcion}}</div>
-            <div class="w-full text-sm flex justify-center">De {{$calculo->fecha_inicio}} a {{$calculo->fecha_fin}}</div>
+            <div class="w-full text-sm flex justify-center">De {{$calculo->periodo->fecha_inicio}} a {{$calculo->periodo->fecha_fin}}</div>
             <div class="w-full text-sm flex justify-center p-5"><a href="{{route('detalle_calculo',['id'=>$calculo->id])}}">Detalles</a></div>
-            <div class="w-full text-sm flex justify-center p-5"><a href="{{route('acciones_distribuidores_calculo',['id'=>$calculo->id])}}">Acciones y Complementos</a></div>
         </div>
         @endforeach
         @if(session('status')!='')

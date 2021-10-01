@@ -12,6 +12,7 @@ use App\Models\AnticipoNoPago;
 use App\Models\AnticipoExtraordinario;
 use App\Models\PagosDistribuidor;
 use App\Models\Reclamo;
+use App\Models\Periodo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -199,24 +200,6 @@ class ProcessFormsController extends Controller
         return(back()->withStatus('Registro de '.$request->nombre.' creado con exito, numero distribuidor y usuario de sistema = '.$registro->numero_distribuidor.''));
         
     }
-    public function calculo_nuevo(Request $request)
-    {
-        $request->validate([
-            'descripcion'=> 'required|max:255',
-            'fecha_inicio'=> 'required|date_format:Y-m-d',
-            'fecha_fin'=> 'required|date_format:Y-m-d',
-            'tipo'=> 'required',
-        ]);
-        $registro=new Calculo;
-        $registro->descripcion=$request->descripcion;
-        $registro->fecha_inicio=$request->fecha_inicio;
-        $registro->fecha_fin=$request->fecha_fin;
-        $registro->user_id=Auth::user()->id;
-        $registro->tipo=$request->tipo;
-        $registro->save();
-        return(back()->withStatus('Registro de calculo de comisiones'.$request->descripcion.' creado con exito'));
-        
-    }
     public function ventas_actualiza(Request $request)
     {
         $request->validate([
@@ -282,27 +265,37 @@ class ProcessFormsController extends Controller
             $registro->save();
         }
 
-        $pago=PagosDistribuidor::where('user_id',$request->id_distribuidor)->where('calculo_id',$request->id_calculo)->get()->first();
-        $pago->total_pago=$pago->total_pago-$pago->anticipo_no_pago+$request->anticipo_no_pago;
-        $pago->anticipo_no_pago=$request->anticipo_no_pago;
-        $pago->save();
+        if($request->version=="2")
+        {
+            $pago=PagosDistribuidor::where('user_id',$request->id_distribuidor)
+                                    ->where('calculo_id',$request->id_calculo)
+                                    ->where('version',2)
+                                    ->get()
+                                    ->first();
+            $pago->total_pago=$pago->total_pago-$pago->anticipo_no_pago+$request->anticipo_no_pago;
+            $pago->anticipo_no_pago=$request->anticipo_no_pago;
+            $pago->save();
 
-        return(back()->withStatus('Anticipo aplicado con exito!'));
+            return(back()->withStatus('Anticipo APLICADO con exito!'));
+        }
+
+        return(back()->withStatus('Anticipo PROGRAMADO PARA CIERRE con exito!'));
 
     }
     public function distribuidores_anticipos_extraordinarios_save(Request $request)
     {
         $request->validate([
-            'fecha'=> 'required|date_format:Y-m-d',
+            'mes'=> 'required',
+            'año'=> 'required',
             'anticipo'=>'required|numeric',
             'descripcion'=>'required|max:255'
         ]);
+        $periodo=Periodo::where('año',$request->año)->where('mes',$request->mes)->get()->first();
         $registro=new AnticipoExtraordinario;
         $registro->user_id=$request->id_distribuidor;
-        $registro->fecha_relacionada=$request->fecha;
+        $registro->periodo_id=$periodo->id;
         $registro->anticipo=$request->anticipo;
         $registro->descripcion=$request->descripcion;
-        $registro->aplicado=false;
         $registro->save();
         return(back()->withStatus('Anticipo guardado con exito!'));
     }

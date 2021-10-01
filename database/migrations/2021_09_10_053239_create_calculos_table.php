@@ -16,10 +16,11 @@ class CreateCalculosTable extends Migration
         Schema::create('calculos', function (Blueprint $table) {
             $table->id();
             $table->string('descripcion');
-            $table->integer('tipo');
-            $table->date('fecha_inicio');
-            $table->date('fecha_fin');
+            $table->foreignId('periodo_id');
             $table->foreignId('user_id');
+            $table->boolean('adelanto')->default(0);
+            $table->boolean('cierre')->default(0);
+            $table->boolean('terminado')->default(0);
             $table->timestamps();
         });
     }

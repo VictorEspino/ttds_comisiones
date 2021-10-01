@@ -17,6 +17,7 @@ class CreatePagosDistribuidorsTable extends Migration
             $table->id();
             $table->foreignId('calculo_id');
             $table->foreignId('user_id');
+            $table->integer('version');
             $table->integer('nuevas');
             $table->float('renta_nuevas');
             $table->float('comision_nuevas');
@@ -41,6 +42,7 @@ class CreatePagosDistribuidorsTable extends Migration
             $table->float('renovaciones_renta_no_pago');
             $table->float('renovaciones_comision_no_pago');
             $table->float('renovaciones_bono_no_pago');
+            $table->float('anticipo_ordinario');
             $table->float('anticipo_no_pago');
             $table->float('residual');
             $table->float('charge_back');

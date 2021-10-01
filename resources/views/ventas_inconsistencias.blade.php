@@ -13,7 +13,7 @@
         <div class="w-full rounded-b-lg bg-ttds-secundario p-3 pb-7 flex flex-col"> <!--CONTENIDO-->
             <div class="w-full flex flex-col lg:flex-row justify-between space-y-3 lg:space-y-0">
                 <div class="w-full lg:w-1/2">
-                    <form action="{{route('ventas_inconsistencias',['id'=>$calculo->id])}}" class="">
+                    <form action="{{route('ventas_inconsistencias',['id'=>$calculo->id,'version'=>$version])}}" class="">
                         <input class="w-2/3 lg:w-1/2 rounded p-1 border border-gray-300" type="text" name="query" value="{{$query}}" placeholder="Buscar Cliente/DN/Cuenta/Folio"> 
                         <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Buscar</button>
                     </form>

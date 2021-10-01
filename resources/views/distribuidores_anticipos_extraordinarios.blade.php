@@ -68,18 +68,45 @@
                                     <input class="w-full rounded p-1 border border-white" type="text" value="{{old('nombre')}}" id="nombre" name="nombre">
                                 </div>
                             </div>
-                            <div class="w-full px-2 flex flex-row">
-                                <div class="w-1/3">
-                                    <span class="text-xs text-ttds">Fecha de referencia</span><br>
-                                    <input class="w-full rounded p-1 border border-gray-300" type="text" value="{{old('fecha')}}" id="fecha" name="fecha" placeholder="YYYY-MM-DD">
-                                    @error('fecha')
-                                        <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
-                                    @enderror
+                            <div class="w-full text-xs text-ttds p-2">
+                                Se refiere al periodo de ventas donde se cobrara el anticipo
+                            </div>
+                            <div class="w-full px-2 flex flex-row space-x-3">
+                                <div class="w-1/2">
+                                    <span class="text-xs text-ttds">Mes</span><br>
+                                    <select class="w-full rounded p-1 border border-gray-300" name="mes"  id="mes">
+                                        <option value=''></option>
+                                        <option value='1' {{old('mes')=="1"?'selected':''}}>enero</option>
+                                        <option value='2' {{old('mes')=="1"?'selected':''}}>febrero</option>
+                                        <option value='3' {{old('mes')=="1"?'selected':''}}>marzo</option>
+                                        <option value='4' {{old('mes')=="1"?'selected':''}}>abril</option>
+                                        <option value='5' {{old('mes')=="1"?'selected':''}}>mayo</option>
+                                        <option value='6' {{old('mes')=="1"?'selected':''}}>junio</option>
+                                        <option value='7' {{old('mes')=="1"?'selected':''}}>julio</option>
+                                        <option value='8' {{old('mes')=="1"?'selected':''}}>agosto</option>
+                                        <option value='9' {{old('mes')=="1"?'selected':''}}>septiembre</option>
+                                        <option value='10' {{old('mes')=="1"?'selected':''}}>octubre</option>
+                                        <option value='11' {{old('mes')=="1"?'selected':''}}>noviembre</option>
+                                        <option value='12' {{old('mes')=="1"?'selected':''}}>diciembre</option>
+                                    </select>
+                                    @error('mes')
+                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                    @enderror 
                                 </div>
-                                <div class="w-2/3 p-2">
-                                    <span class="text-xs text-ttds">Se usara esta fecha para incluirse en el calculo mensual de comisiones, por ejemplo, si la fecha de referencia es 2020-12-15, el anticipo se aplicara como saldo a cubrir dentro del calculo de Dic-2020</span><br>
+                                <div class="w-1/2">
+                                    <span class="text-xs text-ttds">Año</span><br>
+                                    <select class="w-full rounded p-1 border border-gray-300" name="año" id="año">
+                                        <option value=''></option>
+                                        @foreach ($años as $año)
+                                            <option value="{{$año->valor}}" {{old('año')==$año->valor?'selected':''}}>{{$año->valor}}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('año')
+                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                    @enderror 
                                 </div>
                             </div>
+                                
                             <div class="w-full px-2 flex flex-row">
                                 <div class="w-full">
                                     <span class="text-xs text-ttds">Monto Anticipo</span><br>
@@ -135,7 +162,8 @@
             document.getElementById('tabla').classList.add("lg:w-1/2");
             document.getElementById('id_distribuidor').value=user_id;
             document.getElementById('nombre').value=nombre;
-            document.getElementById('fecha').value="";
+            document.getElementById('mes').value="";
+            document.getElementById('año').value="";
             document.getElementById('anticipo').value="";
             document.getElementById('descripcion').value="";
             var xmlhttp = new XMLHttpRequest();
@@ -156,8 +184,8 @@
                         });
 
                         formatter.format(2500); /* $2,500.00 */ 
-                        cadena="Anticipos previos por cobrar<br><div class='table'><div class='table-row'><div class='table-cell bg-ttds px-3'></div><div class='table-cell bg-ttds text-gray-200 px-3'>Fecha</div><div class='table-cell bg-ttds text-gray-200 px-3'>Anticipo</div><div class='table-cell bg-ttds text-gray-200 px-3'>Descripcion</div></div>";
-                        respuesta.forEach(element => cadena=cadena+"<div class='table-row'>"+"<div class='table-cell text-red-700 font-bold px-3'><a href='javascript:BorrarAnticipo("+element['id']+","+element['anticipo']+","+user_id+",\""+nombre+"\")'><i class='fas fa-trash'></i></a></div><div class='table-cell px-3'>"+element['fecha_relacionada']+"</div><div class='table-cell px-3'>"+formatter.format(element['anticipo'])+"</div><div class='table-cell px-3'>"+element['descripcion']+"</div></div>");
+                        cadena="Anticipos previos por cobrar<br><div class='table'><div class='table-row'><div class='table-cell bg-ttds px-3'></div><div class='table-cell bg-ttds text-gray-200 px-3'>Periodo</div><div class='table-cell bg-ttds text-gray-200 px-3'>Anticipo</div><div class='table-cell bg-ttds text-gray-200 px-3'>Descripcion</div></div>";
+                        respuesta.forEach(element => cadena=cadena+"<div class='table-row'>"+"<div class='table-cell text-red-700 font-bold px-3'><a href='javascript:BorrarAnticipo("+element['id']+","+element['anticipo']+","+user_id+",\""+nombre+"\")'><i class='fas fa-trash'></i></a></div><div class='table-cell px-3'>"+element['periodo']['descripcion']+"</div><div class='table-cell px-3'>"+formatter.format(element['anticipo'])+"</div><div class='table-cell px-3'>"+element['descripcion']+"</div></div>");
                         cadena=cadena+"</div><br>"
                         console.log(cadena);
                         document.getElementById('no_aplicados').innerHTML=cadena;
