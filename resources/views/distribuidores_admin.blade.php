@@ -247,6 +247,13 @@
                                     <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
                                     @enderror   
                                 </div>
+                                <div class="w-1/5">
+                                    <span class="text-xs text-ttds">Factura</span><br>
+                                    <input class="rounded p-1 border border-gray-300" type="checkbox" name="factura" id="factura" {{old('factura')=='on'?'checked':''}}>
+                                    @error('factura')
+                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                    @enderror   
+                                </div>
                             </div>
                             <div class="w-full flex justify-center pt-6 pb-3 rounded-b">
                                 <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Guardar</button>
@@ -291,6 +298,7 @@
                         document.getElementById("adelanto").checked=respuesta.adelanto;
                         document.getElementById("porcentaje_residual").value=respuesta.porcentaje_residual;
                         document.getElementById("porcentaje_adelanto").value=respuesta.porcentaje_adelanto;
+                        document.getElementById("factura").checked=respuesta.emite_factura;
  
                     }
                     else

@@ -210,5 +210,33 @@ class CalculoController extends Controller
                                        'n_callidus_sin_usar'=>$n_callidus_sin_usar,
                                     ]));
     }
+    public function cargar_factura_distribuidor(Request $request)
+    {
+        //return($request);
+        $request->validate([
+            'pdf_file' => 'required|mimes:pdf',
+            'xml_file' => 'required|mimes:xml',
+           ]);
+        
+        $upload_path = public_path('facturas');
+        $file_name = $request->file("pdf_file")->getClientOriginalName();
+        $generated_new_name_pdf = $request->user_id.'_'.$request->calculo_id.'_'.$request->version.'_'.time() . '.' . $request->file("pdf_file")->getClientOriginalExtension();
+        $request->file("pdf_file")->move($upload_path, $generated_new_name_pdf);
+
+        $upload_path = public_path('facturas');
+        $file_name = $request->file("xml_file")->getClientOriginalName();
+        $generated_new_name_xml = $request->user_id.'_'.$request->calculo_id.'_'.$request->version.'_'.time() . '.' . $request->file("xml_file")->getClientOriginalExtension();
+        $request->file("xml_file")->move($upload_path, $generated_new_name_xml);
+
+        PagosDistribuidor::where('calculo_id',$request->calculo_id)
+                            ->where('user_id',$request->user_id)
+                            ->where('version',$request->version)
+                            ->update([
+                                'pdf'=>$generated_new_name_pdf,
+                                'xml'=>$generated_new_name_xml,
+                            ]);
+
+        return(back()->withStatus('Datos de facturacion OK'));
+    }
 
 }

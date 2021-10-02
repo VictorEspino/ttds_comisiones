@@ -81,3 +81,4 @@ Route::get('/distribuidores_consulta_pago/{id}/{user_id}/{version}',[ProcessView
 Route::post('/distribuidores_anticipo_no_pago',[ProcessFormsController::class,'distribuidores_anticipo_no_pago'])->name('distribuidores_anticipo_no_pago')->middleware('auth');
 Route::get('/ventas_inconsistencias/{id}/{version}',[ProcessViewController::class,'ventas_inconsistencias'])->name('ventas_inconsistencias')->middleware('auth');
 Route::post('/accion_inconsistencia',[ProcessFormsController::class,'accion_inconsistencia'])->name('accion_inconsistencia')->middleware('auth');
+Route::post('/cargar_factura_distribuidor',[CalculoController::class,'cargar_factura_distribuidor'])->name('cargar_factura_distribuidor')->middleware('auth');

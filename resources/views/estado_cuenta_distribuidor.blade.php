@@ -11,6 +11,16 @@
                 <div class="font-semibold text-lg text-gray-700">{{$calculo->descripcion}}</div>
                 <div class="text-sm text-gray-700">De {{$calculo->periodo->fecha_inicio}} a {{$calculo->periodo->fecha_fin}}</div>
                 <div class="font-semibold text-2xl text-red-700 pt-2">{{$version=="1"?'Anticipo Ordinario':'Calculo Final'}}</div>
+                @if(session('status')!='')
+                <div class="w-full text-sm rounded font-bold p-2 bg-green-300 text-gray-600">
+                    {{session('status')}}
+                </div>
+                @endif
+                @if($errors->any())
+                <div class="w-full text-sm rounded font-bold p-2 bg-red-300 text-gray-600">
+                    Revise la foma de FACTURA
+                </div>
+                @endif
             </div> 
             <div class="w-full md:w-3/12 flex flex-col bg-gradient-to-br from-blue-700 to-green-300 rounded-lg p-4 shadow-xl">
                 <div class="w-full flex flex-row justify-between">
@@ -245,6 +255,73 @@
             </div>
 
         </div>
+        <div class="w-full flex flex-row space-x-2 pt-4">
+            <div class="w-full p-2 flex flex-col">
+                <div class="w-full bg-gray-200 rounded-t-lg p-3 text-xl text-gray-100 bg-gradient-to-br from-yellow-700 to-yellow-400 flex flex-row justify-between">
+                    <div class="font-bold">Tramite de pago</div>
+                    <div class="font-bold text-sm"></div>
+                </div>
+                @if($user->detalles->emite_factura=="1")
+                @if(!is_null($pago->pdf))
+                <div class="w-full flex flex-col pt-3 pb-3">
+                    <div class="w-full flex flex-row ">
+                        <div class="w-1/3 flex flex-col">
+                            <div class="flex justify-center">
+                                <a href="/facturas/{{$pago->pdf}}" download>
+                                    <i class="text-2xl text-red-700 far fa-file-pdf"></i> PDF 
+                                </a>
+                            </div>
+
+                        </div>
+                        <div class="w-1/3 flex flex-col">
+                            <div class="flex justify-center">
+                                <a href="/facturas/{{$pago->xml}}" download>
+                                    <i class="text-2xl text-blue-600 far fa-file-code"></i> XML
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                <div class="w-full flex flex-col shadow-lg rounded-b-lg p-5">
+                    <form method="POST" action="{{route('cargar_factura_distribuidor')}}" enctype="multipart/form-data">
+                        @csrf
+                        <div class="w-full flex flex-row ">
+                            <div class="w-5/12 flex flex-col">
+                                <span class="text-sm text-gray-700">Archivo PDF</span>
+                                <input class="w-full" type="file" name="pdf_file">
+                                @error('pdf_file')
+                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                @enderror  
+                            </div>
+                            <div class="w-5/12 flex flex-col">
+                                <span class="text-sm text-gray-700">Archivo XML</span>
+                                <input class="w-full" type="file" name="xml_file">
+                                @error('xml_file')
+                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                @enderror 
+                            </div>
+                            <div class="w-2/12 flex flex-col">
+                                <input type="hidden" name="calculo_id" value="{{$calculo->id}}">
+                                <input type="hidden" name="user_id" value="{{$user->id}}">
+                                <input type="hidden" name="version" value="{{$version}}">
+                                <button class="w-full p-3 bg-green-500 hover:bg-green-700 font-bold rounded-lg text-gray-200 text-xl">Cargar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>  
+                @else
+                <div class="w-full flex flex-col pt-3 pb-3">
+                    <div class="w-full flex flex-row px-3">
+                        Pongase en contacto con @TTDSolutions para dar seguimiento a su pago.
+                    </div>
+                </div>
+                    
+                @endif              
+            </div>
+        </div>
+
+        
                 
     </div>
 

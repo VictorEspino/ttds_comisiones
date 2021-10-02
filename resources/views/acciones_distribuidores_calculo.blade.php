@@ -42,7 +42,9 @@
                                         <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo<br>Ordinario<br><span class="text-red-700">{{$version=="1"?'50%':''}}</center></center></div>
                                     @endif
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br>Pendientes</center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Anticipo {{$version=="1"?'para cierre':'Aplicado'}}<br>Comisiones Pendientes</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo {{$version=="1"?'para cierre':'Aplicado'}}<br>Comisiones Pendientes</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>PDF</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>XML</center></div>
                                 </div>
                                 <?php $color=true; ?>
                                 @foreach($registros as $registro)
@@ -68,6 +70,24 @@
                                             @endif
                                         </center>   
                                      </div>
+                                    <div class="table-cell border-r border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">
+                                        <center>
+                                            @if(!is_null($registro->pdf))
+                                            <a href="/facturas/{{$registro->pdf}}" download>
+                                                <i class="text-2xl text-red-700 far fa-file-pdf"></i>
+                                            </a>
+                                            @endif
+                                        </center>
+                                    </div>
+                                    <div class="table-cell border-r border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">
+                                        <center>
+                                            @if(!is_null($registro->pdf))
+                                            <a href="/facturas/{{$registro->xml}}" download>
+                                                <i class="text-2xl text-blue-600 far fa-file-code"></i>
+                                            </a>
+                                            @endif
+                                        </center>
+                                    </div>
                                     
                                 </div>
                                 <?php $color=!$color; ?>

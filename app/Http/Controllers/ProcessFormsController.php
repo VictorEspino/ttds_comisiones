@@ -140,6 +140,7 @@ class ProcessFormsController extends Controller
                   'porcentaje_residual' => $pr,
                   'adelanto' => $request->boolean('adelanto'),
                   'porcentaje_adelanto' => $pa,
+                  'emite_factura'=> $request->boolean('factura'),
                 ]);
 
 
@@ -158,7 +159,7 @@ class ProcessFormsController extends Controller
             'r_18'=> 'required|numeric|between:0,5.99',
             'r_12'=> 'required|numeric|between:0,5.99',
             'porcentaje_residual'=>'exclude_unless:residual,on|required|numeric|between:1,6.0',
-            'porcentaje_adelanto'=>'exclude_unless:adelanto,on|required|numeric|between:1,50.0'
+            'porcentaje_adelanto'=>'exclude_unless:adelanto,on|required|numeric|between:1,50.0',
         ]);
         $pr=0;
         $pa=0;
@@ -196,6 +197,7 @@ class ProcessFormsController extends Controller
         $registro->porcentaje_residual=$pr;
         $registro->adelanto=$request->boolean('adelanto');
         $registro->porcentaje_adelanto=$pa;
+        $registro->emite_factura=$request->boolean('bono');
         $registro->save();
         return(back()->withStatus('Registro de '.$request->nombre.' creado con exito, numero distribuidor y usuario de sistema = '.$registro->numero_distribuidor.''));
         

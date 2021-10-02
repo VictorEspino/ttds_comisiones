@@ -108,10 +108,10 @@
                     @endif
                     @if($cierre=="1" && $terminado=="0")
                     <div class="w-full">
-                        <form class="w-full" method="post" action="{{route('calculo_terminar')}}">
+                        <form class="w-full" method="post" action="{{route('calculo_terminar')}}" id="forma_finaliza">
                             @csrf
                             <input type="hidden" name="id" value="{{$id_calculo}}">
-                            <button class="bg-ttds text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
+                            <button type="button" onClick="confirmar_finalizacion()" class="bg-ttds text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
                                 Finalizar Calculo
                             </button>
                         </form>
@@ -423,6 +423,13 @@
             var chart = new google.visualization.Gauge(document.getElementById('chart_div_3'));
 
             chart.draw(data, options);
+        }
+        function confirmar_finalizacion()
+        {
+            if(confirm('Esta operacion dara por finalizado el calculo del periodo, dejando los resultados actuales como definitivos, y quedara visible para los distribuidores.\n\n¿Desea continuar?'))
+            {
+                document.getElementById('forma_finaliza').submit();
+            }
         }
         </script>
 </x-app-layout>

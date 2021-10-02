@@ -30,6 +30,7 @@ class CreateDistribuidorsTable extends Migration
             $table->integer('porcentaje_residual')->default('0');
             $table->boolean('adelanto')->default('0');
             $table->integer('porcentaje_adelanto')->default('0');
+            $table->boolean('emite_factura')->default(0);
             $table->timestamps();
         });
     }

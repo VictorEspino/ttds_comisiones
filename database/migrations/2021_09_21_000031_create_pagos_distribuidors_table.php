@@ -49,6 +49,8 @@ class CreatePagosDistribuidorsTable extends Migration
             $table->float('anticipos_extraordinarios');
             $table->float('retroactivos_reproceso');
             $table->float('total_pago');
+            $table->string('pdf',50)->nullable();
+            $table->string('xml',50)->nullable();
             $table->timestamps();
         });
     }

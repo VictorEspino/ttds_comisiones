@@ -112,6 +112,13 @@
                     <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
                     @enderror   
                 </div>
+                <div class="w-1/3">
+                    <span class="text-xs text-ttds">Emite Factura</span><br>
+                    <input class="rounded p-1 border border-gray-300" type="checkbox" name="factura" id="factura" {{old('factura')=='on'?'checked':''}}>
+                    @error('factura')
+                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                    @enderror   
+                </div>
             </div>
                 
         </div> <!--FIN CONTENIDO-->

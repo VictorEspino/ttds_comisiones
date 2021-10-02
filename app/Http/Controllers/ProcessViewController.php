@@ -132,7 +132,9 @@ class ProcessViewController extends Controller
                                                                 'pagos_distribuidors.anticipo_ordinario',
                                                                 'pagos_distribuidors.anticipos_extraordinarios',
                                                                 'pagos_distribuidors.anticipo_no_pago',
-                                                                DB::raw('anp.anticipo as anticipo_no_pago')
+                                                                DB::raw('anp.anticipo as anticipo_no_pago'),
+                                                                'pagos_distribuidors.pdf',
+                                                                'pagos_distribuidors.xml'
                                                                 )
                                     ->where('pagos_distribuidors.calculo_id',$id_calculo)
                                     ->where('pagos_distribuidors.version',$version)
@@ -161,7 +163,9 @@ class ProcessViewController extends Controller
                                                                 'pagos_distribuidors.anticipo_ordinario',
                                                                 'pagos_distribuidors.anticipos_extraordinarios',
                                                                 'pagos_distribuidors.anticipo_no_pago',
-                                                                DB::raw('anp.anticipo as anticipo_no_pago')
+                                                                DB::raw('anp.anticipo as anticipo_no_pago'),
+                                                                'pagos_distribuidors.pdf',
+                                                                'pagos_distribuidors.xml'
                                                                 )
                                 ->where('pagos_distribuidors.calculo_id',$id_calculo)
                                 ->where('pagos_distribuidors.version',$version)
@@ -182,7 +186,7 @@ class ProcessViewController extends Controller
         $id_user=$request->id_user;
         $version=$request->version;
         $calculo=Calculo::with('periodo')->find($id_calculo);
-        $user=User::find($id_user);
+        $user=User::with('detalles')->find($id_user);
         $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->where('version',$version)->get()->first();
         $anticipos_aplicados=AnticipoExtraordinario::with('periodo')->where('calculo_id_aplicado',$id_calculo)->where('user_id',$id_user)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
         return(view('estado_cuenta_distribuidor',[  'calculo'=>$calculo,
