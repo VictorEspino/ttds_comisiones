@@ -20,6 +20,7 @@ header("Expires: 0");
 <td><b>Plan</td>
 <td><b>Renta</td>
 <td><b>Equipo</td>
+<td><b>Propiedad Eq</td>
 <td><b>Plazo</td>
 <td><b>Descuento_multirenta</td>
 <td><b>Afectacion_comision</td>
@@ -46,6 +47,7 @@ foreach ($query as $transaccion) {
 	<td>{{$transaccion->plan}}</td>
 	<td>{{$transaccion->renta}}</td>
 	<td>{{$transaccion->equipo}}</td>
+	<td>{{$transaccion->propiedad}}</td>
 	<td>{{$transaccion->plazo}}</td>
 	<td>{{$transaccion->descuento_multirenta}}</td>
 	<td>{{$transaccion->afectacion_comision}}</td>

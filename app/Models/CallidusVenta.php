@@ -23,6 +23,7 @@ class CallidusVenta extends Model
                             'afectacion_comision',
                             'comision',
                             'renta',
+                            'tipo_baja',
                             'calculo_id'
                     ];
     use HasFactory;

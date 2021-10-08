@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCallidusVentasTable extends Migration
+class CreateCallidusResidualsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class CreateCallidusVentasTable extends Migration
      */
     public function up()
     {
-        Schema::create('callidus_ventas', function (Blueprint $table) {
+        Schema::create('callidus_residuals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('calculo_id');
-            $table->string('tipo');
             $table->string('periodo');
             $table->string('cuenta');
             $table->string('contrato');
@@ -26,13 +25,14 @@ class CreateCallidusVentasTable extends Migration
             $table->string('propiedad');
             $table->string('modelo')->nullable();
             $table->date('fecha');
-            $table->date('fecha_baja')->nullable();
             $table->integer('plazo');
             $table->float('descuento_multirenta');
             $table->float('afectacion_comision')->nullable();
-            $table->float('comision');
+            $table->float('comision')->nullable();
+            $table->float('factor_comision')->nullable();
             $table->float('renta');
-            $table->string('tipo_baja',20)->nullable();
+            $table->string('estatus');
+            $table->string('marca');
             $table->timestamps();
         });
     }
@@ -44,6 +44,6 @@ class CreateCallidusVentasTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('callidus_ventas');
+        Schema::dropIfExists('callidus_residuals');
     }
 }

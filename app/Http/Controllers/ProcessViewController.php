@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\Distribuidor;
 use App\Models\PagosDistribuidor;
 use App\Models\AnticipoExtraordinario;
+use App\Models\ChargeBackDistribuidor;
 use App\Models\Calculo;
 use App\Models\Venta;
 use App\Models\User;
 use App\Models\ComisionVenta;
+use App\Models\ComisionResidual;
 use App\Models\Mediciones;
 use App\Models\CallidusVenta;
 use App\Models\Reclamo;
@@ -180,22 +182,7 @@ class ProcessViewController extends Controller
         }
     }
    
-    public function estado_cuenta_distribuidor(Request $request)
-    {
-        $id_calculo=$request->id;
-        $id_user=$request->id_user;
-        $version=$request->version;
-        $calculo=Calculo::with('periodo')->find($id_calculo);
-        $user=User::with('detalles')->find($id_user);
-        $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->where('version',$version)->get()->first();
-        $anticipos_aplicados=AnticipoExtraordinario::with('periodo')->where('calculo_id_aplicado',$id_calculo)->where('user_id',$id_user)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
-        return(view('estado_cuenta_distribuidor',[  'calculo'=>$calculo,
-                                                    'user'=>$user,
-                                                    'pago'=>$pago,
-                                                    'anticipos_aplicados'=>$anticipos_aplicados,
-                                                    'version'=>$version
-                                                ]));
-    }
+    
     public function transacciones_pago_distribuidor(Request $request)
     {
 
@@ -210,7 +197,52 @@ class ProcessViewController extends Controller
        ));
     return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago]));
     }
+    public function transacciones_charge_back_distribuidor(Request $request)
+    {
+        $calculo_id=$request->id;
+        $user_id=$request->id_user;
+        $version=$request->version;
+        $query=ChargeBackDistribuidor::select('ventas.*',
+                                              'charge_back_distribuidors.charge_back',
+                                              'charge_back_distribuidors.cargo_equipo',
+                                              'callidus_ventas.fecha_baja',
+                                              'callidus_ventas.tipo_baja',
+                                              'comision_ventas.upfront',
+                                              'comision_ventas.bono'
+                                              )
+                                    ->join('comision_ventas','charge_back_distribuidors.comision_venta_id','=','comision_ventas.id')
+                                    ->join(DB::raw('(select ventas.*,users.name from ventas left join users on ventas.user_id=users.id) as ventas'),
+                                    'comision_ventas.venta_id','=','ventas.id')
+                                    ->join('callidus_ventas','charge_back_distribuidors.callidus_venta_id','=','callidus_ventas.id')
+                                    ->where('charge_back_distribuidors.calculo_id',$calculo_id)->where('charge_back_distribuidors.comision_venta_id','!=',0)
+                                    ->where('ventas.user_id',$user_id)
+                                    ->get();
 
+    return(view('transacciones_charge_back_distribuidor',['query'=>$query]));
+    }
+    public function charge_back_calculo(Request $request)
+    {
+        $calculo_id=$request->id;
+        $query=ChargeBackDistribuidor::select('callidus_ventas.*',
+                                            'charge_back_distribuidors.charge_back',
+                                            'charge_back_distribuidors.cargo_equipo',
+                                            'callidus_ventas.fecha_baja',
+                                            'callidus_ventas.tipo_baja',
+                                            'comision_ventas.upfront',
+                                            'comision_ventas.bono',
+                                            'comision_ventas.name'
+                                              )
+                                    ->leftJoin(DB::raw(
+                                        '(select a.*,b.name from comision_ventas as a left join 
+                                        (select ventas.id,users.name from ventas left join users on ventas.user_id=users.id)
+                                        as b on a.venta_id=b.id) as comision_ventas'
+                                        ),
+                                            'charge_back_distribuidors.comision_venta_id','=','comision_ventas.id')
+                                    ->join('callidus_ventas','charge_back_distribuidors.callidus_venta_id','=','callidus_ventas.id')
+                                    ->where('charge_back_distribuidors.calculo_id',$calculo_id)
+                                    ->get();
+    return(view('transacciones_charge_back_distribuidor',['query'=>$query]));
+    }
     public function distribuidores_consulta_pago(Request $request)
     {
         return(PagosDistribuidor::where('calculo_id',$request->id)->where('user_id',$request->user_id)->where('version',$request->version)->get()->first());
@@ -340,6 +372,25 @@ class ProcessViewController extends Controller
     {
         $query=CallidusVenta::doesnthave('pagada')->where('calculo_id',$request->id)->get();
         return(view('callidus_no_usados',['query'=>$query]));
+    }
+    public function residuales(Request $request)
+    {
+        $query=ComisionResidual::with('callidus','user')
+                                ->where('user_id','!=',1)
+                                ->where('user_id','!=',1000)
+                                ->where('calculo_id',$request->id)
+                                ->get();
+        return(view('residuales_pagados',['query'=>$query]));
+
+    }
+    public function residuales_distribuidor(Request $request)
+    {
+        $query=ComisionResidual::with('callidus','user')
+                                ->where('user_id','=',$request->user_id)
+                                ->where('calculo_id',$request->id)
+                                ->get();
+        return(view('residuales_pagados',['query'=>$query]));
+
     }
     
 }

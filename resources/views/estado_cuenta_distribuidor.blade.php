@@ -190,7 +190,11 @@
                     </tr>
                     @if($version=="2")
                     <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center><i class="fas fa-file-excel"></i></td>
+                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
+                            <a href="/residuales_distribuidor/{{$calculo->id}}/{{$user->id}}">
+                                <center><i class="fas fa-file-excel"></i>
+                            </a>
+                        </td>
                         <td class="border-b border-gray-500 px-3">Residual</td>
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->residual,0)}}</center></td>
                     </tr>
@@ -217,7 +221,13 @@
                     </tr>
                     @if($version=="2")
                     <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 "></td>
+                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
+                            <center>
+                                <a href="/transacciones_charge_back_distribuidor/{{$calculo->id}}/{{$user->id}}/{{$version}}">
+                                    <i class="fas fa-file-excel"></i>
+                                </a>
+                            </td>
+                        </td>
                         <td class="border-b border-gray-500 px-3">Charge-Back</td>
                         <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->charge_back,0)}}</center></td>
                     </tr>

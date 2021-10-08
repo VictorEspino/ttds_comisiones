@@ -8,6 +8,7 @@ use App\Imports\VentasImport;
 use App\Models\Calculo;
 use App\Models\Venta;
 use App\Models\CargaLogs;
+use App\Models\CallidusVenta;
 use App\Imports\VentasImportAdmin;
 use App\Imports\ImportCallidusVentas;
 use Maatwebsite\Excel\Facades\Excel;
@@ -67,6 +68,7 @@ class ExcelController extends Controller
     public function callidus_import(Request $request) 
     {
         $file=$request->file('file');
+        CallidusVenta::where('calculo_id',$request->id_calculo)->delete();
         $import=new ImportCallidusVentas;
         session(['id_calculo' => $request->id_calculo]);
         try{

@@ -15,6 +15,11 @@
                 <span class="font-semibold text-sm text-gray-600">{{session('status')}}</span>
             </div>    
         @endif
+        @if(session()->has('failures') || session()->has('error_validacion'))
+        <div class="bg-red-200 p-4 flex justify-center font-bold">
+            El archivo no fue cargado verifique detalles al final de la pagina
+        </div>
+        @endif
         <div class="flex flex-col md:space-x-5 md:space-y-0 items-start md:flex-row">
             <div class="w-full md:w-1/2 flex flex-col justify-center md:p-5 p-3">
                 <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Validacion Ventas</div>
@@ -279,7 +284,47 @@
                             </div>
                         </div>
                     </div>
-                    <div class="w-full flex flex-row pt-3">
+                    <div class="w-full flex flex-row pt-8">
+                        <div class="w-1/2 flex flex-col justify-center items-center">
+                            <div class="w-full flex justify-center">
+                                <a href="{{route('charge_back_calculo',['id'=>$id_calculo])}}">
+                                    <span class="text-red-400 text-6xl font-bold"><i class="fas fa-hand-holding-usd"></i></span>
+                                </a>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">Aplicados : {{$cb_aplicados}}, NO Aplicados : {{$cb_no_aplicados}}</span>
+                            </div>
+                        </div>
+                        <div class="w-1/2 flex flex-col">
+                            <div><span class="text-2xl font-semibold text-gray-700">Charge Back</span></div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Charge back de la comision pagada + cargo por equipo en caso de cancelacion involuntaria
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row pt-8">
+                        <div class="w-1/2 flex flex-col justify-center items-center">
+                            <div class="w-full flex justify-center">
+                                <a href="{{route('residuales',['id'=>$id_calculo])}}">
+                                    <span class="text-indigo-400 text-6xl font-bold"><i class="fa-file-invoice-dollar"></i></span>
+                                </a>
+                            </div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700"></span>
+                            </div>
+                        </div>
+                        <div class="w-1/2 flex flex-col">
+                            <div><span class="text-2xl font-semibold text-gray-700">Residuales</span></div>
+                            <div>
+                                <span class="text-xs md:text-sm text-gray-700">
+                                    -Comision residual de acuerdo a la permanencia del cliente, aplica siempre que el cliente no tenga adeudos y este dentro de plazo
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row pt-8">
                         <div class="w-1/2 flex flex-col justify-center items-center">
                             <div class="w-full flex justify-center">
                                 <a href="{{route('ventas_inconsistencias',['id'=>$id_calculo,'version'=>($cierre=="1"?2:1)])}}">
@@ -359,6 +404,78 @@
                 </div> 
             </div>
         </div>
+        @if(session('status'))
+        <div class="bg-green-200 p-4 flex justify-center font-bold rounded-b-lg">
+            {{session('status')}}
+        </div>
+        @endif
+        @if(session()->has('failures'))
+        <div class="bg-red-200 p-4 flex justify-center font-bold">
+            El archivo no fue cargado!
+        </div>
+        <div class="bg-red-200 p-4 flex justify-center rounded-b-lg">
+            <table class="text-sm">
+                <tr>
+                    <td class="bg-red-700 text-gray-100 px-3">Row</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Columna</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Error</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Valor</td>
+                </tr>
+            
+                @foreach(session()->get('failures') as $validation)
+                <tr>
+                    <td class="px-3"><center>{{$validation->row()}}</td>
+                    <td class="px-3"><center>{{$validation->attribute()}}</td>
+                    <td class="px-3">
+                        <ul>
+                        @foreach($validation->errors() as $e)
+                            <li>{{$e}}</li>
+                        @endforeach
+                        </ul>
+                    </td>
+                    
+                    <td class="px-3"><center>
+                    <?php
+                     try{
+                    ?>    
+                        {{$validation->values()[$validation->attribute()]}}
+                    <?php
+                        }
+                        catch(\Exception $e)
+                        {
+                            ;
+                        }
+                    ?>
+                    </td>
+                </tr>
+                @endforeach
+
+            </table>
+        </div>
+        @endif
+        @if(session()->has('error_validacion'))
+        <div class="bg-red-200 p-4 flex justify-center font-bold">
+            El archivo no fue cargado!
+        </div>
+        <div class="bg-red-200 p-4 flex justify-center rounded-b-lg">
+            <table class="text-sm">
+                <tr>
+                    <td class="bg-red-700 text-gray-100 px-3">Row</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Columna</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Error</td>
+                    <td class="bg-red-700 text-gray-100 px-3">Valor</td>
+                </tr>
+            @foreach(session()->get('error_validacion') as $error)
+                <tr>
+                    <td class="px-3"><center>{{$error["row"]}}</td>
+                    <td class="px-3"><center>{{$error["campo"]}}</td>
+                    <td class="px-3"><center>{{$error["mensaje"]}}</td>
+                    <td class="px-3"><center>{{$error["valor"]}}</td>
+                </tr>
+            @endforeach
+            </table>
+        </div>
+        @endif
     </div>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">

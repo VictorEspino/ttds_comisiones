@@ -9,7 +9,10 @@ use App\Models\Venta;
 use App\Models\CallidusVenta;
 use App\Models\ComisionVenta;
 use App\Models\PagosDistribuidor;
+use App\Models\ChargeBackDistribuidor;
 use App\Models\Reclamo;
+use App\Models\User;
+use App\Models\AnticipoExtraordinario;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -47,7 +50,7 @@ class CalculoController extends Controller
     }
     public function seguimiento_calculos(Request $request)
     {
-        $calculos=Calculo::with('periodo')->orderBy('id','desc')->get()->take(6);
+        $calculos=Calculo::with('periodo')->orderBy('id','desc')->get()->take(10);
         return(view('seguimiento_calculos',['calculos'=>$calculos]));
     }
     public function detalle_calculo(Request $request)
@@ -181,6 +184,21 @@ class CalculoController extends Controller
 
         $n_callidus_sin_usar=$n_callidus->n-$n_callidus_usados->n;
 
+        $cb_aplicados=0;
+        $cb_no_aplicados=0;
+        $cb=ChargeBackDistribuidor::select(DB::raw('count(*) as n'))
+                                    ->where('calculo_id',$calculo->id)
+                                    ->where('estatus','APLICADO')
+                                    ->get()
+                                    ->first();
+        $cb_aplicados=$cb->n;
+
+        $cb=ChargeBackDistribuidor::select(DB::raw('count(*) as n'))
+                                    ->where('calculo_id',$calculo->id)
+                                    ->where('estatus','NO APLICADO')
+                                    ->get()
+                                    ->first();
+        $cb_no_aplicados=$cb->n;
 
         return(view('detalle_calculo',['id_calculo'=>$calculo->id,
                                        'callidus'=>$calculo->callidus,
@@ -208,7 +226,25 @@ class CalculoController extends Controller
                                        'n_inconsistencias'=>$n_inconsistencias->n,
                                        'n_reclamos'=>$n_reclamos->n,
                                        'n_callidus_sin_usar'=>$n_callidus_sin_usar,
+                                       'cb_aplicados'=>$cb_aplicados,
+                                       'cb_no_aplicados'=>$cb_no_aplicados,
                                     ]));
+    }
+    public function estado_cuenta_distribuidor(Request $request)
+    {
+        $id_calculo=$request->id;
+        $id_user=$request->id_user;
+        $version=$request->version;
+        $calculo=Calculo::with('periodo')->find($id_calculo);
+        $user=User::with('detalles')->find($id_user);
+        $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->where('version',$version)->get()->first();
+        $anticipos_aplicados=AnticipoExtraordinario::with('periodo')->where('calculo_id_aplicado',$id_calculo)->where('user_id',$id_user)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
+        return(view('estado_cuenta_distribuidor',[  'calculo'=>$calculo,
+                                                    'user'=>$user,
+                                                    'pago'=>$pago,
+                                                    'anticipos_aplicados'=>$anticipos_aplicados,
+                                                    'version'=>$version
+                                                ]));
     }
     public function cargar_factura_distribuidor(Request $request)
     {

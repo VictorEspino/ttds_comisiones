@@ -34,7 +34,7 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
             'cliente'=> trim($row['cliente']),
             'tipo'=> trim($row['tipo']),
             'fecha'=> $fecha_db,
-            'propiedad'=> '-', //DEBE AGREGARSE AL LAYOUT
+            'propiedad'=> trim($row['propiedad']), //DEBE AGREGARSE AL LAYOUT
             'dn'=> trim($row['dn']),
             'plan'=> trim($row['plan']),
             'folio'=> trim($row['folio']),
@@ -63,7 +63,7 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
             '*.folio'=>['required','numeric'],
             '*.propiedad' => ['required',Rule::in(['NUEVO','PROPIO'])],
             '*.plan' => ['required'],
-            '*.plazo' => ['required','numeric',Rule::in(['12','18','24'])],
+            '*.plazo' => ['required','numeric',Rule::in(['0','6','12','18','24','36'])],
             '*.renta' => ['required','numeric'],
             '*.descuento_multirenta' => ['required','numeric'],
             '*.afectacion_comision' => ['required','numeric'],
