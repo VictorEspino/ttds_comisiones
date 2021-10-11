@@ -21,15 +21,21 @@ module.exports = {
         },
         backgroundColor: theme => theme('colors'),
         backgroundColor: {
-        'ttds': '#0F84B7',
-        'ttds-encabezado':'#3498DB',
-        'ttds-secundario':'#E9FEFB',
-        'ttds-hover': '#247286',
+        'ttds-old': '#0F84B7',
+        'ttds':'#186D92',
+        'ttds-encabezado-old':'#3498DB',
+        'ttds-encabezado':'#186D92',
+        'ttds-secundario-old':'#E9FEFB',
+        'ttds-secundario':'#E6F9FF',
+        'ttds-secundario-2':'#e9f6fb',
+        'ttds-hover-old': '#247286',
+        'ttds-hover': '#12526E',
         },
         gradientColorStops: theme => theme('colors'),
         gradientColorStops: {
         'ttdsfrom':'#0F84B7',
         'ttdsto':'#25D4B9',
+        'ttds-1':'#293D3D'
         },
     },
 

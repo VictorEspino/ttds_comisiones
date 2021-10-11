@@ -19,7 +19,10 @@
         <style>
             .body-bg {
                 background-color: #4A98AC;
+                background-image: linear-gradient(315deg, #293D3D 0%,#0F84B7  74%);
+                /*
                 background-image: linear-gradient(315deg, #25D4B9 0%,#0F84B7  74%);
+                */
              }
         </style>
     </head>

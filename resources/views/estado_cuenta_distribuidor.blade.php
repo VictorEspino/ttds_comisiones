@@ -37,11 +37,13 @@
                             ${{number_format($pago->comision_adiciones,0)}}
                         </span>
                     </div>
+                    @if($user->detalles->bono=="1")
                     <div>
                         <span class="text-sm font-semibold text-white">
                             Bono: ${{number_format($pago->bono_adiciones,0)}}
                         </span>
                     </div>
+                    @endif
                 </div>
                 @if($pago->adiciones_no_pago!="0")
                 <div class="w-full flex flex-row justify-between">
@@ -59,11 +61,13 @@
                                 ${{number_format($pago->adiciones_comision_no_pago,0)}}
                             </span>
                         </div>
+                        @if($user->detalles->bono=="1")
                         <div>
                             <span class="text-xs font-semibold text-yellow-300">
                                 Bono: ${{number_format($pago->adiciones_bono_no_pago,0)}}
                             </span>
                         </div>
+                        @endif
                     </div>
                     @endif
                 @endif
@@ -83,11 +87,13 @@
                             ${{number_format($pago->comision_nuevas,0)}}
                         </span>
                     </div>
+                    @if($user->detalles->bono=="1")
                     <div>
                         <span class="text-sm font-semibold text-white">
                             Bono: ${{number_format($pago->bono_nuevas,0)}}
                         </span>
                     </div>
+                    @endif
                 </div>
                 @if($pago->nuevas_no_pago!="0")
                 <div class="w-full flex flex-row justify-between">
@@ -105,11 +111,13 @@
                             ${{number_format($pago->nuevas_comision_no_pago,0)}}
                         </span>
                     </div>
+                    @if($user->detalles->bono=="1")
                     <div>
                         <span class="text-xs font-semibold text-yellow-300">
                             Bono: ${{number_format($pago->nuevas_bono_no_pago,0)}}
                         </span>
                     </div>
+                    @endif
                 </div>
                 @endif
                 @endif
@@ -150,6 +158,7 @@
             </div>
         </div>
         <div class="w-full flex flex-col md:flex-row space-y-3 md:space-x-3">
+            @if($user->detalles->bono=="1")
             <div class="w-full md:w-1/3 flex flex-col space-y-3 justify-center">
                 <div class="w-full flex justify-center">
                     <span class="text-lg font-bold text-gray-700">Medicion de Bono</span>
@@ -166,10 +175,11 @@
                     <span class="text-lg font-bold {{$gano_bono?'text-green-700':'text-red-700'}}">{{$gano_bono?'':'NO'}} Acredor al bono</span>
                 </div>
             </div>
-            <div class="w-full md:w-2/3 flex justify-center items-center">
-                <table class="w-full md:w-2/3 shadow-xl">
+            @endif
+            <div class="w-full {{$user->detalles->bono=="1"?'md:w-2/3':'pt-8'}} flex justify-center items-center">
+                <table class="w-full {{$user->detalles->bono=="1"?'md:w-2/3':'md:w-1/2'}} shadow-xl">
                     <tr class="">
-                        <td class="p-3 bg-blue-500 rounded-t-xl text-xl text-white" colspan=3>
+                        <td class="p-3 bg-ttds-encabezado rounded-t-xl text-xl text-white" colspan=3>
                             Estado de cuenta
                         </td>
                     </tr>
@@ -180,15 +190,18 @@
                                     <i class="fas fa-file-excel"></i>
                                 </a>
                             </td>
-                        <td class="border-b border-gray-500 px-3">Comisiones <span class="text-red-700">{{$version=="1"?'50%':'100%'}}</span></td>
+                        <td class="border-b border-gray-500 px-3">Comisiones <span class="text-red-700">{{$version=="1"?number_format($user->detalles->porcentaje_adelanto).'%':'100%'}}</span></td>
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones,0)}}</center></td>
                     </tr>
+                    @if($user->detalles->bono=="1")
                     <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"></td>
-                        <td class="border-b border-gray-500 px-3">Bonos <span class="text-red-700">{{$version=="1"?'50%':'100%'}}</span></td>
+                        <td class="border-b border-gray-500 px-3">Bonos <span class="text-red-700">{{$version=="1"?number_format($user->detalles->porcentaje_adelanto).'%':'100%'}}</span></td>
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->bono_nuevas+$pago->bono_adiciones+$pago->bono_renovaciones,0)}}</center></td>
                     </tr>
+                    @endif
                     @if($version=="2")
+                    @if($user->detalles->residual=="1")
                     <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
                             <a href="/residuales_distribuidor/{{$calculo->id}}/{{$user->id}}">
@@ -198,6 +211,7 @@
                         <td class="border-b border-gray-500 px-3">Residual</td>
                         <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->residual,0)}}</center></td>
                     </tr>
+                    @endif
                     <tr class="border-l border-r border-gray-300">
                         <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center></td>
                         <td class="border-b border-gray-500 px-3">Retroactivos</td>

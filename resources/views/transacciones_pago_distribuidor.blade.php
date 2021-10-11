@@ -29,7 +29,9 @@ header("Expires: 0");
 <td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_descuento_multirenta</td>
 <td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_afectacion_comision</td>
 <td style="background-color:#0000FF;color:#FFFFFF"><b>Comision</td>
+@if($bono=="1")
 <td style="background-color:#0000FF;color:#FFFFFF"><b>Bono</td>
+@endif
 
 </tr>
 <?php
@@ -56,7 +58,9 @@ foreach ($query as $transaccion) {
 	<td style="color:#0000FF">{{$transaccion->c_descuento_multirenta}}</td>
 	<td style="color:#0000FF">{{$transaccion->c_afectacion_comision}}</td>
     <td style="color:#0000FF">{{$transaccion->upfront}}</td>
+	@if($bono=="1")
     <td style="color:#0000FF">{{$transaccion->bono}}</td>
+	@endif	
 	</tr>
 <?php
 }

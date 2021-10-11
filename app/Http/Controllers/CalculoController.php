@@ -7,6 +7,7 @@ use App\Models\Calculo;
 use App\Models\Periodo;
 use App\Models\Venta;
 use App\Models\CallidusVenta;
+use App\Models\CallidusResidual;
 use App\Models\ComisionVenta;
 use App\Models\PagosDistribuidor;
 use App\Models\ChargeBackDistribuidor;
@@ -51,7 +52,20 @@ class CalculoController extends Controller
     public function seguimiento_calculos(Request $request)
     {
         $calculos=Calculo::with('periodo')->orderBy('id','desc')->get()->take(10);
-        return(view('seguimiento_calculos',['calculos'=>$calculos]));
+        $meses=array('Ene',
+                  'Feb',
+                  'Mar',
+                  'Abr',
+                  'May',
+                  'Jun',
+                  'Jul',
+                  'Ago',
+                  'Sep',
+                  'Oct',
+                  'Nov',
+                  'Dic',
+                );
+        return(view('seguimiento_calculos',['calculos'=>$calculos,'meses'=>$meses]));
     }
     public function detalle_calculo(Request $request)
     {
@@ -85,6 +99,11 @@ class CalculoController extends Controller
         }
 
         $n_callidus=CallidusVenta::select(DB::raw('count(*) as n'))
+                        ->where('calculo_id',$request->id)
+                        ->get()
+                        ->first();
+
+        $n_callidus_residual=CallidusResidual::select(DB::raw('count(*) as n'))
                         ->where('calculo_id',$request->id)
                         ->get()
                         ->first();
@@ -203,6 +222,7 @@ class CalculoController extends Controller
         return(view('detalle_calculo',['id_calculo'=>$calculo->id,
                                        'callidus'=>$calculo->callidus,
                                        'n_callidus'=>$n_callidus->n,
+                                       'n_callidus_residual'=>$n_callidus_residual->n,
                                        'porcentaje_validacion'=>$porcentaje_validacion,
                                        'fecha_inicio'=>$calculo->periodo->fecha_inicio,
                                        'fecha_fin'=>$calculo->periodo->fecha_fin,

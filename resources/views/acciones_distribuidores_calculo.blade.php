@@ -36,10 +36,10 @@
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Estado de<br>Cuenta</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Pago</center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br><span class="text-red-700">{{$version=="1"?'50%':''}}</span></center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipos<br>Extraordinarios<br><span class="text-red-700">{{$version=="1"?'50%':''}}</center></center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br><span class="text-red-700">{{$version=="1"?'% Anticipo':''}}</span></center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipos<br>Extraordinarios<br><span class="text-red-700">{{$version=="1"?'% Anticipo':''}}</center></center></div>
                                     @if($version=="2")
-                                        <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo<br>Ordinario<br><span class="text-red-700">{{$version=="1"?'50%':''}}</center></center></div>
+                                        <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo<br>Ordinario<br><span class="text-red-700">{{$version=="1"?'% Anticipo':''}}</center></center></div>
                                     @endif
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br>Pendientes</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo {{$version=="1"?'para cierre':'Aplicado'}}<br>Comisiones Pendientes</center></div>

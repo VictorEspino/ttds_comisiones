@@ -9,13 +9,22 @@
             <div class="w-full text-lg font-semibold text-gray-100">Historial de Calculos</div>            
             <div class="w-full text-sm font-semibold text-gray-100">{{Auth::user()->name}}</div>            
         </div> <!--FIN ENCABEZADO-->
-        @foreach($calculos as $calculo)
-        <div class="w-full flex flex-col justify-center p-10">
-            <div class="w-full text-lg font-semibold flex justify-center">{{$calculo->descripcion}}</div>
-            <div class="w-full text-sm flex justify-center">De {{$calculo->periodo->fecha_inicio}} a {{$calculo->periodo->fecha_fin}}</div>
-            <div class="w-full text-sm flex justify-center p-5"><a href="{{route('detalle_calculo',['id'=>$calculo->id])}}">Detalles</a></div>
+        <div class="flex flex-wrap">
+            @foreach($calculos as $calculo)
+            
+            <div class="w-full md:w-1/3 p-4">
+                <a href="{{route('detalle_calculo',['id'=>$calculo->id])}}">
+                <div class="w-full flex flex-col justify-center rounded-lg shadow-xl p-5 bg-ttds-secundario-2 rounded-lg p-4 shadow-xl">
+                    <div class="w-full text-xl text-yellow-500 font-bold flex justify-start"><i class="fas fa-th-large"></i></div>
+                    <div class="w-full text-3xl text-gray-600 font-semibold flex justify-start">{{$meses[$calculo->periodo->mes-1]}} {{$calculo->periodo->año}}</div>
+                    <div class="w-full text-xs text-gray-700 flex justify-start">De {{$calculo->periodo->fecha_inicio}} a {{$calculo->periodo->fecha_fin}}</div>
+                    <div class="w-full text-lg text-gray-700 font-semibold flex justify-start">{{$calculo->descripcion}}</div>                
+                </div>
+            </a>
+            </div>
+            
+            @endforeach
         </div>
-        @endforeach
         @if(session('status')!='')
             <div class="w-full flex justify-center p-3 bg-green-300 rounded-b-lg">
                 <span class="font-semibold text-sm text-gray-600">{{session('status')}}</span>

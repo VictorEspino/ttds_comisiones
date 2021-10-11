@@ -185,7 +185,7 @@ class ProcessViewController extends Controller
     
     public function transacciones_pago_distribuidor(Request $request)
     {
-
+    $distribuidor=User::with('detalles')->find($request->id_user);
     $sql_consulta="SELECT a.upfront,a.bono,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='PAGO' and a.version='".$request->version."'";
     $query=DB::select(DB::raw(
         $sql_consulta
@@ -195,7 +195,7 @@ class ProcessViewController extends Controller
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
-    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago]));
+    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono]));
     }
     public function transacciones_charge_back_distribuidor(Request $request)
     {

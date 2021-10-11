@@ -5,14 +5,30 @@
         </h2>
     </x-slot>
     <div class="flex flex-col w-full bg-white text-gray-700 shadow-lg rounded-lg">
-        <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-col border-b border-gray-800"> <!--ENCABEZADO-->
-            <div class="w-full text-xl font-bold text-gray-100">Calculo de comisiones</div>
-            <div class="w-full text-lg font-semibold text-gray-100">{{$descripcion}}</div>            
-            <div class="w-full text-xs font-semibold text-gray-100">De {{$fecha_inicio}} a {{$fecha_fin}}</div>                        
+        <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-row justify-between border-b border-gray-800"> <!--ENCABEZADO-->
+            <div>
+                <div class="w-full text-xl font-bold text-gray-100">Calculo de comisiones</div>
+                <div class="w-full text-lg font-semibold text-gray-100">{{$descripcion}}</div>            
+                <div class="w-full text-xs font-semibold text-gray-100">De {{$fecha_inicio}} a {{$fecha_fin}}</div>                        
+            </div>
+            @if($terminado=="0")
+            <div class="px-7 flex items-center">
+                <form method="post" action="{{route('calculo_reset')}}" id="forma_reset">
+                    @csrf
+                    <input type="hidden" name="id" value="{{$id_calculo}}">
+                    <button type="button" class="rounded px-3 py-2 border bg-gray-500 hover:bg-ttds-hover text-gray-100 font-semibold" onclick="confirmar_reset()">Reset Calculo</button>
+                </form>
+            </div>    
+            @endif
         </div> <!--FIN ENCABEZADO-->
         @if(session('status')!='')
-            <div class="w-full flex justify-center p-3 bg-green-300">
-                <span class="font-semibold text-sm text-gray-600">{{session('status')}}</span>
+            <div class="w-full flex justify-between flex-row p-3 bg-green-300" id="estatus1">
+                <div class="flex justify-center items-center">
+                    <span class="font-semibold text-sm text-gray-600">{{session('status')}}</span>
+                </div>
+                <div>
+                    <a href="javascript:eliminar_estatus()"><span class="font-semibold text-base text-gray-600">X</span></a>
+                </div>        
             </div>    
         @endif
         @if(session()->has('failures') || session()->has('error_validacion'))
@@ -57,30 +73,65 @@
             </div>
             <div class="w-full p-3 md:w-1/2 md:p-5 flex flex-col">
                 <div class="w-full bg-gray-200 p-2 rounded-t-lg">Callidus</div>
-                <div class="w-full border-r border-l p-2 flex flex-col">
-                    <div class="w-full flex justify-center text-4xl font-semibold text-ttds">{{$n_callidus}}</div>
-                    <div class="w-full flex justify-center text-sm">Registros</div>
+                <div class="w-full border-r border-l p-2 flex flex-row">
+                    <div class="w-1/2">
+                        <div class="w-full flex justify-center text-4xl font-semibold text-ttds">{{number_format($n_callidus,0)}}</div>
+                        <div class="w-full flex justify-center text-sm">Registros Venta</div>
+                    </div>
+                    <div class="w-1/2">
+                        <div class="w-full flex justify-center text-4xl font-semibold text-ttds">{{number_format($n_callidus_residual,0)}}</div>
+                        <div class="w-full flex justify-center text-sm">Registros Residual</div>
+                    </div>
                 </div>
-                <div class="w-full border-b border-r border-l rounded-b shadow-lg">
+
+                <div class="w-full border-r border-l ">
+                    @if($adelanto=="0" || $cierre=="0")
                     <form method="post" action="{{route('callidus_import')}}" enctype="multipart/form-data">
                         @csrf
                     <div class="w-full rounded-b-lg p-3 flex flex-col"> <!--CONTENIDO-->
                         <div class="w-full flex flex-row space-x-2">
-                            <div class="w-full">
-                                <span class="text-xs text-ttds">Archivo</span><br>
+                            <div class="w-4/5">
+                                
+                                <span class="text-xs text-ttds">Archivo Ventas</span><br>
                                 <input type="hidden" name="id_calculo" value="{{$id_calculo}}" id="id_calculo">
-                                <input class="w-full rounded p-1 border border-gray-300 bg-white" type="file" name="file" value="{{old('file')}}" id="file">
-                                @error('file')
+                                <input class="w-full rounded p-1 border border-gray-300 bg-white" type="file" name="file_v" value="{{old('file_v')}}" id="file_v">
+                                @error('file_v')
                                 <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
                                 @enderror                    
+                            </div>
+                            <div class="w-1/5 flex items-end">
+                                <button class="rounded px-3 py-2 border bg-ttds hover:bg-ttds-hover text-gray-100 font-semibold">Cargar</button>
                             </div>                
                         </div>
                     </div> <!--FIN CONTENIDO-->
-                    <div class="w-full flex justify-center py-4">
-                        <button class="rounded p-1 border bg-ttds hover:bg-ttdshover text-gray-100 font-semibold">Guardar</button>
-                    </div>
+                    
                     </form>
+                    @endif
                 </div>
+                <div class="w-full border-b border-r border-l rounded-b shadow-lg">
+                    @if($adelanto=="0" || $cierre=="0")
+                    <form method="post" action="{{route('callidus_residual_import')}}" enctype="multipart/form-data">
+                        @csrf
+                    <div class="w-full rounded-b-lg p-3 flex flex-col"> <!--CONTENIDO-->
+                        <div class="w-full flex flex-row space-x-2">
+                            <div class="w-4/5">
+                                <span class="text-xs text-ttds">Archivo Residual</span><br>
+                                <input type="hidden" name="id_calculo" value="{{$id_calculo}}" id="id_calculo">
+                                <input class="w-full rounded p-1 border border-gray-300 bg-white" type="file" name="file_r" value="{{old('file_r')}}" id="file_r">
+                                @error('file_r')
+                                <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                @enderror                    
+                            </div>
+                            <div class="w-1/5 flex items-end">
+                                <button class="rounded px-3 py-2 border bg-ttds hover:bg-ttds-hover text-gray-100 font-semibold">Cargar</button>
+                            </div>                
+                        </div>
+                    </div> <!--FIN CONTENIDO-->
+                    
+                    </form>
+                    @endif
+                </div>
+                
             </div>
         </div>
         <div class="flex flex-col md:space-x-5 md:space-y-0 items-start md:flex-row">
@@ -239,12 +290,12 @@
                         </div>
                         <div class="w-1/2 flex flex-col">
                             <div><span class="text-2xl font-semibold text-gray-700">Pagos</span></div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Revisa los estados de cuenta de cada distribuidor
                                 </span>
                             </div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Aplique adelantos por comisiones pendientes
                                 </span>
@@ -277,7 +328,7 @@
                         
                         <div class="w-1/2 flex flex-col">
                             <div><span class="text-2xl font-semibold text-gray-700">Formato de Pagos</span></div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Obtenga el formato de pagos por comisones generadas de cada distribuidor
                                 </span>
@@ -297,7 +348,7 @@
                         </div>
                         <div class="w-1/2 flex flex-col">
                             <div><span class="text-2xl font-semibold text-gray-700">Charge Back</span></div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Charge back de la comision pagada + cargo por equipo en caso de cancelacion involuntaria
                                 </span>
@@ -317,7 +368,7 @@
                         </div>
                         <div class="w-1/2 flex flex-col">
                             <div><span class="text-2xl font-semibold text-gray-700">Residuales</span></div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Comision residual de acuerdo a la permanencia del cliente, aplica siempre que el cliente no tenga adeudos y este dentro de plazo
                                 </span>
@@ -337,17 +388,17 @@
                         </div>
                         <div class="w-1/2 flex flex-col">
                             <div><span class="text-2xl font-semibold text-gray-700">Inconsistencias</span></div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Le permite revisar los registros que fueron encontrados en Callidus y que presentan diferencias con los parametros de la base de ventas, como el plazo, la renta, descuento multirenta y afectacion en comision.
                                 </span>
                             </div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -En caso de que la inconsistencia persista le permite agregar dicha inconsistencia en el formato de aclaracion.
                                 </span>
                             </div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Si la inconsistencia proviene de una falla en nuestro reporte interno de ventas, le permite la correccion interna y la eliminacion de la alerta.
                                 </span>
@@ -368,7 +419,7 @@
                         
                         <div class="w-1/2 flex flex-col">
                             <div><span class="text-2xl font-semibold text-gray-700">Formato de Aclaracion</span></div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Obtenga el formato de aclaraciones que debe ser enviado a AT&T
                                 </span>
@@ -389,12 +440,12 @@
                         
                         <div class="w-1/2 flex flex-col">
                             <div><span class="text-2xl font-semibold text-gray-700">Registros de Callidus sin pago</span></div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Le permite revisar los registros de Callidus que no encontraron relacion con algun registro interno de ventas
                                 </span>
                             </div>
-                            <div>
+                            <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Use esta informacion para identificar si algun identificador de los registros no pagados (folio/contrato, dn , cuenta) estan correctamente capturados en el reporte interno de ventas, cuya correccion le permita pasar a pago.
                                 </span>
@@ -405,7 +456,7 @@
             </div>
         </div>
         @if(session('status'))
-        <div class="bg-green-200 p-4 flex justify-center font-bold rounded-b-lg">
+        <div class="bg-green-200 p-4 flex justify-center font-bold rounded-b-lg" id="estatus2">
             {{session('status')}}
         </div>
         @endif
@@ -548,5 +599,20 @@
                 document.getElementById('forma_finaliza').submit();
             }
         }
+        function confirmar_reset()
+        {
+            if(confirm('Esta accion eliminara todo registro presente en el calculo, incluyendo las cargas de los archivos de Callidus\n\n¿Desea continuar?'))
+            {
+                document.getElementById('forma_reset').submit();
+            }
+        }
+        @if(session('status')!='')
+
+            //setTimeout(eliminar_estatus(), 6000);
+            function eliminar_estatus() {
+                document.getElementById("estatus1").style.display="none";
+                document.getElementById("estatus2").style.display="none";
+                }   
+        @endif
         </script>
 </x-app-layout>

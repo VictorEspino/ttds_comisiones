@@ -55,9 +55,11 @@ Route::get('/seguimiento_calculos',[CalculoController::class,'seguimiento_calcul
 Route::get('/detalle_calculo/{id}',[CalculoController::class,'detalle_calculo'])->name('detalle_calculo')->middleware('auth');
 Route::post('/calculo_ejecutar',[CalculoComisiones::class,'ejecutar_calculo'])->name('calculo_ejecutar')->middleware('auth');
 Route::post('/calculo_terminar',[CalculoComisiones::class,'terminar_calculo'])->name('calculo_terminar')->middleware('auth');
+Route::post('/calculo_reset',[CalculoComisiones::class,'reset_calculo'])->name('calculo_reset')->middleware('auth');
 
 Route::get('/transacciones_resumen_calculo/{id}/{estatus}/{version}',[ProcessViewController::class,'transacciones_calculo'])->middleware('auth');
 Route::post('/callidus_import', [ExcelController::class,'callidus_import'])->middleware('auth')->name('callidus_import')->middleware('auth');
+Route::post('/callidus_residual_import', [ExcelController::class,'callidus_residual_import'])->middleware('auth')->name('callidus_residual_import')->middleware('auth');
 Route::get('/pagos_export/{id}/{version}',[ProcessViewController::class,'pagos_export'])->name('pagos_export')->middleware('auth');
 Route::get('/reclamos_export/{id}',[ProcessViewController::class,'reclamos_export'])->name('reclamos_export')->middleware('auth');
 Route::get('/callidus_no_usados/{id}',[ProcessViewController::class,'callidus_no_usados'])->name('callidus_no_usados')->middleware('auth');
