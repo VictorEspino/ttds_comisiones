@@ -110,7 +110,7 @@
                                 <div class="table-row">
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->nombre}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-ttds {{$color?'bg-gray-100':'bg-white'}}">
-                                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}"><i class="fas fa-balance-scale"></i></center></a>
+                                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}/{{$version}}"><i class="fas fa-balance-scale"></i></center></a>
                                     </div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->comisiones_pendientes,0)}}</center></div>
                                     <div class="table-cell border-r border-l border-b border-gray-300 font-ligth text-green-700 {{$color?'bg-gray-100':'bg-white'}}">

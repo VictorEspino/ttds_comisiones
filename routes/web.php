@@ -63,6 +63,7 @@ Route::post('/callidus_residual_import', [ExcelController::class,'callidus_resid
 Route::get('/pagos_export/{id}/{version}',[ProcessViewController::class,'pagos_export'])->name('pagos_export')->middleware('auth');
 Route::get('/reclamos_export/{id}',[ProcessViewController::class,'reclamos_export'])->name('reclamos_export')->middleware('auth');
 Route::get('/callidus_no_usados/{id}',[ProcessViewController::class,'callidus_no_usados'])->name('callidus_no_usados')->middleware('auth');
+Route::get('/export_alertas/{id}/{user_id}',[ProcessViewController::class,'export_alertas'])->name('export_alertas')->middleware('auth');
 Route::get('/residuales/{id}',[ProcessViewController::class,'residuales'])->name('residuales')->middleware('auth');
 Route::get('/residuales_distribuidor/{id}/{user_id}',[ProcessViewController::class,'residuales_distribuidor'])->name('residuales_distribuidor')->middleware('auth');
 

@@ -22,6 +22,15 @@
                 </div>
                 @endif
             </div> 
+            @if($alertas!="0")
+            <div class="w-full md:hidden pb-4" colspan=3><center>
+                <span class="text-xl text-red-400 flex justify-center items-center">
+                    <a href="{{route('export_alertas',['id'=>$calculo->id,'user_id'=>$user->id])}}">
+                        <i class="fas fa-exclamation-triangle"></i>&nbsp;&nbsp;&nbsp;Alertas Cobranza : {{$alertas}}&nbsp;&nbsp;&nbsp;<i class="fas fa-exclamation-triangle"></i>
+                    </a>
+                </span>    
+            </div>
+            @endif
             <div class="w-full md:w-3/12 flex flex-col bg-gradient-to-br from-blue-700 to-green-300 rounded-lg p-4 shadow-xl">
                 <div class="w-full flex flex-row justify-between">
                     <div>
@@ -176,83 +185,96 @@
                 </div>
             </div>
             @endif
-            <div class="w-full {{$user->detalles->bono=="1"?'md:w-2/3':'pt-8'}} flex justify-center items-center">
-                <table class="w-full {{$user->detalles->bono=="1"?'md:w-2/3':'md:w-1/2'}} shadow-xl">
-                    <tr class="">
-                        <td class="p-3 bg-ttds-encabezado rounded-t-xl text-xl text-white" colspan=3>
-                            Estado de cuenta
-                        </td>
-                    </tr>
-                    <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
-                            <center>
-                                <a href="/transacciones_pago_distribuidor/{{$calculo->id}}/{{$user->id}}/{{$version}}">
-                                    <i class="fas fa-file-excel"></i>
+            <div class="w-full {{$user->detalles->bono=="1"?'md:w-2/3':'pt-8'}} flex justify-center items-center flex-col">
+                @if($alertas!="0")
+                <div class="md:pb-8 hidden md:block" colspan=3><center>
+                    <span class="text-xl text-red-400 flex justify-center items-center">
+                        <a href="{{route('export_alertas',['id'=>$calculo->id,'user_id'=>$user->id])}}">
+                            <i class="fas fa-exclamation-triangle"></i>&nbsp;&nbsp;&nbsp;Alertas Cobranza : {{$alertas}}&nbsp;&nbsp;&nbsp;<i class="fas fa-exclamation-triangle"></i>
+                        </a>
+                    </span>    
+                </div>
+                @endif
+                <div class="w-full"><center>
+                    <table class="w-full {{$user->detalles->bono=="1"?'md:w-2/3':'md:w-1/2'}} shadow-xl">
+                        <tr class="">
+                            <td class="p-3 bg-ttds-encabezado rounded-t-xl text-xl text-white" colspan=3>
+                                Estado de cuenta
+                            </td>
+                        </tr>
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
+                                <center>
+                                    <a href="/transacciones_pago_distribuidor/{{$calculo->id}}/{{$user->id}}/{{$version}}">
+                                        <i class="fas fa-file-excel"></i>
+                                    </a>
+                                </td>
+                            <td class="border-b border-gray-500 px-3">Comisiones <span class="text-red-700">{{$version=="1"?number_format($user->detalles->porcentaje_adelanto).'%':'100%'}}</span></td>
+                            <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones,0)}}</center></td>
+                        </tr>
+                        @if($user->detalles->bono=="1")
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"></td>
+                            <td class="border-b border-gray-500 px-3">Bonos <span class="text-red-700">{{$version=="1"?number_format($user->detalles->porcentaje_adelanto).'%':'100%'}}</span></td>
+                            <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->bono_nuevas+$pago->bono_adiciones+$pago->bono_renovaciones,0)}}</center></td>
+                        </tr>
+                        @endif
+                        @if($version=="2")
+                        @if($user->detalles->residual=="1")
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
+                                <a href="/residuales_distribuidor/{{$calculo->id}}/{{$user->id}}">
+                                    <center><i class="fas fa-file-excel"></i>
                                 </a>
                             </td>
-                        <td class="border-b border-gray-500 px-3">Comisiones <span class="text-red-700">{{$version=="1"?number_format($user->detalles->porcentaje_adelanto).'%':'100%'}}</span></td>
-                        <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones,0)}}</center></td>
-                    </tr>
-                    @if($user->detalles->bono=="1")
-                    <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"></td>
-                        <td class="border-b border-gray-500 px-3">Bonos <span class="text-red-700">{{$version=="1"?number_format($user->detalles->porcentaje_adelanto).'%':'100%'}}</span></td>
-                        <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->bono_nuevas+$pago->bono_adiciones+$pago->bono_renovaciones,0)}}</center></td>
-                    </tr>
-                    @endif
-                    @if($version=="2")
-                    @if($user->detalles->residual=="1")
-                    <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
-                            <a href="/residuales_distribuidor/{{$calculo->id}}/{{$user->id}}">
-                                <center><i class="fas fa-file-excel"></i>
-                            </a>
-                        </td>
-                        <td class="border-b border-gray-500 px-3">Residual</td>
-                        <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->residual,0)}}</center></td>
-                    </tr>
-                    @endif
-                    <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center></td>
-                        <td class="border-b border-gray-500 px-3">Retroactivos</td>
-                        <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->retroactivos_reproceso,0)}}</center></td>
-                    </tr>
-                    <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 "></td>
-                        <td class="border-b border-gray-500 px-3">Anticipo por lineas pendientes</td>
-                        <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->anticipo_no_pago,0)}}</center></td>
-                    </tr>
-                    <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 "></td>
-                        <td class="border-b border-gray-500 px-3">Anticipo ordinario</td>
-                        <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipo_ordinario,0)}}</center></td>
-                    </tr>
-                    @endif
-                    <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 "></td>
-                        <td class="border-b border-gray-500 px-3">Anticipos extraordinarios</td>
-                        <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipos_extraordinarios,0)}}</center></td>
-                    </tr>
-                    @if($version=="2")
-                    <tr class="border-l border-r border-gray-300">
-                        <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
-                            <center>
-                                <a href="/transacciones_charge_back_distribuidor/{{$calculo->id}}/{{$user->id}}/{{$version}}">
-                                    <i class="fas fa-file-excel"></i>
-                                </a>
+                            <td class="border-b border-gray-500 px-3">Residual</td>
+                            <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->residual,0)}}</center></td>
+                        </tr>
+                        @endif
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center></td>
+                            <td class="border-b border-gray-500 px-3">Retroactivos</td>
+                            <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->retroactivos_reproceso,0)}}</center></td>
+                        </tr>
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 "></td>
+                            <td class="border-b border-gray-500 px-3">Anticipo por lineas pendientes</td>
+                            <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->anticipo_no_pago,0)}}</center></td>
+                        </tr>
+                        @if($user->detalles->adelanto=="1")
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 "></td>
+                            <td class="border-b border-gray-500 px-3">Anticipo ordinario</td>
+                            <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipo_ordinario,0)}}</center></td>
+                        </tr>
+                        @endif
+                        @endif
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 "></td>
+                            <td class="border-b border-gray-500 px-3">Anticipos extraordinarios</td>
+                            <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipos_extraordinarios,0)}}</center></td>
+                        </tr>
+                        @if($version=="2")
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
+                                <center>
+                                    <a href="/transacciones_charge_back_distribuidor/{{$calculo->id}}/{{$user->id}}/{{$version}}">
+                                        <i class="fas fa-file-excel"></i>
+                                    </a>
+                                </td>
                             </td>
-                        </td>
-                        <td class="border-b border-gray-500 px-3">Charge-Back</td>
-                        <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->charge_back,0)}}</center></td>
-                    </tr>
-                    @endif
-                    <tr class="rounded-b-lg shadow-lg bg-black text-gray-200 font-bold">
-                        <td class="rounded-bl-lg"></td>
-                        <td class="p-3">Saldo a pagar</td>
-                        <td class="p-3 rounded-br-lg"><center>${{number_format($pago->total_pago,0)}}</center></td>
-                    </tr>
-                    
-                </table>
+                            <td class="border-b border-gray-500 px-3">Charge-Back</td>
+                            <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->charge_back,0)}}</center></td>
+                        </tr>
+                        @endif
+                        <tr class="rounded-b-lg shadow-lg bg-black text-gray-200 font-bold">
+                            <td class="rounded-bl-lg"></td>
+                            <td class="p-3">Saldo a pagar</td>
+                            <td class="p-3 rounded-br-lg"><center>${{number_format($pago->total_pago,0)}}</center></td>
+                        </tr>
+                        
+                    </table>
+                </div>
             </div>
         </div>  
         <div class="w-full flex flex-col">
@@ -260,11 +282,11 @@
             <div class="w-full p-3 text-base bg-white rounded-b-lg shaddow-xl">
                 <table>
                     <tr>
-                        <td class="p-3 text-ttds">Periodo</td>
-                        <td class="p-3 text-ttds">Anticipo</td>
-                        <td class="p-3 text-ttds">Descripcion</td>
-                        <td class="p-3 text-ttds">% Aplicado</td>
-                        <td class="p-3 text-ttds"></td>
+                        <td class="p-1 md:p-3 text-ttds">Periodo</td>
+                        <td class="p-1 md:p-3 text-ttds">Anticipo</td>
+                        <td class="p-1 md:p-3 text-ttds">Descripcion</td>
+                        <td class="p-1 md:p-3 text-ttds">% Aplicado</td>
+                        <td class="p-1 md:p-3 text-ttds"></td>
                     </tr>
                     @foreach($anticipos_aplicados as $anticipo)
                     <tr>
@@ -279,70 +301,67 @@
             </div>
 
         </div>
-        <div class="w-full flex flex-row space-x-2 pt-4">
-            <div class="w-full p-2 flex flex-col">
-                <div class="w-full bg-gray-200 rounded-t-lg p-3 text-xl text-gray-100 bg-gradient-to-br from-yellow-700 to-yellow-400 flex flex-row justify-between">
-                    <div class="font-bold">Tramite de pago</div>
-                    <div class="font-bold text-sm"></div>
-                </div>
-                @if($user->detalles->emite_factura=="1")
-                @if(!is_null($pago->pdf))
-                <div class="w-full flex flex-col pt-3 pb-3">
-                    <div class="w-full flex flex-row ">
-                        <div class="w-1/3 flex flex-col">
-                            <div class="flex justify-center">
-                                <a href="/facturas/{{$pago->pdf}}" download>
-                                    <i class="text-2xl text-red-700 far fa-file-pdf"></i> PDF 
-                                </a>
-                            </div>
-
-                        </div>
-                        <div class="w-1/3 flex flex-col">
-                            <div class="flex justify-center">
-                                <a href="/facturas/{{$pago->xml}}" download>
-                                    <i class="text-2xl text-blue-600 far fa-file-code"></i> XML
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @endif
-                <div class="w-full flex flex-col shadow-lg rounded-b-lg p-5">
-                    <form method="POST" action="{{route('cargar_factura_distribuidor')}}" enctype="multipart/form-data">
-                        @csrf
-                        <div class="w-full flex flex-row ">
-                            <div class="w-5/12 flex flex-col">
-                                <span class="text-sm text-gray-700">Archivo PDF</span>
-                                <input class="w-full" type="file" name="pdf_file">
-                                @error('pdf_file')
-                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
-                                @enderror  
-                            </div>
-                            <div class="w-5/12 flex flex-col">
-                                <span class="text-sm text-gray-700">Archivo XML</span>
-                                <input class="w-full" type="file" name="xml_file">
-                                @error('xml_file')
-                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
-                                @enderror 
-                            </div>
-                            <div class="w-2/12 flex flex-col">
-                                <input type="hidden" name="calculo_id" value="{{$calculo->id}}">
-                                <input type="hidden" name="user_id" value="{{$user->id}}">
-                                <input type="hidden" name="version" value="{{$version}}">
-                                <button class="w-full p-3 bg-green-500 hover:bg-green-700 font-bold rounded-lg text-gray-200 text-xl">Cargar</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>  
-                @else
-                <div class="w-full flex flex-col pt-3 pb-3">
-                    <div class="w-full flex flex-row px-3">
-                        Pongase en contacto con @TTDSolutions para dar seguimiento a su pago.
-                    </div>
-                </div>
-                    
-                @endif              
+        <div class="w-full flex flex-col space-x-2">
+            <div class="w-full bg-gray-200 rounded-t-lg p-3 text-xl text-gray-100 bg-gradient-to-br from-yellow-700 to-yellow-400 flex flex-row justify-between">
+                <div class="font-bold">Tramite de pago</div>
+                <div class="font-bold text-sm"></div>
             </div>
+            @if($user->detalles->emite_factura=="1")
+            @if(!is_null($pago->pdf))
+            <div class="w-full flex flex-col pt-3 pb-3">
+                <div class="w-full flex flex-row ">
+                    <div class="w-1/3 flex flex-col">
+                        <div class="flex justify-center">
+                            <a href="/facturas/{{$pago->pdf}}" download>
+                                <i class="text-2xl text-red-700 far fa-file-pdf"></i> PDF 
+                            </a>
+                        </div>
+
+                    </div>
+                    <div class="w-1/3 flex flex-col">
+                        <div class="flex justify-center">
+                            <a href="/facturas/{{$pago->xml}}" download>
+                                <i class="text-2xl text-blue-600 far fa-file-code"></i> XML
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+            <div class="w-full flex flex-col shadow-lg rounded-b-lg p-5">
+                <form method="POST" action="{{route('cargar_factura_distribuidor')}}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="w-full flex flex-col md:flex-row ">
+                        <div class="w-full md:w-5/12 flex flex-col">
+                            <span class="text-sm text-gray-700">Archivo PDF</span>
+                            <input class="w-full" type="file" name="pdf_file">
+                            @error('pdf_file')
+                                <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                            @enderror  
+                        </div>
+                        <div class="w-full md:w-5/12 flex flex-col">
+                            <span class="text-sm text-gray-700">Archivo XML</span>
+                            <input class="w-full" type="file" name="xml_file">
+                            @error('xml_file')
+                                <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                            @enderror 
+                        </div>
+                        <div class="w-full md:w-2/12 flex flex-col justify-center">
+                            <input type="hidden" name="calculo_id" value="{{$calculo->id}}">
+                            <input type="hidden" name="user_id" value="{{$user->id}}">
+                            <input type="hidden" name="version" value="{{$version}}">
+                            <button class="w-1/3 md:w-full p-3 bg-green-500 hover:bg-green-700 font-bold rounded-lg text-gray-200 text-xl">Cargar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>  
+            @else
+            <div class="w-full flex flex-col pt-3 pb-3">
+                <div class="w-full flex flex-row px-3">
+                    Pongase en contacto con @TTDSolutions para dar seguimiento a su pago.
+                </div>
+            </div>                
+            @endif              
         </div>
 
         

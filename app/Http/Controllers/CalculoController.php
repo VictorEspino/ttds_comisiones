@@ -14,6 +14,7 @@ use App\Models\ChargeBackDistribuidor;
 use App\Models\Reclamo;
 use App\Models\User;
 use App\Models\AnticipoExtraordinario;
+use App\Models\AlertaCobranza;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -219,6 +220,12 @@ class CalculoController extends Controller
                                     ->first();
         $cb_no_aplicados=$cb->n;
 
+        $alertas=0;
+        if($calculo->cierre=="1")
+        {
+            $alertas_cobranza=AlertaCobranza::select(DB::raw('count(*) as n'))->where('calculo_id',$calculo->id)->get()->first();
+            $alertas=!is_null($alertas_cobranza->n)?$alertas_cobranza->n:0;
+        }
         return(view('detalle_calculo',['id_calculo'=>$calculo->id,
                                        'callidus'=>$calculo->callidus,
                                        'n_callidus'=>$n_callidus->n,
@@ -248,6 +255,7 @@ class CalculoController extends Controller
                                        'n_callidus_sin_usar'=>$n_callidus_sin_usar,
                                        'cb_aplicados'=>$cb_aplicados,
                                        'cb_no_aplicados'=>$cb_no_aplicados,
+                                       'alertas'=>$alertas,
                                     ]));
     }
     public function estado_cuenta_distribuidor(Request $request)
@@ -259,11 +267,21 @@ class CalculoController extends Controller
         $user=User::with('detalles')->find($id_user);
         $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->where('version',$version)->get()->first();
         $anticipos_aplicados=AnticipoExtraordinario::with('periodo')->where('calculo_id_aplicado',$id_calculo)->where('user_id',$id_user)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
+        $alertas=0;
+        if($version=="2")
+        {
+            $alertas_cobranza=AlertaCobranza::select(DB::raw('count(*) as n'))->where('calculo_id',$calculo->id)
+                                            ->where('user_id',$id_user)
+                                            ->get()
+                                            ->first();
+            $alertas=!is_null($alertas_cobranza->n)?$alertas_cobranza->n:0;
+        }
         return(view('estado_cuenta_distribuidor',[  'calculo'=>$calculo,
                                                     'user'=>$user,
                                                     'pago'=>$pago,
                                                     'anticipos_aplicados'=>$anticipos_aplicados,
-                                                    'version'=>$version
+                                                    'version'=>$version,
+                                                    'alertas'=>$alertas,
                                                 ]));
     }
     public function cargar_factura_distribuidor(Request $request)
@@ -294,5 +312,4 @@ class CalculoController extends Controller
 
         return(back()->withStatus('Datos de facturacion OK'));
     }
-
 }

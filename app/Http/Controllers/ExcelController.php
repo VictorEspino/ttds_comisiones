@@ -91,6 +91,11 @@ class ExcelController extends Controller
         ChargeBackDistribuidor::where('calculo_id',$request->id_calculo)->delete();
         PagosDistribuidor::where('calculo_id',$request->id_calculo)->delete();
         Reclamo::where('calculo_id',$request->id_calculo)->where('tipo','Faltante')->delete();
+        $calculo=Calculo::find($request->id_calculo);
+        $calculo->adelanto=0;
+        $calculo->cierre=0;
+        $calculo->save();
+        
         $import=new ImportCallidusVentas;
         session(['id_calculo' => $request->id_calculo]);
         try{
@@ -109,6 +114,9 @@ class ExcelController extends Controller
         $file=$request->file('file_r');
         CallidusResidual::where('calculo_id',$request->id_calculo)->delete();
         ComisionResidual::where('calculo_id',$request->id_calculo)->delete();
+        $calculo=Calculo::find($request->id_calculo);
+        $calculo->cierre=0;
+        $calculo->save();
         $import=new ImportCallidusResidual;
         session(['id_calculo' => $request->id_calculo]);
         try{

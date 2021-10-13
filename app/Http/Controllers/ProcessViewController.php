@@ -16,6 +16,7 @@ use App\Models\Mediciones;
 use App\Models\CallidusVenta;
 use App\Models\Reclamo;
 use App\Models\Periodo;
+use App\Models\AlertaCobranza;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -392,5 +393,16 @@ class ProcessViewController extends Controller
         return(view('residuales_pagados',['query'=>$query]));
 
     }
-    
+    public function export_alertas(Request $request)
+    {
+        $user_id=$request->user_id;
+        $query=AlertaCobranza::with('callidus','user')->where('calculo_id',$request->id)
+                              ->when($user_id!="0",function($q) use ($user_id)
+                                    {
+                                        $q->where('user_id',$user_id);
+                                    }
+                                    )
+                              ->get();
+        return(view('alertas_export',['query'=>$query]));
+    }    
 }

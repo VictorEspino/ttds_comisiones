@@ -16,6 +16,7 @@ use App\Models\PagosDistribuidor;
 use App\Models\AnticipoNoPago;
 use App\Models\AnticipoExtraordinario;
 use App\Models\ChargeBackDistribuidor;
+use App\Models\AlertaCobranza;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -52,6 +53,7 @@ class CalculoComisiones extends Controller
         $version=$request->version;
         $calculo=Calculo::find($calculo_id);
         $distribuidores=Distribuidor::all();
+        
         echo "Inicio acreditar=".now();
         $this->acreditar_ventas($calculo,$version);
         echo "<br>Inicio mediciones=".now();
@@ -64,7 +66,10 @@ class CalculoComisiones extends Controller
         $this->residual($calculo,$version,$distribuidores);
         echo "<br>Inicio pagos=".now();
         $this->pagos($calculo,$version,$distribuidores);
-        echo "<br>fin de calculo".now();
+        echo "<br>Inicio alertas=".now();
+        $this->alertas_cobranza($calculo,$version);
+        echo "<br>Fin calculo=".now(); 
+        
         if($version=="1")
         {
             $calculo->adelanto=true;
@@ -333,13 +338,36 @@ class CalculoComisiones extends Controller
         }
         return;
     }
+    public function periodos_anteriores($calculo)
+    {
+        $periodos_anteriores=array(
+                                'menos_1'=>0,
+                                'menos_2'=>0,
+                                'menos_3'=>0,
+                                'menos_4'=>0,
+                                );
+        $periodo_actual=Calculo::find($calculo->id)->periodo_id;
+        $periodo_menos1=Calculo::where('periodo_id',$periodo_actual-1)->get()->first();
+        $periodo_menos2=Calculo::where('periodo_id',$periodo_actual-2)->get()->first();
+        $periodo_menos3=Calculo::where('periodo_id',$periodo_actual-3)->get()->first();
+        $periodo_menos4=Calculo::where('periodo_id',$periodo_actual-4)->get()->first();
+
+        $periodos_anteriores['menos_1']=is_null($periodo_menos1)?0:$periodo_menos1->id;
+        $periodos_anteriores['menos_2']=is_null($periodo_menos2)?0:$periodo_menos2->id;
+        $periodos_anteriores['menos_3']=is_null($periodo_menos3)?0:$periodo_menos3->id;
+        $periodos_anteriores['menos_4']=is_null($periodo_menos4)?0:$periodo_menos4->id;
+        return($periodos_anteriores);        
+    }
     public function residual($calculo,$version,$distribuidores)
     {
         if($version=="1") {return;}
         ComisionResidual::where('calculo_id',$calculo->id)->delete();
 
-        $calculo_anterior=$calculo->id-1;//FALTA ESTA FUNCION
-        $calculo_anterior_2=$calculo->id-2;
+        $periodos_anteriores=$this->periodos_anteriores($calculo);
+
+        $calculo_anterior=$periodos_anteriores['menos_1'];
+        $calculo_anterior_2=$periodos_anteriores['menos_2'];
+
         $sql_mes_anterior="
             select a.user_id as user_id_ant,a.venta_id as venta_id_ant,callidus_res.contrato_ant from comision_residuals as a left join 
             (select id,contrato as contrato_ant from callidus_residuals where calculo_id=".$calculo_anterior.") as callidus_res on callidus_res.id=a.callidus_residual_id
@@ -547,12 +575,13 @@ class CalculoComisiones extends Controller
 
                     $anticipo_no_pago=is_null($anticipo->anticipo)?0:$anticipo->anticipo;
 
-                    $anticipo_ordinario=PagosDistribuidor::where('calculo_id',$calculo->id)
+                    $anticipo_ordinario_previo=PagosDistribuidor::where('calculo_id',$calculo->id)
                                                         ->where('user_id',$pago->user_id)
                                                         ->where('version',1)
                                                         ->get()
-                                                        ->first()
-                                                        ->total_pago;
+                                                        ->first();
+
+                    $anticipo_ordinario=is_null($anticipo_ordinario_previo)?0:$anticipo_ordinario_previo->total_pago;
 
                     $charge_back=0; //solo se calcula en el cierre
                     $descuentos=ChargeBackDistribuidor::select(DB::raw('sum(charge_back_distribuidors.charge_back+charge_back_distribuidors.cargo_equipo) as charge_back'))
@@ -623,6 +652,278 @@ class CalculoComisiones extends Controller
             $por_aplicar->save();
         }
         return($aplicados);
+    }
+    public function alertas_cobranza($calculo,$version)
+    {
+        if($version=="1") {return;}
+
+        $periodos_anteriores=$this->periodos_anteriores($calculo);
+
+        $calculo_m1=$periodos_anteriores['menos_1']; //11
+        $calculo_m2=$periodos_anteriores['menos_2']; //10
+        $calculo_m3=$periodos_anteriores['menos_3']; //9
+        $calculo_m4=$periodos_anteriores['menos_4']; //8
+
+        AlertaCobranza::where('calculo_id',$calculo->id)->delete();
+
+        $registros_alerta=[];
+
+        //3 PERIODO DE MEDICION ATRAS
+
+        $mes_medido=Calculo::with('periodo')->find($calculo_m4);
+        $f_inicio=$mes_medido->periodo->fecha_inicio;
+        $f_fin=$mes_medido->periodo->fecha_fin;
+
+        $sql_3_atras="
+            select contrato,(medicion1+medicion2+medicion3+medicion4) as n from (
+                select contrato,sum(medicion1) as medicion1, sum(medicion2) as medicion2,sum(medicion3) as medicion3,sum(medicion4) as medicion4 from 
+                (
+                select contrato,
+                    case 
+                    when estatus='SUSPENDIDO' then 1 
+                    else 0 
+                    end as medicion1,
+                    0 as medicion2,
+                    0 as medicion3,
+                    0 as medicion4 
+                from callidus_residuals where calculo_id=".$calculo_m3." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+                UNION
+                select contrato,
+                    0 as medicion1,
+                    case 
+                    when estatus='SUSPENDIDO' then 1 
+                    else 0 
+                    end as medicion2,
+                    0 as medicion3,
+                    0 as medicion4
+                from callidus_residuals where calculo_id=".$calculo_m2." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+                UNION
+                select contrato,
+                    0 as medicion1,
+                    0 as medicion2,
+                    case 
+                    when estatus='SUSPENDIDO' then 1 
+                    else 0 
+                    end as medicion3,
+                    0 as medicion4 
+                from callidus_residuals where calculo_id=".$calculo_m1." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+                UNION
+                select contrato,
+                    0 as medicion1,
+                    0 as medicion2,
+                    0 as medicion3,
+                    case 
+                    when estatus='SUSPENDIDO' then 1 
+                    else 0 
+                    end as medicion4 
+                from callidus_residuals where calculo_id=".$calculo->id." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+                ) as a group by a.contrato
+            )as final
+            where (final.medicion1=1 and final.medicion2=1 and final.medicion3=1 and final.medicion4=1) or (final.medicion2=1 and final.medicion3=1 and final.medicion4=1)
+            ";
+        $tres_atras=DB::select(DB::raw(
+            $sql_3_atras
+            ));
+
+        foreach($tres_atras as $alerta)
+        {
+            $sql_venta="select id,user_id from ventas where id in (SELECT b.venta_id FROM callidus_ventas as a,comision_ventas as b where a.contrato='".$alerta->contrato."' and a.calculo_id=".$mes_medido->id." and b.callidus_venta_id=a.id and b.version=2)";
+            $venta=DB::select(DB::raw($sql_venta));
+            $venta=collect($venta)->first();
+            $user_id=!is_null($venta)?$venta->user_id:1;
+            $venta_id=!is_null($venta)?$venta->id:0;
+
+            $sql_callidus="select id FROM callidus_ventas where contrato='".$alerta->contrato."' and calculo_id=".$mes_medido->id;
+            $callidus=DB::select(DB::raw($sql_callidus));
+            $callidus=collect($callidus)->first();
+            $callidus_id=!is_null($callidus)?$callidus->id:0;
+            
+            $registros_alerta[]=[
+                'user_id'=>$user_id,
+                'venta_id'=>$venta_id,
+                'callidus_venta_id'=>$callidus_id,
+                'calculo_id'=>$calculo->id,
+                'medidos'=>4,
+                'contrato'=>$alerta->contrato,
+                'alerta'=>$alerta->n=="4"?'4 periodos suspendido':'3 ultimos periodos suspendido',
+                'created_at'=>now()->toDateTimeString(),
+                'updated_at'=>now()->toDateTimeString(),
+            ];
+        }
+
+        //2 PERIODO DE MEDICION ATRAS
+
+        $mes_medido=Calculo::with('periodo')->find($calculo_m3);
+        $f_inicio=$mes_medido->periodo->fecha_inicio;
+        $f_fin=$mes_medido->periodo->fecha_fin;
+
+        $sql_2_atras="
+        select contrato,(medicion1+medicion2+medicion3) as n from (
+            select contrato,sum(medicion1) as medicion1, sum(medicion2) as medicion2,sum(medicion3) as medicion3 from 
+            (
+            select contrato,
+                   case 
+                when estatus='SUSPENDIDO' then 1 
+                else 0 
+                end as medicion1,
+                0 as medicion2,
+                0 as medicion3
+            from callidus_residuals where calculo_id=".$calculo_m2." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+            UNION
+            select contrato,
+                0 as medicion1,
+                case 
+                when estatus='SUSPENDIDO' then 1 
+                else 0 
+                end as medicion2,
+                0 as medicion3
+            from callidus_residuals where calculo_id=".$calculo_m1." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+            UNION
+            select contrato,
+                0 as medicion1,
+                0 as medicion2,
+                case 
+                when estatus='SUSPENDIDO' then 1 
+                else 0 
+                end as medicion3
+            from callidus_residuals where calculo_id=".$calculo->id." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+            ) as a group by a.contrato
+            ) as final
+            where (final.medicion1=1 and final.medicion2=1 and final.medicion3=1) or (final.medicion2=1 and final.medicion3=1)
+        ";
+        $dos_atras=DB::select(DB::raw(
+            $sql_2_atras
+            ));
+        foreach($dos_atras as $alerta)
+        {
+            $sql_venta="select id,user_id from ventas where id in (SELECT b.venta_id FROM callidus_ventas as a,comision_ventas as b where a.contrato='".$alerta->contrato."' and a.calculo_id=".$mes_medido->id." and b.callidus_venta_id=a.id and b.version=2)";
+            $venta=DB::select(DB::raw($sql_venta));
+            $venta=collect($venta)->first();
+            $user_id=!is_null($venta)?$venta->user_id:1;
+            $venta_id=!is_null($venta)?$venta->id:0;
+
+            $sql_callidus="select id FROM callidus_ventas where contrato='".$alerta->contrato."' and calculo_id=".$mes_medido->id;
+            $callidus=DB::select(DB::raw($sql_callidus));
+            $callidus=collect($callidus)->first();
+            $callidus_id=!is_null($callidus)?$callidus->id:0;
+
+            $registros_alerta[]=[
+                'user_id'=>$user_id,
+                'venta_id'=>$venta_id,
+                'callidus_venta_id'=>$callidus_id,
+                'calculo_id'=>$calculo->id,
+                'medidos'=>3,
+                'contrato'=>$alerta->contrato,
+                'alerta'=>$alerta->n=="3"?'3 periodos suspendido':'2 ultimos periodos suspendido',
+                'created_at'=>now()->toDateTimeString(),
+                'updated_at'=>now()->toDateTimeString(),
+            ];
+        }
+        //1 PERIODO DE MEDICION ATRAS
+
+        $mes_medido=Calculo::with('periodo')->find($calculo_m2);
+        $f_inicio=$mes_medido->periodo->fecha_inicio;
+        $f_fin=$mes_medido->periodo->fecha_fin;
+
+        $sql_1_atras="
+        Select contrato,(medicion1+medicion2) as n from (
+            select contrato,sum(medicion1) as medicion1, sum(medicion2) as medicion2 from 
+            (
+            select contrato,
+                   case 
+                when estatus='SUSPENDIDO' then 1 
+                else 0 
+                end as medicion1,
+                0 as medicion2
+            from callidus_residuals where calculo_id=".$calculo_m1." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+            UNION
+            select contrato,
+                0 as medicion1,
+                case 
+                when estatus='SUSPENDIDO' then 1 
+                else 0 
+                end as medicion2
+            from callidus_residuals where calculo_id=".$calculo->id." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+            ) as a group by a.contrato
+            ) as final
+            where (final.medicion1=1 and final.medicion2=1) or (final.medicion2=1)
+        ";
+
+        $uno_atras=DB::select(DB::raw(
+            $sql_1_atras
+            ));
+        foreach($uno_atras as $alerta)
+        {
+            $sql_venta="select id,user_id from ventas where id in (SELECT b.venta_id FROM callidus_ventas as a,comision_ventas as b where a.contrato='".$alerta->contrato."' and a.calculo_id=".$mes_medido->id." and b.callidus_venta_id=a.id and b.version=2)";
+            $venta=DB::select(DB::raw($sql_venta));
+            $venta=collect($venta)->first();
+            $user_id=!is_null($venta)?$venta->user_id:1;
+            $venta_id=!is_null($venta)?$venta->id:0;
+
+            $sql_callidus="select id FROM callidus_ventas where contrato='".$alerta->contrato."' and calculo_id=".$mes_medido->id;
+            $callidus=DB::select(DB::raw($sql_callidus));
+            $callidus=collect($callidus)->first();
+            $callidus_id=!is_null($callidus)?$callidus->id:0;
+
+            $registros_alerta[]=[
+                'user_id'=>$user_id,
+                'venta_id'=>$venta_id,
+                'callidus_venta_id'=>$callidus_id,
+                'calculo_id'=>$calculo->id,
+                'medidos'=>2,
+                'contrato'=>$alerta->contrato,
+                'alerta'=>$alerta->n=="2"?'2 periodos suspendido':'Ultimo periodo suspendido',
+                'created_at'=>now()->toDateTimeString(),
+                'updated_at'=>now()->toDateTimeString(),
+            ];
+        }
+        //0 PERIODO DE MEDICION ATRAS
+
+        $mes_medido=Calculo::with('periodo')->find($calculo_m1);
+        $f_inicio=$mes_medido->periodo->fecha_inicio;
+        $f_fin=$mes_medido->periodo->fecha_fin;
+
+        $sql_actual="
+        select contrato,
+            case 
+	        when estatus='SUSPENDIDO' then 1 
+	        else 0 
+	        end as medicion1
+            from callidus_residuals where calculo_id=".$calculo->id." and fecha BETWEEN '".$f_inicio."' and '".$f_fin."' and estatus='SUSPENDIDO'
+        ";
+
+
+        $actual=DB::select(DB::raw(
+            $sql_actual
+            ));
+        foreach($actual as $alerta)
+        {
+            $sql_venta="select id,user_id from ventas where id in (SELECT b.venta_id FROM callidus_ventas as a,comision_ventas as b where a.contrato='".$alerta->contrato."' and a.calculo_id=".$mes_medido->id." and b.callidus_venta_id=a.id and b.version=2)";
+            $venta=DB::select(DB::raw($sql_venta));
+            $venta=collect($venta)->first();
+            $user_id=!is_null($venta)?$venta->user_id:1;
+            $venta_id=!is_null($venta)?$venta->id:0;
+
+            $sql_callidus="select id FROM callidus_ventas where contrato='".$alerta->contrato."' and calculo_id=".$mes_medido->id;
+            $callidus=DB::select(DB::raw($sql_callidus));
+            $callidus=collect($callidus)->first();
+            $callidus_id=!is_null($callidus)?$callidus->id:0;
+
+            $registros_alerta[]=[
+                'user_id'=>$user_id,
+                'venta_id'=>$venta_id,
+                'callidus_venta_id'=>$callidus_id,
+                'calculo_id'=>$calculo->id,
+                'medidos'=>1,
+                'contrato'=>$alerta->contrato,
+                'alerta'=>'Primer periodo sin pago',
+                'created_at'=>now()->toDateTimeString(),
+                'updated_at'=>now()->toDateTimeString(),
+            ];
+        }
+        AlertaCobranza::insert($registros_alerta);
+        return;
+
     }
 
 }
