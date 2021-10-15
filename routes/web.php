@@ -53,9 +53,14 @@ Route::post('/calculo_nuevo',[CalculoController::class,'calculo_nuevo'])->name('
 Route::get('/calculo_nuevo',[CalculoController::class,'vista_nuevo'])->name('calculo_nuevo')->middleware('auth');
 Route::get('/seguimiento_calculos',[CalculoController::class,'seguimiento_calculos'])->name('seguimiento_calculos')->middleware('auth');
 Route::get('/detalle_calculo/{id}',[CalculoController::class,'detalle_calculo'])->name('detalle_calculo')->middleware('auth');
+Route::get('/detalle_conciliacion/{id}',[CalculoController::class,'detalle_conciliacion'])->name('detalle_conciliacion')->middleware('auth');
 Route::post('/calculo_ejecutar',[CalculoComisiones::class,'ejecutar_calculo'])->name('calculo_ejecutar')->middleware('auth');
 Route::post('/calculo_terminar',[CalculoComisiones::class,'terminar_calculo'])->name('calculo_terminar')->middleware('auth');
 Route::post('/calculo_reset',[CalculoComisiones::class,'reset_calculo'])->name('calculo_reset')->middleware('auth');
+Route::post('/conciliacion_reset',[CalculoComisiones::class,'reset_conciliacion'])->name('conciliacion_reset')->middleware('auth');
+Route::post('/conciliacion_ejecutar',[CalculoComisiones::class,'ejecutar_conciliacion'])->name('conciliacion_ejecutar')->middleware('auth');
+Route::get('/diferencias_comisiones/{id}',[ProcessViewController::class,'diferencias_comisiones_export'])->name('diferencias_comisiones')->middleware('auth');
+Route::get('/diferencias_residual/{id}',[ProcessViewController::class,'diferencias_residual_export'])->name('diferencias_residual')->middleware('auth');
 
 Route::get('/transacciones_resumen_calculo/{id}/{estatus}/{version}',[ProcessViewController::class,'transacciones_calculo'])->middleware('auth');
 Route::post('/callidus_import', [ExcelController::class,'callidus_import'])->middleware('auth')->name('callidus_import')->middleware('auth');

@@ -18,6 +18,8 @@ module.exports = {
         textColor: theme => theme('colors'),
         textColor: {
         'ttds': '#4A98AC',
+        'ttds-azul':'#186D92',
+        'ttds-naranja':'#f56942',
         },
         backgroundColor: theme => theme('colors'),
         backgroundColor: {

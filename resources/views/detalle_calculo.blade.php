@@ -149,7 +149,7 @@
                                 {{($adelanto=="1")?'Actualizar':'Ejecutar'}} Adelanto
                             </button>
                             @else
-                            <span class="w-full flex text-center text-gray-500 text-2xl font-semibold p-10">
+                            <span class="w-full flex text-center text-ttds-naranja text-2xl font-semibold p-10">
                                 Cargue el archivo de CALLIDUS antes de ejecutar el adelanto
                             </span>   
                             @endif
@@ -167,7 +167,7 @@
                                 {{($cierre=="1")?'Actualizar':'Ejecutar'}} Cierre
                             </button>
                             @else
-                            <span class="w-full flex text-center text-gray-500 text-2xl font-semibold p-10">
+                            <span class="w-full flex text-center text-ttds-naranja text-2xl font-semibold p-10">
                                 Cargue el archivo de RESIDUAL antes de ejecutar el cierre
                             </span>   
                             @endif
@@ -187,7 +187,7 @@
                     @endif
                     @if($terminado=="1")
                     <div class="w-full">
-                            <span class="text-gray-500 text-2xl font-semibold p-10">
+                            <span class="text-ttd-azul text-2xl font-semibold p-10">
                                 El calculo de comisiones se encuentra finalizado
                             </span>
                     </div>

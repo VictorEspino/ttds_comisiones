@@ -15,6 +15,7 @@ use App\Models\Reclamo;
 use App\Models\User;
 use App\Models\AnticipoExtraordinario;
 use App\Models\AlertaCobranza;
+use App\Models\AlertaConciliacion;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -256,6 +257,42 @@ class CalculoController extends Controller
                                        'cb_aplicados'=>$cb_aplicados,
                                        'cb_no_aplicados'=>$cb_no_aplicados,
                                        'alertas'=>$alertas,
+                                    ]));
+    }
+    public function detalle_conciliacion(Request $request)
+    {
+        $calculo=Calculo::with('periodo')->find($request->id);
+
+        $n_callidus=CallidusVenta::select(DB::raw('count(*) as n'))
+                        ->where('calculo_id',$request->id)
+                        ->get()
+                        ->first();
+
+        $n_callidus_residual=CallidusResidual::select(DB::raw('count(*) as n'))
+                        ->where('calculo_id',$request->id)
+                        ->get()
+                        ->first();
+
+        $n_comisiones=AlertaConciliacion::select(DB::raw('count(*) as n'))
+                        ->where('calculo_id',$request->id)
+                        ->where('tipo','UPFRONT')
+                        ->get()
+                        ->first();
+        
+        $n_residual=AlertaConciliacion::select(DB::raw('count(*) as n'))
+                        ->where('calculo_id',$request->id)
+                        ->where('tipo','RESIDUAL_45D')
+                        ->get()
+                        ->first();
+
+        return(view('detalle_conciliacion',['id_calculo'=>$calculo->id,
+                                       'n_callidus'=>$n_callidus->n,
+                                       'n_callidus_residual'=>$n_callidus_residual->n,
+                                       'fecha_inicio'=>$calculo->periodo->fecha_inicio,
+                                       'fecha_fin'=>$calculo->periodo->fecha_fin,
+                                       'descripcion'=>$calculo->descripcion,
+                                       'n_comisiones'=>$n_comisiones->n,
+                                       'n_residual'=>$n_residual->n,
                                     ]));
     }
     public function estado_cuenta_distribuidor(Request $request)

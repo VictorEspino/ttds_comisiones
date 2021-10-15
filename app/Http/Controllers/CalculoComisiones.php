@@ -17,6 +17,7 @@ use App\Models\AnticipoNoPago;
 use App\Models\AnticipoExtraordinario;
 use App\Models\ChargeBackDistribuidor;
 use App\Models\AlertaCobranza;
+use App\Models\AlertaConciliacion;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -924,6 +925,74 @@ class CalculoComisiones extends Controller
         AlertaCobranza::insert($registros_alerta);
         return;
 
+    }
+    function ejecutar_conciliacion(Request $request)
+    {
+        $calculo_id=$request->id;
+        $calculo=Calculo::find($calculo_id);
+        echo "Inicio de validacion comisiones = ".now();
+        $this->validar_comisiones_att($calculo);
+        echo "<br>Inicio de validacion residuales = ".now();
+        $this->validar_residual_att($calculo);
+        return(back()->withStatus('Conciliacion con AT&T del periodo de control ('.$calculo->descripcion.') ejecutado correctamente'));
+    }
+    function validar_comisiones_att($calculo)
+    {
+        return;
+    }
+    function validar_residual_att($calculo)
+    {
+
+        AlertaConciliacion::where('calculo_id',$calculo->id)->where('tipo','Residual_45D')->delete();
+
+        $periodos_anteriores=$this->periodos_anteriores($calculo);
+        $registro_sin_pago=[];
+
+        $ultima_periodo_actual=CallidusResidual::select(DB::raw('max(fecha) as ultimo'))
+                                                ->where('calculo_id',$calculo->id)
+                                                ->get()
+                                                ->first()
+                                                ->ultimo;
+
+        $ultima_periodo_anterior=CallidusResidual::select(DB::raw('max(fecha) as ultimo'))
+                                                ->where('calculo_id',$periodos_anteriores['menos_1'])
+                                                ->get()
+                                                ->first()
+                                                ->ultimo;
+        $sql_45_dias="
+            select * from (
+                select * from
+                    (select callidus_ventas.contrato from callidus_ventas where calculo_id in (".$periodos_anteriores['menos_1'].",".$periodos_anteriores['menos_2'].") and contrato in (select CONCAT(contrato,'_DL') as contrato from ventas where fecha>'".$ultima_periodo_anterior."' and fecha<='".$ultima_periodo_actual."')) as evaluadas
+                    left join
+                    (select contrato as contrato_residual from callidus_residuals where fecha>'".$ultima_periodo_anterior."' and fecha<='".$ultima_periodo_actual."' and calculo_id=".$calculo->id.") as residuales on evaluadas.contrato=residuales.contrato_residual
+                ) as cruce where contrato_residual is null          
+                    ";
+        $regla_45_dias=DB::select(DB::raw($sql_45_dias));
+        $x=0;
+        $y=0;
+
+        foreach($regla_45_dias as $registro)
+        {
+            $detalles_contrato=CallidusVenta::where('contrato',$registro->contrato)
+                                            ->where(function($query) use ($periodos_anteriores)
+                                                        {
+                                                            $query->where('calculo_id', $periodos_anteriores['menos_1']);
+                                                            $query->orWhere('calculo_id', $periodos_anteriores['menos_2']);
+                                                        }
+                                                    )
+                                            ->get()
+                                            ->first();
+            $registro_sin_pago[]=['calculo_id'=>$calculo->id,
+                                  'tipo'=>'RESIDUAL_45D',
+                                  'callidus_venta_id'=>$detalles_contrato->id,
+                                  'contrato'=>$detalles_contrato->contrato,
+                                  'descripcion'=>'La linea paso 45 dias desde su activacion/renovacion y no registra pago de residual',
+                                  'created_at'=>now()->toDateTimeString(),
+                                  'updated_at'=>now()->toDateTimeString(),
+                                ];
+        }
+        AlertaConciliacion::insert($registro_sin_pago);
+        return;
     }
 
 }
