@@ -16,7 +16,9 @@
                 <form method="post" action="{{route('calculo_reset')}}" id="forma_reset">
                     @csrf
                     <input type="hidden" name="id" value="{{$id_calculo}}">
+                    @if(Auth::user()->perfil=="admin")
                     <button type="button" class="rounded px-3 py-2 border bg-gray-500 hover:bg-ttds-hover text-gray-100 font-semibold" onclick="confirmar_reset()">Reset</button>
+                    @endif
                 </form>
             </div>    
             @endif
@@ -83,7 +85,7 @@
                         <div class="w-full flex justify-center text-sm">Registros Residual</div>
                     </div>
                 </div>
-
+                @if(Auth::user()->perfil=="admin")
                 <div class="w-full border-r border-l ">
                     @if($adelanto=="0" || $cierre=="0")
                     <form method="post" action="{{route('callidus_import')}}" enctype="multipart/form-data" id="carga_ventas_callidus">
@@ -130,13 +132,18 @@
                     
                     </form>
                     @endif
+                </div>                    
+                @else
+                <div class="w-full border-b border-r border-l rounded-b shadow-lg">
                 </div>
-                
+
+                @endif
             </div>
         </div>
         <div class="flex flex-col md:space-x-5 md:space-y-0 items-start md:flex-row">
             <div class="w-full md:w-1/2 flex flex-col justify-center md:p-5 p-3">
-                <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Calculo de Comisiones</div>
+                <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">{{Auth::user()->perfil=='admin'?'Calculo de Comisiones':'Revision de Calculo'}}</div>
+                @if(Auth::user()->perfil=="admin")
                 <div class="w-full flex flex-col border rounded-b-lg shadow-lg p-3 space-y-4">  
                     @if($cierre=="0")
                     <div class="w-full">
@@ -193,6 +200,17 @@
                     </div>
                     @endif
                 </div>
+                @else
+                <div class="w-full flex justify-center text-center flex-col border rounded-b-lg shadow-lg p-3 space-y-4">  
+                    <div class="w-full">
+                        <span class="w-full flex text-center text-ttds-naranja text-2xl font-semibold p-10">
+                            Adelanto ejecutado : {{$adelanto=="1"?'OK':'NO'}}<br>
+                            Cierre ejecutado : {{$cierre=="1"?'OK':'NO'}}<br>
+                            Calculo terminado: {{$terminado=="1"?'OK':'NO'}}<br>
+                        </span>   
+                    </div>
+                </div>
+                @endif
             </div>
             <div class="w-full md:w-1/2 flex flex-col justify-center md:p-5 p-3">
                 <div class="w-full bg-gray-200 flex flex-col p-2 rounded-t-lg">Resumen de Pago</div>

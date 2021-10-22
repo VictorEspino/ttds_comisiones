@@ -71,6 +71,10 @@ class CalculoController extends Controller
     }
     public function detalle_calculo(Request $request)
     {
+        if(Auth::user()->perfil=='distribuidor')
+        {
+            return($this->detalle_calculo_distribuidor($request->id,Auth::user()->id));
+        }
         $calculo=Calculo::with('periodo')->find($request->id);
         $validaciones=Venta::select(DB::raw('validado,count(*) as n'))
                     ->whereBetween('fecha', [$calculo->periodo->fecha_inicio,$calculo->periodo->fecha_fin ])
@@ -259,6 +263,17 @@ class CalculoController extends Controller
                                        'alertas'=>$alertas,
                                     ]));
     }
+    public function detalle_calculo_distribuidor($id,$user_id)
+    {
+        $distribuidor=User::with('detalles')->find($user_id);
+        $calculo=Calculo::find($id);
+        $pagos=PagosDistribuidor::with('calculo')->where('calculo_id',$id)->where('user_id',$user_id)->get();
+        return(view('detalle_calculo_distribuidor',[
+                                                    'distribuidor'=>$distribuidor,
+                                                    'calculo'=>$calculo,
+                                                    'pagos'=>$pagos
+                                                    ]));
+    }
     public function detalle_conciliacion(Request $request)
     {
         $calculo=Calculo::with('periodo')->find($request->id);
@@ -297,6 +312,7 @@ class CalculoController extends Controller
     }
     public function estado_cuenta_distribuidor(Request $request)
     {
+        //echo "inicio=".now();
         $id_calculo=$request->id;
         $id_user=$request->id_user;
         $version=$request->version;
@@ -305,6 +321,7 @@ class CalculoController extends Controller
         $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->where('version',$version)->get()->first();
         $anticipos_aplicados=AnticipoExtraordinario::with('periodo')->where('calculo_id_aplicado',$id_calculo)->where('user_id',$id_user)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
         $alertas=0;
+        $analisis_residual=[];
         if($version=="2")
         {
             $alertas_cobranza=AlertaCobranza::select(DB::raw('count(*) as n'))->where('calculo_id',$calculo->id)
@@ -313,12 +330,20 @@ class CalculoController extends Controller
                                             ->first();
             $alertas=!is_null($alertas_cobranza->n)?$alertas_cobranza->n:0;
         }
+        if($user->detalles->residual=="1" && $version=="2")
+        {
+            $analisis_residual=$this->analizarResidual($calculo,$user);
+            //return($analisis_residual);
+        }
+        //echo "<br>fin=".now();
+        //return;
         return(view('estado_cuenta_distribuidor',[  'calculo'=>$calculo,
                                                     'user'=>$user,
                                                     'pago'=>$pago,
                                                     'anticipos_aplicados'=>$anticipos_aplicados,
                                                     'version'=>$version,
                                                     'alertas'=>$alertas,
+                                                    'diferencial_residual'=>$analisis_residual,
                                                 ]));
     }
     public function cargar_factura_distribuidor(Request $request)
@@ -345,8 +370,134 @@ class CalculoController extends Controller
                             ->update([
                                 'pdf'=>$generated_new_name_pdf,
                                 'xml'=>$generated_new_name_xml,
+                                'carga_facturas'=>now()->toDateTimeString(),
                             ]);
 
         return(back()->withStatus('Datos de facturacion OK'));
+    }
+    private function analizarResidual($calculo,$user)
+    {
+        $respuesta=array(
+            'salientes'=>[],
+            'persistentes'=>[],
+            'entrantes'=>[],            
+        );
+        $periodos_anteriores=$this->periodos_anteriores($calculo);
+        $anterior=$periodos_anteriores['menos_1'];
+        
+        $sql_base="select contrato,sum(anterior) as anterior, sum(actual) as actual from (
+            select callidus_residuals.contrato,1 as anterior,0 as actual from comision_residuals,callidus_residuals where comision_residuals.callidus_residual_id=callidus_residuals.id and comision_residuals.calculo_id=".$periodos_anteriores['menos_1']." and comision_residuals.user_id=".$user->id."
+            UNION
+            select callidus_residuals.contrato,0 as anterior,1 as actual from comision_residuals,callidus_residuals where comision_residuals.callidus_residual_id=callidus_residuals.id and comision_residuals.calculo_id=".$calculo->id." and comision_residuals.user_id=".$user->id."
+                ) as a group by a.contrato
+            ";
+        $sql_no_estan="select contrato from (".$sql_base.") as a where a.actual=0";
+        $no_estan=DB::select(DB::raw($sql_no_estan));
+        $sql_no_estaban="select contrato from (".$sql_base.") as a where a.actual=1 and a.anterior=0";
+        $no_estaban=DB::select(DB::raw($sql_no_estaban));
+        $efecto_salientes=CallidusResidual::select(DB::raw('estatus,count(*) as n,sum(renta) as rentas'))
+                                ->where('calculo_id',$periodos_anteriores['menos_1'])
+                                ->whereIn('contrato',collect($no_estan)->pluck('contrato'))
+                                ->groupBy('estatus')
+                                ->get()->toArray();
+        $efecto_entrantes=CallidusResidual::select(DB::raw('estatus,count(*) as n,sum(renta) as rentas'))
+                                ->where('calculo_id',$calculo->id)
+                                ->whereIn('contrato',collect($no_estaban)->pluck('contrato'))
+                                ->groupBy('estatus')
+                                ->get()->toArray();
+
+        $sql_persistentes="select contrato from (".$sql_base.") as a where a.actual=1 and a.anterior=1";
+        $persistentes=DB::select(DB::raw($sql_persistentes));
+        $contratos_persistentes=collect($persistentes)->pluck('contrato');
+
+        $persistentes_a=CallidusResidual::select('contrato',DB::raw("
+                                            CASE 
+                                            WHEN estatus='ACTIVO' THEN 1
+                                            WHEN estatus='FIN_PLAZO' THEN 2
+                                            WHEN estatus='SUSPENDIDO' THEN 3
+                                            WHEN estatus='DESACTIVADO' THEN 4
+                                            WHEN estatus='DESACTIVO' THEN 5
+                                            ELSE 0
+                                            END as estatus_anterior,0 as estatus_actual,renta
+                                        "))
+                                        ->where('calculo_id',$periodos_anteriores['menos_1'])
+                                        ->whereIn('contrato',$contratos_persistentes);
+        $persistentes_b=CallidusResidual::select('contrato',DB::raw("0 as estatus_anterior,
+                                            CASE 
+                                            WHEN estatus='ACTIVO' THEN 1
+                                            WHEN estatus='FIN_PLAZO' THEN 2
+                                            WHEN estatus='SUSPENDIDO' THEN 3
+                                            WHEN estatus='DESACTIVADO' THEN 4
+                                            WHEN estatus='DESACTIVO' THEN 5
+                                            ELSE 0
+                                            END as estatus_actual,0 as renta
+                                        "))
+                                        ->where('calculo_id',$calculo->id)
+                                        ->whereIn('contrato',$contratos_persistentes);
+
+
+        $query_persistentes=$persistentes_a->union($persistentes_b);
+        $persistentes_union=DB::query()->fromSub($query_persistentes, 'c_persist')
+        ->select('contrato', DB::raw('sum(estatus_anterior) as estatus_anterior, sum(estatus_actual) as estatus_actual,sum(renta) as renta'))
+        ->groupBy('contrato');
+
+        $persistente_final=DB::query()->fromSub($persistentes_union,'c_union')
+                        ->select(
+                            DB::raw(
+                                'CASE 
+                                WHEN estatus_anterior=1 THEN "ACTIVO"
+                                WHEN estatus_anterior=2 THEN "FIN_PLAZO"
+                                WHEN estatus_anterior=3 THEN "SUSPENDIDO"
+                                WHEN estatus_anterior=4 THEN "DESACTIVADO"
+                                WHEN estatus_anterior=5 THEN "DESACTIVO"
+                                ELSE "OTRO" 
+                                END
+                                as estatus_anterior
+                            '),
+                            DB::raw(
+                                'CASE 
+                                WHEN estatus_actual=1 THEN "ACTIVO"
+                                WHEN estatus_actual=2 THEN "FIN_PLAZO"
+                                WHEN estatus_actual=3 THEN "SUSPENDIDO"
+                                WHEN estatus_actual=4 THEN "DESACTIVADO"
+                                WHEN estatus_actual=5 THEN "DESACTIVO"
+                                ELSE "OTRO"
+                                END
+                                as estatus_actual
+                                '),
+                            DB::raw('count(*) as n,sum(c_union.renta) as rentas'))
+                        ->groupBy('c_union.estatus_anterior','c_union.estatus_actual')
+                        ->get();
+
+        $respuesta['salientes']=$efecto_salientes;
+        $respuesta['persistentes']=$persistente_final;
+        $respuesta['entrantes']=$efecto_entrantes;
+        return($respuesta);
+
+
+    }
+    public function periodos_anteriores($calculo)
+    {
+        $periodos_anteriores=array(
+                                'menos_1'=>0,
+                                'menos_2'=>0,
+                                'menos_3'=>0,
+                                'menos_4'=>0,
+                                );
+        $periodo_actual=Calculo::find($calculo->id)->periodo_id;
+        $periodo_menos1=Calculo::where('periodo_id',$periodo_actual-1)->get()->first();
+        $periodo_menos2=Calculo::where('periodo_id',$periodo_actual-2)->get()->first();
+        $periodo_menos3=Calculo::where('periodo_id',$periodo_actual-3)->get()->first();
+        $periodo_menos4=Calculo::where('periodo_id',$periodo_actual-4)->get()->first();
+        
+        $ultimo_conocido=$calculo->id;
+        $periodos_anteriores['menos_1']=is_null($periodo_menos1)?$ultimo_conocido:$periodo_menos1->id;
+        $ultimo_conocido=$periodos_anteriores['menos_1'];
+        $periodos_anteriores['menos_2']=is_null($periodo_menos2)?$ultimo_conocido:$periodo_menos2->id;
+        $ultimo_conocido=$periodos_anteriores['menos_2'];
+        $periodos_anteriores['menos_3']=is_null($periodo_menos3)?$ultimo_conocido:$periodo_menos3->id;
+        $ultimo_conocido=$periodos_anteriores['menos_3'];
+        $periodos_anteriores['menos_4']=is_null($periodo_menos4)?$ultimo_conocido:$periodo_menos4->id;
+        return($periodos_anteriores);        
     }
 }

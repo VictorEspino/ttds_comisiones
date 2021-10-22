@@ -301,6 +301,104 @@
             </div>
 
         </div>
+        @if($user->detalles->residual=="1" && $version=="2")
+        <div class="w-full flex flex-col">
+            <div class="w-full p-3 text-lg text-ttds bg-gray-200 rounded-t-lg font-semibold">Analisis residual</div>
+            <div class="w-full p-3 text-base bg-white rounded-b-lg shaddow-xl flex flex-col md:flex-row md:space-x-8 space-x-0 space-y-5 md:space-y-0 text-center">
+                <div class="w-full md:w-1/3 flex flex-col">
+                    @php
+                        $n=0;
+                        $rentas=0;
+                    @endphp
+                    <div class="w-full bg-red-200 p-2 text-sm font-bold rounded-t-lg text-gray-600">Salientes</div>
+                    <div class="flex flex-row w-full bg-gray-200 text-sm font-semibold p-1 text-gray-600">
+                        <div class="w-1/3">Estatus</div>
+                        <div class="w-1/3">Lineas</div>
+                        <div class="w-1/3">Renta Promedio</div>
+                    </div>
+                    @foreach($diferencial_residual['salientes'] as $salientes)
+                    @php
+                        $n=$n+$salientes['n'];
+                        $rentas=$rentas+$salientes['rentas'];
+                    @endphp
+                    
+                    <div class="flex flex-row w-full text-gray-600 border-b text-sm">
+                        <div class="w-1/3">{{$salientes['estatus']}}</div>
+                        <div class="w-1/3">{{$salientes['n']}}</div>
+                        <div class="w-1/3">${{number_format($salientes['rentas']/$salientes['n'],2)}}</div>
+                    </div>
+                    @endforeach
+                    <div class="flex flex-row w-full text-gray-100 border-b text-sm bg-gray-600 p-2 rounded-b-lg font-semibold">
+                        <div class="w-1/3">Total</div>
+                        <div class="w-1/3">{{$n}}</div>
+                        <div class="w-1/3">${{$n>0?number_format($rentas/$n,2):0}}</div>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/3 flex flex-col">
+                    @php
+                        $n=0;
+                        $rentas=0;
+                    @endphp
+                    <div class="w-full bg-blue-200 p-2 text-sm font-bold rounded-t-lg text-gray-600">Persistentes</div>
+                    <div class="flex flex-row w-full bg-gray-200 text-sm font-semibold p-1 text-gray-600">
+                        <div class="w-1/4">Anterior</div>
+                        <div class="w-1/4">Actual</div>
+                        <div class="w-1/4">Lineas</div>
+                        <div class="w-1/4">Renta Promedio</div>
+                    </div>
+                    @foreach($diferencial_residual['persistentes'] as $persistentes)
+                    @php
+                        $n=$n+$persistentes->n;
+                        $rentas=$rentas+$persistentes->rentas;
+                    @endphp
+                    
+                    <div class="flex flex-row w-full text-gray-600 border-b text-sm">
+                        <div class="w-1/4">{{$persistentes->estatus_anterior}}</div>
+                        <div class="w-1/4">{{$persistentes->estatus_actual}}</div>
+                        <div class="w-1/4">{{$persistentes->n}}</div>
+                        <div class="w-1/4">${{number_format($persistentes->rentas/$persistentes->n,2)}}</div>
+                    </div>
+                    @endforeach
+                    <div class="flex flex-row w-full text-gray-100 border-b text-sm bg-gray-600 p-2 rounded-b-lg font-semibold">
+                        <div class="w-1/2">Total</div>
+                        <div class="w-1/4">{{$n}}</div>
+                        <div class="w-1/4">${{$n>0?number_format($rentas/$n,2):0}}</div>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/3 flex flex-col">
+                    @php
+                        $n=0;
+                        $rentas=0;
+                    @endphp
+                    <div class="w-full bg-green-200 p-2 text-sm font-bold rounded-t-lg text-gray-600">Entrantes</div>
+                    <div class="flex flex-row w-full bg-gray-200 text-sm font-semibold p-1 text-gray-600">
+                        <div class="w-1/3">Estatus</div>
+                        <div class="w-1/3">Lineas</div>
+                        <div class="w-1/3">Renta Promedio</div>
+                    </div>
+                    @foreach($diferencial_residual['entrantes'] as $entrantes)
+                    @php
+                        $n=$n+$entrantes['n'];
+                        $rentas=$rentas+$entrantes['rentas'];
+                    @endphp
+                    
+                    <div class="flex flex-row w-full text-gray-600 border-b text-sm">
+                        <div class="w-1/3">{{$entrantes['estatus']}}</div>
+                        <div class="w-1/3">{{$entrantes['n']}}</div>
+                        <div class="w-1/3">${{number_format($entrantes['rentas']/$entrantes['n'],2)}}</div>
+                    </div>
+                    @endforeach
+                    <div class="flex flex-row w-full text-gray-100 border-b text-sm bg-gray-600 p-2 rounded-b-lg font-semibold">
+                        <div class="w-1/3">Total</div>
+                        <div class="w-1/3">{{$n}}</div>
+                        <div class="w-1/3">${{$n>0?number_format($rentas/$n,2):0}}</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        @endif
         <div class="w-full flex flex-col space-x-2">
             <div class="w-full bg-gray-200 rounded-t-lg p-3 text-xl text-gray-100 bg-gradient-to-br from-yellow-700 to-yellow-400 flex flex-row justify-between">
                 <div class="font-bold">Tramite de pago</div>
@@ -328,6 +426,7 @@
                 </div>
             </div>
             @endif
+            @if(Auth::user()->perfil=="distribuidor")
             <div class="w-full flex flex-col shadow-lg rounded-b-lg p-5">
                 <form method="POST" action="{{route('cargar_factura_distribuidor')}}" enctype="multipart/form-data">
                     @csrf
@@ -355,6 +454,7 @@
                     </div>
                 </form>
             </div>  
+            @endif
             @else
             <div class="w-full flex flex-col pt-3 pb-3">
                 <div class="w-full flex flex-row px-3">

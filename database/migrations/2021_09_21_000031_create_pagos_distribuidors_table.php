@@ -51,6 +51,8 @@ class CreatePagosDistribuidorsTable extends Migration
             $table->float('total_pago');
             $table->string('pdf',50)->nullable();
             $table->string('xml',50)->nullable();
+            $table->boolean('aplicado')->default(false);
+            $table->dateTime('carga_facturas')->nullable();
             $table->timestamps();
         });
     }

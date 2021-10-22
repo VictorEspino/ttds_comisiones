@@ -216,7 +216,9 @@
                             </div>
                             
                             <div class="w-full flex justify-center pt-6 pb-3 rounded-b">
+                                @if(Auth::user()->perfil!='distribuidor')
                                 <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold" type="button" onClick="Save()">Guardar</button>
+                                @endif
                                 <button class="rounded p-1 border bg-red-500 hover:bg-red-700 text-gray-100 font-semibold" type="button" onClick="Cancel()">Cancelar</button>
                             </div>
                         </form>

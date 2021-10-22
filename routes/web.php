@@ -6,6 +6,7 @@ use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\ProcessViewController;
 use App\Http\Controllers\CalculoComisiones;
 use App\Http\Controllers\CalculoController;
+use App\Http\Controllers\ShowPagosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -94,3 +95,8 @@ Route::get('/ventas_inconsistencias/{id}/{version}',[ProcessViewController::clas
 Route::get('/charge_back_calculo/{id}',[ProcessViewController::class,'charge_back_calculo'])->name('charge_back_calculo')->middleware('auth');
 Route::post('/accion_inconsistencia',[ProcessFormsController::class,'accion_inconsistencia'])->name('accion_inconsistencia')->middleware('auth');
 Route::post('/cargar_factura_distribuidor',[CalculoController::class,'cargar_factura_distribuidor'])->name('cargar_factura_distribuidor')->middleware('auth');
+
+//PAGOS
+
+Route::get('/pagos',[ShowPagosController::class,'pagos'])->name('pagos')->middleware('auth');
+Route::post('/cambiar_estatus_pago',[ShowPagosController::class,'cambiar_estatus_pago'])->name('cambiar_estatus_pago')->middleware('auth');

@@ -22,18 +22,22 @@
                             <div class="w-full text-lg text-gray-700 font-semibold flex justify-start">{{$calculo->descripcion}}</div>                
                         </div>
                     </div>
-                    <div class="w-1/6 text-3xl font-thin text-gray-600 flex flex-col text-center">
-                        <div class="w-full py-2 text-ttds-azul">
+                    <div class="w-1/6 text-3xl font-thin text-gray-500 flex flex-col text-center">
+                        @if(Auth::user()->perfil!='distribuidor')
+                        <div class="w-full py-2 text-gray-500">
                             <a title="Comisiones Internas" href="#"><i class="fas fa-user-alt"></i></a>
                         </div>
-                        <div class="w-full py-2 text-ttds-naranja">
+                        @endif
+                        <div class="w-full py-2 text-gray-500">
                             <a href="{{route('detalle_calculo',['id'=>$calculo->id])}}" title="Comisiones Distribuidores">
                              <i class="fas fa-handshake"></i>
                             </a>
                         </div>
+                        @if(Auth::user()->perfil!='distribuidor')
                         <div class="w-full py-2">
                             <a title="Conciliacion ATT" href="{{route('detalle_conciliacion',['id'=>$calculo->id])}}"><i class="fas fa-project-diagram"></i></a>
                         </div>
+                        @endif
                     </div>    
                 </div>
             </div>

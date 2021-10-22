@@ -289,6 +289,7 @@ class ProcessViewController extends Controller
                                           ->orWhere('ventas.cuenta','like','%'.$_GET["query"].'%');
                                         })
                                 ->where('ventas.validado',true)
+                                ->when(Auth::user()->perfil=='distribuidor',function($query){$query->where('ventas.user_id',Auth::user()->id);})
                                 ->orderBy('ventas.cliente','asc')
                                 ->paginate(10);
             $registros->appends($request->all());
@@ -300,6 +301,7 @@ class ProcessViewController extends Controller
                                 ->join('users', 'users.id', '=', 'ventas.user_id')
                                 ->select('ventas.*','users.user','users.name')
                                 ->where('ventas.validado',true)
+                                ->when(Auth::user()->perfil=='distribuidor',function($query){$query->where('ventas.user_id',Auth::user()->id);})
                                 ->orderBy('ventas.cliente','asc')
                                 ->paginate(10);
             return(view('ventas_review',['registros'=>$registros,'query'=>'']));

@@ -128,16 +128,6 @@ class CalculoComisiones extends Controller
         $registros=[];
         foreach($ventas as $venta)
         {
-            /*
-            $registro=new ComisionVenta;
-            $registro->venta_id=$venta->id;
-            $registro->calculo_id=$calculo->id;
-            $registro->version=$version;
-            $registro->upfront=0;
-            $registro->bono=0;
-            */
-
-
             $validacion=$this->validar_venta($venta,$calculo->id,$callidus);
             $a_pagar=$validacion['encontrada'];
             $consistencia=$validacion['consistente'];
@@ -152,13 +142,6 @@ class CalculoComisiones extends Controller
                 $estatus_final=$consistencia?"VENTA PAGADA":"PAGADA CON INCOSISTENCIA";
                 $calculo_proceso=$calculo->id;
             }
-            /*
-            $registro->callidus_venta_id=$validacion['callidus_id'];
-            $registro->consistente=$validacion['consistente'];
-            $registro->estatus_final=$estatus_final;
-            $registro->calculo_id_proceso=$calculo_proceso;
-            $registro->estatus_inicial=$estatus_inicial;
-            */
             $registros[]=[
                         'venta_id'=>$venta->id,
                         'calculo_id'=>$calculo->id,
@@ -178,8 +161,6 @@ class CalculoComisiones extends Controller
                         'updated_at'=>now()->toDateTimeString(),
             ];
 
-
-            //$registro->save();
             if(!$a_pagar) //NO SE ENCONTRO EN CALLIDUS
             {
                 $reclamo=new Reclamo;
@@ -200,22 +181,11 @@ class CalculoComisiones extends Controller
             'consistente'=>false,
             'callidus_id'=>0,
         );
-        //$registro=CallidusVenta::where('dn',$venta->dn)->where('cuenta','like',$venta->cuenta.'%')
-        //                        ->get()
-        //                        ->first();
 
-        //$registro=CallidusVenta::where('contrato',$venta->folio.'_DL')
-        //                        ->where('calculo_id',$calculo_id)
-        //                        ->get()
-        //                        ->first();
         $registro=$callidus->where('contrato',$venta->folio.'_DL')->first();
 
         if(is_null($registro))
         {
-            //$registro=CallidusVenta::where('dn',$venta->dn)->where('cuenta','like',$venta->cuenta.'%')
-            //                    ->where('calculo_id',$calculo_id)
-            //                    ->get()
-            //                    ->first();
             $registro=$callidus->where('dn',$venta->dn)->where('cuenta','like',$venta->cuenta.'%')->first();
         }
 
@@ -352,11 +322,15 @@ class CalculoComisiones extends Controller
         $periodo_menos2=Calculo::where('periodo_id',$periodo_actual-2)->get()->first();
         $periodo_menos3=Calculo::where('periodo_id',$periodo_actual-3)->get()->first();
         $periodo_menos4=Calculo::where('periodo_id',$periodo_actual-4)->get()->first();
-
-        $periodos_anteriores['menos_1']=is_null($periodo_menos1)?0:$periodo_menos1->id;
-        $periodos_anteriores['menos_2']=is_null($periodo_menos2)?0:$periodo_menos2->id;
-        $periodos_anteriores['menos_3']=is_null($periodo_menos3)?0:$periodo_menos3->id;
-        $periodos_anteriores['menos_4']=is_null($periodo_menos4)?0:$periodo_menos4->id;
+        
+        $ultimo_conocido=$calculo->id;
+        $periodos_anteriores['menos_1']=is_null($periodo_menos1)?$ultimo_conocido:$periodo_menos1->id;
+        $ultimo_conocido=$periodos_anteriores['menos_1'];
+        $periodos_anteriores['menos_2']=is_null($periodo_menos2)?$ultimo_conocido:$periodo_menos2->id;
+        $ultimo_conocido=$periodos_anteriores['menos_2'];
+        $periodos_anteriores['menos_3']=is_null($periodo_menos3)?$ultimo_conocido:$periodo_menos3->id;
+        $ultimo_conocido=$periodos_anteriores['menos_3'];
+        $periodos_anteriores['menos_4']=is_null($periodo_menos4)?$ultimo_conocido:$periodo_menos4->id;
         return($periodos_anteriores);        
     }
     public function residual($calculo,$version,$distribuidores)
@@ -428,54 +402,28 @@ class CalculoComisiones extends Controller
                     { 
                         $venta=$venta->first();
                         $factor_residual=$distribuidores->where('user_id',$venta->user_id)->first();
-                        /*
-                        $registro=new ComisionResidual;
-                        $registro->user_id=$venta->user_id;
-                        $registro->callidus_residual_id=$actual->id;
-                        $registro->venta_id=$venta->id;
-                        $registro->calculo_id=$calculo->id;
-                        $registro->comision=$actual->estatus=="ACTIVO"?$actual->renta*($factor_residual->porcentaje_residual)/100:0;
-                        $registro->save();
-                        */
-                        
+
                         $user_id=$venta->user_id;
                         $callidus_residual_id=$actual->id;
                         $venta_id=$venta->id;
                         $calculo_id=$calculo->id;
                         $comision=$actual->estatus=="ACTIVO"?$actual->renta*($factor_residual->porcentaje_residual)/100:0;
-
-                        
                     }
                     
                 }
             else
                 { 
-                    if($user_id_anterior!="1000"){
-                    //return($distribuidores->where('user_id',$user_id_anterior)->where('user_id','!=',1000)->first());
-                    $factor_residual=$user_id_anterior=="1"?0:$distribuidores->where('user_id',$user_id_anterior)->first()->porcentaje_residual;
-                    //echo ("TRAYENDO EL ANTERIOR=".$factor_residual).", PARA=".$user_id_anterior."<br>";
-                    }
-                    else
-                    {
-                        $factor_residual=0; 
-                    }
-                    /*
-                    $registro=new ComisionResidual;
-                    $registro->user_id=$user_id_anterior;
-                    $registro->callidus_residual_id=$actual->id;
-                    $registro->venta_id=$venta_anterior[$actual->contrato];
-                    $registro->calculo_id=$calculo->id;
-                    $registro->comision=$actual->estatus=="ACTIVO"?$actual->renta*$factor_residual/100:0;
-                    $registro->save();
-                    */
 
+                    $factor_residual=$user_id_anterior=="1"?0:$distribuidores->where('user_id',$user_id_anterior)->first()->porcentaje_residual;                    
                     $user_id=$user_id_anterior;
                     $callidus_residual_id=$actual->id;
                     $venta_id=$venta_anterior[$actual->contrato];
                     $calculo_id=$calculo->id;
                     $comision=$actual->estatus=="ACTIVO"?$actual->renta*$factor_residual/100:0;
                 }
-            $registros[]=[
+            if($calculo_id!="0") //SIGNIFICA QUE PASO POR CUALQUIER ESCENARIO Y PUDO MAPEAR LA LINEA
+            {
+                $registros[]=[
                             'user_id'=>$user_id,
                             'callidus_residual_id'=>$callidus_residual_id,
                             'venta_id'=>$venta_id,
@@ -484,6 +432,7 @@ class CalculoComisiones extends Controller
                             'created_at'=>now()->toDateTimeString(),
                             'updated_at'=>now()->toDateTimeString(),
                         ];
+            }
         }
         
         $chunks=array_chunk($registros,1000);
@@ -517,9 +466,6 @@ class CalculoComisiones extends Controller
             $sql_pagos
            ));
         $pagos=collect($pagos);
-
-        //$factor=$version=="1"?0.5:1;   
-
         foreach($pagos as $pago)
         {
             $distribuidor=$distribuidores->where('user_id',$pago->user_id)->first();
@@ -617,7 +563,7 @@ class CalculoComisiones extends Controller
                 $registro->retroactivos_reproceso=$retroactivos_reproceso;//Solo se calcula en el cierre
                 
                 
-
+                $registro->carga_facturas='2021-01-01 00:00:01';
                 $total_comisiones=($pago->n_comision+$pago->n_bono+$pago->a_comision+$pago->a_bono+$pago->r_comision+$pago->r_bono)*$factor;
 
                 $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario;

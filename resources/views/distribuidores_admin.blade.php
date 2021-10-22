@@ -255,9 +255,14 @@
                                     @enderror   
                                 </div>
                             </div>
+                            
                             <div class="w-full flex justify-center pt-6 pb-3 rounded-b">
+                                @if(Auth::user()->perfil=="admin")
                                 <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Guardar</button>
+                                @endif
                             </div>
+                            
+
                         </form>
                     </div>
                 </div>

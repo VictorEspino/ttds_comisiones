@@ -179,6 +179,8 @@ class ProcessFormsController extends Controller
         $usuario->name=$request->nombre;
         $usuario->email=($numero_distribuidor->ultimo+1).'@ttdsolutions.com.mx';
         $usuario->password='$2y$10$0ATfpb55ADCKEJltfS8c/ONmlcaK6RW0dlbsqTQ51DASoHAf4RNZm';
+        $usuario->ultimo_login=now()->toDateTimeString();
+        $usuario->anterior_login=now()->toDateTimeString();
         $usuario->save();
 
         $registro=new Distribuidor;

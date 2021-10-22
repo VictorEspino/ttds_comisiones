@@ -1,3 +1,7 @@
+<?php
+$nuevos_pagos=App\Http\Servicios\Notificaciones::nuevos_pagos();
+$nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
+?>
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -83,44 +87,52 @@
             <header class="bg-gray-100">
                 <div id="mySidenav" class="sidenav flex flex-col">
                     <div><a href="javascript:void(0)" class="closebtn text-ttds" onclick="closeNav()">&times;</a></div>
+                    @if(Auth::user()->perfil!="distribuidor")
                     <div class="px-3 text-white flex flex-col">
                         <div class="text">
                             <i class="fas fa-tasks"></i>
                             Distribuidores
                         </div>
                         <div class="flex flex-col" id="distribuidores">
+                            @if(Auth::user()->perfil=="admin")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('distribuidores_nuevo')}}">
                                     <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
                                     Nuevo Distribuidor
                                 </a>
                             </div>
+                            @endif
                             <div class="pl-5 pt-2">
                                 <a href="{{route('distribuidores_admin')}}">
                                     <span class="text-yellow-300"><i class="fas fa-table"></i></span>
-                                    Administracion
+                                    Base Distribuidores
                                 </a>
                             </div>
+                            @if(Auth::user()->perfil=="admin")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('distribuidores_anticipos_extraordinarios')}}">
                                     <span class="text-yellow-300"><i class="fas fa-table"></i></span>
                                     Anticipos
                                 </a>
                             </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                     <div class="px-3 pt-2 text-white flex flex-col">
                         <div class="text">
                             <i class="fas fa-tasks"></i>
                             Ventas
                         </div>
                         <div class="flex flex-col" id="distribuidores">
+                            @if(Auth::user()->perfil=="distribuidor")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('venta_nueva')}}">
                                     <span class="text-ttds"><i class="fas fa-coins"></i></span>
                                     Registro Nueva
                                 </a>
                             </div>
+                            @endif
                             <div class="pl-5 pt-2">
                                 <a href="{{route('venta_import')}}">
                                     <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
@@ -138,27 +150,63 @@
                     <div class="px-3 pt-2 text-white flex flex-col">
                         <div class="text">
                             <i class="fas fa-tasks"></i>
-                            Periodo Control
+                            Comisiones
                         </div>
                         <div class="flex flex-col" id="distribuidores">
+                            @if(Auth::user()->perfil=="admin")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('calculo_nuevo')}}">
                                     <span class="text-ttds"><i class="fas fa-coins"></i></span>
-                                    Registro Nuevo
+                                    Nuevo Periodo
                                 </a>
                             </div>
+                            @endif
                             <div class="pl-5 pt-2">
                                 <a href="{{route('seguimiento_calculos')}}">
                                     <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
                                     Seguimiento
                                 </a>
                             </div>
+                            @if(Auth::user()->perfil!="distribuidor")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('ventas_admin')}}">
                                     <span class="text-yellow-300"><i class="fas fa-table"></i></span>
                                     Validacion Ventas
                                 </a>
                             </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="px-3 pt-2 text-white flex flex-col">
+                        <div class="text">
+                            <i class="fas fa-tasks"></i>
+                            Pagos
+                        </div>
+                        <div class="flex flex-col"> 
+                            <div class="pl-5 pt-2">
+                                <a href="{{route('pagos')}}">
+                                    <span class="text-ttds"><i class="fas fa-coins"></i></span>
+                                    Base de Pagos
+                                </a>
+                            </div>
+                            @if($nuevos_pagos!="0")
+                            <div class="pl-5 pt-2">
+                                <a href="/pagos?np=true">
+                                    <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                    Nuevos Pagos <span class="rounded-full bg-red-700 text-white p-2">{{$nuevos_pagos}}</span>
+                                </a>
+                            </div>
+                            @endif
+                            @if(Auth::user()->perfil!="distribuidor")
+                            @if($nuevas_facturas!="0")
+                            <div class="pl-5 pt-2">
+                                <a href="/pagos?nf=true">
+                                    <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                    Nuevas Facturas <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas}}</span>
+                                </a>
+                            </div>
+                            @endif
+                            @endif
                         </div>
                     </div>
                     
