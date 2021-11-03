@@ -318,6 +318,26 @@
                                     <span class="text-xs md:text-sm text-gray-700">Pagos para {{$n_pagos_cierre}} distribuidores</span>
                                 </div>
                             </div>
+                            <div class="w-full flex justify-between flex-row pt-4">
+                                <div class="w-1/2 flex justify-center">
+                                    <a href="{{route('acciones_empleados_calculo',['id'=>$id_calculo,'version'=>1])}}">
+                                        <i class="text-gray-700 text-6xl fas fa-balance-scale"></i>
+                                    </a>
+                                </div>
+                                <div class="w-1/2 flex justify-center">
+                                    <a href="{{route('acciones_empleados_calculo',['id'=>$id_calculo,'version'=>2])}}">
+                                        <i class="text-green-700 text-6xl fas fa-balance-scale"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="w-full flex justify-between flex-row">
+                                <div class="w-1/2 flex justify-center text-center">
+                                    <span class="text-xs md:text-sm text-gray-700">Pagos para {{$n_pagos_interno_adelanto}} internos</span>
+                                </div>
+                                <div class="w-1/2 flex justify-center text-center">
+                                    <span class="text-xs md:text-sm text-gray-700">Pagos para {{$n_pagos_interno_cierre}} internos</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="hidden md:block md:w-1/2 flex flex-col">
                             <div><span class="text-2xl font-semibold text-gray-700">Pagos</span></div>

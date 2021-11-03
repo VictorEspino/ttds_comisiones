@@ -63,4 +63,12 @@ class User extends Authenticatable
     {
         return($this->hasOne(Distribuidor::class));
     }
+    function supervisor()
+    {
+        return($this->belongsTo(User::class,'supervisor'));
+    }
+    function empleado()
+    {
+        return($this->hasOne(Empleado::class));
+    }
 }

@@ -97,7 +97,7 @@
                     <x-jet-responsive-nav-link href="{{ route('logout') }}"
                                    onclick="event.preventDefault();
                                     this.closest('form').submit();">
-                        {{ __('Log Out') }}
+                        <span class="text-gray-300">{{ __('Log Out') }}</span>
                     </x-jet-responsive-nav-link>
                 </form>
             </div> 

@@ -3,7 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Venta;
-use App\Models\Distribuidor;
+use App\Models\User;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -25,11 +25,12 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
     {
         $fecha=$row['fecha'];
         $fecha_db=\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($fecha);
-        $distribuidor=Distribuidor::where('numero_distribuidor',$row['distribuidor'])->get()->first();
+        $vendedor=User::where('user',$row['vendedor'])->get()->first();
         $id_carga=session('id_carga');
 
         return new Venta([
-            'user_id'=> $distribuidor->user_id,
+            'user_id'=> $vendedor->id,
+            'supervisor_id'=> $vendedor->supervisor,
             'cuenta'=> trim($row['cuenta']),
             'cliente'=> trim($row['cliente']),
             'tipo'=> trim($row['tipo']),
@@ -49,12 +50,14 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
             'user_id_carga'=> Auth::user()->id,
             'user_id_validacion'=> Auth::user()->id,
             'carga_id'=>$id_carga,
+            'lead'=>$row['lead'],
+            'padrino_lead'=>$row['padrino_lead'],
         ]);
     }
     public function rules(): array
     {
         return [
-            '*.distribuidor' =>['required','exists:distribuidors,numero_distribuidor','exists:users,user'],
+            '*.vendedor' =>['required','exists:users,user'],
             '*.dn' => ['required','digits:10'],
             '*.cuenta' => ['required'],
             '*.cliente' => ['required','max:255'],
@@ -67,6 +70,7 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
             '*.renta' => ['required','numeric'],
             '*.descuento_multirenta' => ['required','numeric'],
             '*.afectacion_comision' => ['required','numeric'],
+            '*.padrino_lead'=>['exclude_unless:lead,1','required','exists:users,user']
         ];
     }
     public function batchSize(): int

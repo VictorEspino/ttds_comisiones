@@ -8,6 +8,7 @@ use App\Models\PagosDistribuidor;
 use App\Models\AnticipoExtraordinario;
 use App\Models\ChargeBackDistribuidor;
 use App\Models\Calculo;
+use App\Models\Empleado;
 use App\Models\Venta;
 use App\Models\User;
 use App\Models\ComisionVenta;
@@ -25,24 +26,25 @@ class ProcessViewController extends Controller
 
     public function distribuidores_admin(Request $request)
     {
+        $supervisores=Empleado::select('user_id','nombre')->where('puesto','GERENTE')->get();
         if(isset($_GET['query']))
         {
             $registros=Distribuidor::where('nombre','like','%'.$_GET["query"].'%')
                                     ->orderBy('nombre','asc')
                                     ->paginate(10);
             $registros->appends($request->all());
-            return(view('distribuidores_admin',['registros'=>$registros,'query'=>$_GET['query']]));
+            return(view('distribuidores_admin',['registros'=>$registros,'supervisores'=>$supervisores,'query'=>$_GET['query']]));
         }
         else
         {
             $registros=Distribuidor::orderBy('nombre','asc')
                                     ->paginate(10);
-            return(view('distribuidores_admin',['registros'=>$registros,'query'=>'']));
+            return(view('distribuidores_admin',['registros'=>$registros,'supervisores'=>$supervisores,'query'=>'']));
         }
     }
     public function distribuidores_consulta(Request $request)
     {
-        return(Distribuidor::find($request->id));
+        return(Distribuidor::with('user')->find($request->id));
     }
     public function distribuidores_nuevo(Request $request)
     {
@@ -142,6 +144,7 @@ class ProcessViewController extends Controller
                                     ->where('pagos_distribuidors.calculo_id',$id_calculo)
                                     ->where('pagos_distribuidors.version',$version)
                                     ->where('users.name','like','%'.$_GET["query"].'%')
+                                    ->where('users.user','like','1%')
                                     ->orderBy('users.name','asc')
                                     ->paginate(10);
             $registros->appends($request->all());
@@ -172,6 +175,7 @@ class ProcessViewController extends Controller
                                                                 )
                                 ->where('pagos_distribuidors.calculo_id',$id_calculo)
                                 ->where('pagos_distribuidors.version',$version)
+                                ->where('users.user','like','1%')
                                 ->orderBy('users.name','asc')
                                 ->paginate(10);
             return(view('acciones_distribuidores_calculo',['calculo'=>$calculo,

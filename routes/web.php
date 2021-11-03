@@ -7,6 +7,7 @@ use App\Http\Controllers\ProcessViewController;
 use App\Http\Controllers\CalculoComisiones;
 use App\Http\Controllers\CalculoController;
 use App\Http\Controllers\ShowPagosController;
+use App\Http\Controllers\EmpleadosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,21 @@ Route::get('/distribuidores_anticipos_extraordinarios',[ProcessViewController::c
 Route::post('/distribuidores_anticipos_extraordinarios',[ProcessFormsController::class,'distribuidores_anticipos_extraordinarios_save'])->name('distribuidores_anticipos_extraordinarios')->middleware('auth');
 Route::get('/anticipos_extraordinarios_consulta/{user_id}',[ProcessViewController::class,'anticipos_extraordinarios_consulta'])->middleware('auth');
 Route::get('/anticipos_extraordinarios_borrar/{id}',[ProcessFormsController::class,'anticipos_extraordinarios_borrar'])->middleware('auth');
+
+//RUTAS DE ADMINISTRACION DE EMPLEADOS
+
+Route::post('/empleados_nuevo',[EmpleadosController::class,'empleados_nuevo'])->name('empleados_nuevo')->middleware('auth');
+Route::get('/empleados_nuevo',[EmpleadosController::class,'form_nuevo'])->name('empleados_nuevo')->middleware('auth');
+Route::get('/empleados_admin',[EmpleadosController::class,'empleados_admin'])->name('empleados_admin')->middleware('auth');
+Route::get('/empleados_consulta/{id}',[EmpleadosController::class,'empleados_consulta'])->middleware('auth');
+Route::post('/empleados_actualiza',[EmpleadosController::class,'empleados_actualiza'])->name('guarda_cambios_empleado')->middleware('auth');
+Route::get('/acciones_empleados_calculo/{id}/{version}',[EmpleadosController::class,'acciones_empleados_calculo'])->name('acciones_empleados_calculo')->middleware('auth');
+Route::get('/empleados_consulta_pago/{id}/{user_id}/{version}',[EmpleadosController::class,'empleados_consulta_pago'])->middleware('auth');
+Route::post('/empleados_autorizacion_especial',[EmpleadosController::class,'empleados_autorizacion_especial'])->name('empleados_autorizacion_especial')->middleware('auth');
+Route::get('/estado_cuenta_empleado/{id}/{id_user}/{version}',[EmpleadosController::class,'estado_cuenta_empleado'])->middleware('auth');
+
+Route::get('/transacciones_pago_empleado/{id}/{id_user}/{version}',[EmpleadosController::class,'transacciones_pago_empleado'])->middleware('auth');
+Route::get('/transacciones_charge_back_empleado/{id}/{id_user}/{version}',[EmpleadosController::class,'transacciones_charge_back_empleado'])->middleware('auth');
 
 
 //RUTAS DE CALCULO DE COMISIONES

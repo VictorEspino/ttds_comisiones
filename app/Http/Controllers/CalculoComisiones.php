@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Venta;
+use App\Models\User;
 use App\Models\ComisionVenta;
 use App\Models\ComisionResidual;
+use App\Models\AutorizacionEspecial;
 use App\Models\Reclamo;
 use App\Models\CallidusVenta;
 use App\Models\CallidusResidual;
 use App\Models\Calculo;
 use App\Models\Distribuidor;
+use App\Models\Empleado;
 use App\Models\Mediciones;
 use App\Models\PagosDistribuidor;
 use App\Models\AnticipoNoPago;
@@ -20,6 +23,7 @@ use App\Models\AlertaCobranza;
 use App\Models\AlertaConciliacion;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use DateTime;
 
 class CalculoComisiones extends Controller
 {
@@ -84,6 +88,11 @@ class CalculoComisiones extends Controller
     }
     private function ejecutar_mediciones($calculo,$version)
     {
+        $this->ejecutar_mediciones_vendedor($calculo,$version);
+        $this->ejecutar_mediciones_supervisor($calculo,$version);
+    }
+    private function ejecutar_mediciones_vendedor($calculo,$version)
+    {
         DB::delete('delete from mediciones where calculo_id='.$calculo->id." and version=".$version);
 
         $sql_nuevas="(select user_id, count(*) as nuevas, sum(renta) as renta_nuevas,0 as adiciones, 0 as renta_adiciones,0 as renovaciones, 0 as renta_renovaciones from `ventas` where `fecha` between '".$calculo->periodo->fecha_inicio."' and '".$calculo->periodo->fecha_fin."' and `tipo` = 'NUEVA' and validado=1 group by `user_id`)";
@@ -112,7 +121,52 @@ class CalculoComisiones extends Controller
             $registro->porcentaje_nuevas=($medicion->renovaciones)>0?100*($medicion->nuevas+$medicion->adiciones)/($medicion->renovaciones):0;
             $registro->save();
         }
-        return($mediciones);
+        return;
+    }
+    private function ejecutar_mediciones_supervisor($calculo,$version)
+    {
+        $supervisores=User::select('id')->where('perfil','gerente')->get();
+        foreach($supervisores as $supervisor)
+        {
+            Mediciones::where('calculo_id',$calculo->id)->where('version',$version)->where('user_id',$supervisor->id)->delete();
+            $supervisados=User::select('id')
+                            ->where('supervisor',$supervisor->id)
+                            ->orWhere('id',$supervisor->id)
+                            ->get();
+            $x=0;
+            $usuarios_supervisados="";
+            foreach($supervisados as $supervisado)
+            {
+                $usuarios_supervisados=$usuarios_supervisados.($x>0?',':'').$supervisado->id;
+                $x=$x+1;
+            }
+            $sql_nuevas="(select ".$supervisor->id." as user_id,count(*) as nuevas, sum(renta) as renta_nuevas,0 as adiciones, 0 as renta_adiciones,0 as renovaciones, 0 as renta_renovaciones from `ventas` where `fecha` between '".$calculo->periodo->fecha_inicio."' and '".$calculo->periodo->fecha_fin."' and `tipo` = 'NUEVA' and validado=1 and user_id in (".$usuarios_supervisados."))";
+            $sql_adiciones="(select ".$supervisor->id." as user_id,0 as nuevas, 0 as renta_nuevas,count(*) as adiciones, sum(renta) as renta_adiciones,0 as renovaciones, 0 as renta_renovaciones from `ventas` where `fecha` between '".$calculo->periodo->fecha_inicio."' and '".$calculo->periodo->fecha_fin."' and `tipo` = 'ADICION' and validado=1 and user_id in (".$usuarios_supervisados."))";
+            $sql_renovaciones="(select ".$supervisor->id." as user_id,0 as nuevas, 0 as renta_nuevas,0 as adiciones, 0 as renta_adiciones,count(*) as renovaciones, sum(renta) as renta_renovaciones from `ventas` where `fecha` between '".$calculo->periodo->fecha_inicio."' and '".$calculo->periodo->fecha_fin."' and `tipo` = 'RENOVACION' and validado=1 and user_id in (".$usuarios_supervisados."))";
+            $sql_medicion="select user_id,sum(nuevas) as nuevas,sum(renta_nuevas) as renta_nuevas,sum(adiciones) as adiciones,sum(renta_adiciones) as renta_adiciones,sum(renovaciones) as renovaciones,sum(renta_renovaciones) as renta_renovaciones";
+            $sql_medicion=$sql_medicion." from (";
+            $sql_medicion=$sql_medicion."".$sql_nuevas." UNION ".$sql_adiciones." UNION ".$sql_renovaciones;
+            $sql_medicion=$sql_medicion." ) as a group by a.user_id";
+            $mediciones=DB::select(DB::raw(
+                $sql_medicion
+               ));
+            $mediciones=collect($mediciones);
+            foreach($mediciones as $medicion)
+            {
+                $registro=new Mediciones;
+                $registro->calculo_id=$calculo->id;
+                $registro->user_id=$medicion->user_id;
+                $registro->version=$version;
+                $registro->nuevas=$medicion->nuevas;
+                $registro->renta_nuevas=$medicion->renta_nuevas;
+                $registro->adiciones=$medicion->adiciones;
+                $registro->renta_adiciones=$medicion->renta_adiciones;
+                $registro->renovaciones=$medicion->renovaciones;
+                $registro->renta_renovaciones=$medicion->renta_renovaciones;
+                $registro->porcentaje_nuevas=($medicion->renovaciones)>0?100*($medicion->nuevas+$medicion->adiciones)/($medicion->renovaciones):0;
+                $registro->save();
+            }
+        }
     }
     private function acreditar_ventas($calculo,$version)
     {
@@ -154,6 +208,7 @@ class CalculoComisiones extends Controller
                         'estatus_final'=>$estatus_final,
                         'upfront'=>0,
                         'bono'=>0,
+                        'upfront_supervisor'=>0,
                         'upfront_final'=>0,
                         'bono_final'=>0,
                         'diferencia_inconsistencia'=>0,
@@ -205,56 +260,81 @@ class CalculoComisiones extends Controller
     }
     private function comision_ventas($calculo,$version,$distribuidores)
     {
-        $comisionables=ComisionVenta::with('venta','callidus')
+        $comisionables=ComisionVenta::with('venta','callidus','venta.user')
                         ->where('calculo_id',$calculo->id)
                         ->where('version',$version)
                         ->get();
-        //$distribuidores=Distribuidor::all();
         $mediciones=Mediciones::where('calculo_id',$calculo->id)
                                 ->where('version',$version)
                                 ->get();
         foreach($comisionables as $credito)
         {
-            $distribuidor=$distribuidores->where('user_id',$credito->venta->user_id)->first();  
-            $medicion=$mediciones->where('user_id',$credito->venta->user_id)->first();                                
-            $tipo=$credito->venta->tipo;
-            if($credito->estatus_inicial=="PAGO")
+            if($credito->venta->user->perfil=="distribuidor")
             {
-            //LOS PARAMETROS DE CALCULO SON DE CALLIDUS
-                $plazo=$credito->callidus->plazo;
-                $renta=$credito->callidus->renta;
-                $dmr=$credito->callidus->descuento_multirenta;
-                $afectacion=$credito->callidus->afectacion_comision;
-            ///////////////////////
+                $distribuidor=$distribuidores->where('user_id',$credito->venta->user->id)->first();  
+                $a_12=$distribuidor->a_12;
+                $a_18=$distribuidor->a_18;
+                $a_24=$distribuidor->a_24;
+                $r_12=$distribuidor->r_12;
+                $r_18=$distribuidor->r_18;
+                $r_24=$distribuidor->r_24;
+                $paga_bono=$distribuidor->bono;
             }
-            else
+            if($credito->venta->user->perfil=="ejecutivo" || $credito->venta->user->perfil=="gerente")
             {
-                $plazo=$credito->venta->plazo;
-                $renta=$credito->venta->renta;
-                $dmr=$credito->venta->descuento_multirenta;
-                $afectacion=$credito->venta->afectacion_comision;
+                $a_12=1.5;
+                $a_18=1.5;
+                $a_24=2.0;
+                $r_12=1.0;
+                $r_18=1.0;
+                $r_24=2.5;
+                $paga_bono='0';
             }
+                $medicion=$mediciones->where('user_id',$credito->venta->user->id)->first();                                
+                $tipo=$credito->venta->tipo;
+                if($credito->estatus_inicial=="PAGO")
+                {
+                //LOS PARAMETROS DE CALCULO SON DE CALLIDUS
+                    $plazo=$credito->callidus->plazo;
+                    $renta=$credito->callidus->renta;
+                    $dmr=$credito->callidus->descuento_multirenta;
+                    $afectacion=$credito->callidus->afectacion_comision;
+                ///////////////////////
+                }
+                else
+                {
+                    $plazo=$credito->venta->plazo;
+                    $renta=$credito->venta->renta;
+                    $dmr=$credito->venta->descuento_multirenta;
+                    $afectacion=$credito->venta->afectacion_comision;
+                }
 
-            $renta_neta=($renta/1.16/1.03)*(1-($dmr/100))*(1-($afectacion/100));
-            $comision=0;
-            $bono=0;
-            if($tipo=='NUEVA' || $tipo=='ADICION')
-            {
-                if($plazo=='12' || $plazo=='6' || $plazo=='0'){ $comision=$renta_neta*$distribuidor->a_12;}
-                if($plazo=='18'){ $comision=$renta_neta*$distribuidor->a_18;}
-                if($plazo=='24' || $plazo='36'){ $comision=$renta_neta*$distribuidor->a_24;}
-                if($medicion->porcentaje_nuevas>=30 && $renta_neta>=200 && $distribuidor->bono=="1"){$bono=100;}
-            }
-            if($tipo=='RENOVACION')
-            {
-                if($plazo=='12' || $plazo=='6' || $plazo=='0'){ $comision=$renta_neta*$distribuidor->r_12;}
-                if($plazo=='18'){ $comision=$renta_neta*$distribuidor->r_18;}
-                if($plazo=='24' || $plazo='36'){ $comision=$renta_neta*$distribuidor->r_24;}
-            }
-
-            $credito->upfront=$comision;
-            $credito->bono=$bono;
-            $credito->save();
+                $renta_neta=($renta/1.16/1.03)*(1-($dmr/100))*(1-($afectacion/100));
+                $comision_supervisor=0;
+                $comision=0;
+                $bono=0;
+                if($tipo=='NUEVA' || $tipo=='ADICION')
+                {
+                    if($plazo=='12' || $plazo=='6' || $plazo=='0'){ $comision=$renta_neta*$a_12;}
+                    if($plazo=='18'){ $comision=$renta_neta*$a_18;}
+                    if($plazo=='24' || $plazo='36'){ $comision=$renta_neta*$a_24;}
+                    if($medicion->porcentaje_nuevas>=30 && $renta_neta>=200 && $paga_bono=="1"){$bono=100;}
+                }
+                if($tipo=='RENOVACION')
+                {
+                    if($plazo=='12' || $plazo=='6' || $plazo=='0'){ $comision=$renta_neta*$r_12;}
+                    if($plazo=='18'){ $comision=$renta_neta*$r_18;}
+                    if($plazo=='24' || $plazo='36'){ $comision=$renta_neta*$r_24;}
+                }
+                if(!is_null($credito->venta->user->supervisor) || $credito->venta->user->perfil=="gerente")
+                {
+                    $comision_supervisor=$renta_neta*0.5;
+                }
+                $credito->upfront_supervisor=$comision_supervisor;
+                $credito->upfront=$comision;
+                $credito->bono=$bono;
+                $credito->save();
+            
         }
     }
     public function charge_back($calculo,$version)
@@ -336,6 +416,10 @@ class CalculoComisiones extends Controller
     public function residual($calculo,$version,$distribuidores)
     {
         if($version=="1") {return;}
+
+        $usuarios=User::select('id','perfil')->get();
+        $perfiles=$usuarios->pluck('perfil','id');
+
         ComisionResidual::where('calculo_id',$calculo->id)->delete();
 
         $periodos_anteriores=$this->periodos_anteriores($calculo);
@@ -401,20 +485,27 @@ class CalculoComisiones extends Controller
                     if(!$venta->isEmpty()) //ENCONTRADO EN REGISTRO DE VENTAS
                     { 
                         $venta=$venta->first();
-                        $factor_residual=$distribuidores->where('user_id',$venta->user_id)->first();
+                        $factor_residual=0;
+                        if($perfiles[$venta->user_id]=="distribuidor")
+                        {
+                            $factor_residual=$distribuidores->where('user_id',$venta->user_id)->first()->porcentaje_residual;
+                        }
 
                         $user_id=$venta->user_id;
                         $callidus_residual_id=$actual->id;
                         $venta_id=$venta->id;
                         $calculo_id=$calculo->id;
-                        $comision=$actual->estatus=="ACTIVO"?$actual->renta*($factor_residual->porcentaje_residual)/100:0;
+                        $comision=$actual->estatus=="ACTIVO"?$actual->renta*$factor_residual/100:0;
                     }
                     
                 }
             else
                 { 
-
-                    $factor_residual=$user_id_anterior=="1"?0:$distribuidores->where('user_id',$user_id_anterior)->first()->porcentaje_residual;                    
+                    $factor_residual=0;
+                    if($perfiles[$user_id_anterior]=="distribuidor")
+                    {
+                        $factor_residual=$user_id_anterior=="1"?0:$distribuidores->where('user_id',$user_id_anterior)->first()->porcentaje_residual;                    
+                    }
                     $user_id=$user_id_anterior;
                     $callidus_residual_id=$actual->id;
                     $venta_id=$venta_anterior[$actual->contrato];
@@ -443,7 +534,12 @@ class CalculoComisiones extends Controller
         
         return;
     }
-    public function pagos($calculo,$version,$distribuidores)
+    private function pagos($calculo,$version,$distribuidores)
+    {
+        $this->pagos_vendedor($calculo,$version,$distribuidores);
+        $this->pagos_supervisor($calculo,$version);
+    }
+    private function pagos_vendedor($calculo,$version,$distribuidores)
     {
         DB::delete('delete from pagos_distribuidors where calculo_id='.$calculo->id.' and version='.$version);
         
@@ -466,13 +562,25 @@ class CalculoComisiones extends Controller
             $sql_pagos
            ));
         $pagos=collect($pagos);
+        $usuarios=User::select('id','perfil')->get();
+        $perfiles=$usuarios->pluck('perfil','id');
+
         foreach($pagos as $pago)
         {
-            $distribuidor=$distribuidores->where('user_id',$pago->user_id)->first();
-            
-            if(($distribuidor->adelanto=="1" && $version=="1") || $version=="2")
+            $adelanto="1";
+            $porcentaje_adelanto=50;
+            $paga_residual="0";
+            if($perfiles[$pago->user_id]=="distribuidor")
             {
-                $factor=$version=="1"?($distribuidor->porcentaje_adelanto/100):1;
+                $distribuidor=$distribuidores->where('user_id',$pago->user_id)->first();
+                $adelanto=$distribuidor->adelanto;
+                $porcentaje_adelanto=$distribuidor->porcentaje_adelanto;
+                $paga_residual=$distribuidor->residual;
+            }
+            
+            if(($adelanto=="1" && $version=="1") || $version=="2")
+            {
+                $factor=$version=="1"?($porcentaje_adelanto/100):1;
                 $registro=new PagosDistribuidor;
                 $registro->calculo_id=$calculo->id;
                 $registro->user_id=$pago->user_id;
@@ -548,7 +656,7 @@ class CalculoComisiones extends Controller
                                                 ->get()
                                                 ->first();
 
-                    if(!is_null($residuales->comision) && $distribuidor->residual=="1"){$residual=$residuales->comision;}
+                    if(!is_null($residuales->comision) && $paga_residual=="1"){$residual=$residuales->comision;}
                     
                     $retroactivos_reproceso=0; //solo se calcula en el cierre
                 }
@@ -565,8 +673,26 @@ class CalculoComisiones extends Controller
                 
                 $registro->carga_facturas='2021-01-01 00:00:01';
                 $total_comisiones=($pago->n_comision+$pago->n_bono+$pago->a_comision+$pago->a_bono+$pago->r_comision+$pago->r_bono)*$factor;
-
                 $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario;
+                if($perfiles[$pago->user_id]!="distribuidor")
+                {
+                   if(!$this->verifica_condiciones_pago_vendedor($calculo,$version,$pago->user_id))
+                   {
+                        $registro->total_pago=0;
+
+                        $especial=$this->verifica_autorizacion_especial($calculo,$pago->user_id);
+                        if($especial['tiene_autorizacion']=="SI")
+                        {
+                            $registro->total_pago=$total_comisiones*($especial['porcentaje_autorizado']/100)+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario;
+                        }
+                        else
+                        {
+                            $this->abandera_pago_cero($calculo,$pago->user_id);
+                        }
+                   }
+                   
+                }
+                
 
                 $registro->save();
             }
@@ -574,7 +700,335 @@ class CalculoComisiones extends Controller
         }
         return;
     }
-    public function aplicar_anticipos($calculo_id,$user_id,$periodo_id,$version)
+    private function pagos_supervisor($calculo,$version)
+    {
+        $supervisores=User::select('id')->where('perfil','gerente')->get();
+        foreach($supervisores as $supervisor)
+        {
+            $supervisados=User::select('id')
+                            ->where('supervisor',$supervisor->id)
+                            ->orWhere('id',$supervisor->id)
+                            ->get();
+            $x=0;
+            $usuarios_supervisados="";
+            foreach($supervisados as $supervisado)
+            {
+                $usuarios_supervisados=$usuarios_supervisados.($x>0?',':'').$supervisado->id;
+                $x=$x+1;
+            }
+            $sql_pagos="    
+            select user_id,sum(nuevas) as nuevas,sum(n_rentas) as n_rentas, sum(n_comision) as n_comision,sum(n_bono) as n_bono,sum(adiciones) as adiciones,sum(a_rentas) as a_rentas, sum(a_comision) as a_comision,sum(a_bono) as a_bono,sum(renovaciones) as renovaciones,sum(r_rentas) as r_rentas, sum(r_comision) as r_comision,sum(r_bono) as r_bono,sum(n_no_pago) as n_no_pago,sum(n_rentas_no_pago) as n_rentas_no_pago, sum(n_comision_no_pago) as n_comision_no_pago,sum(n_bono_no_pago) as n_bono_no_pago,sum(a_no_pago) as a_no_pago,sum(a_rentas_no_pago) as a_rentas_no_pago, sum(a_comision_no_pago) as a_comision_no_pago,sum(a_bono_no_pago) as a_bono_no_pago,sum(r_no_pago) as r_no_pago,sum(r_rentas_no_pago) as r_rentas_no_pago, sum(r_comision_no_pago) as r_comision_no_pago,sum(r_bono_no_pago) as r_bono_no_pago FROM (
+                SELECT ".$supervisor->id." as user_id,count(*) nuevas,sum(b.renta) as n_rentas,sum(a.upfront_supervisor) as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='NUEVA' and a.estatus_inicial='PAGO' and b.user_id in (".$usuarios_supervisados.")
+                UNION
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,count(*) as adiciones,sum(b.renta) as a_rentas,sum(a.upfront_supervisor) as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='ADICION' and a.estatus_inicial='PAGO' and b.user_id in (".$usuarios_supervisados.")
+                UNION
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,count(*) as renovaciones,sum(b.renta) as r_rentas,sum(a.upfront_supervisor) as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='RENOVACION' and a.estatus_inicial='PAGO' and b.user_id in (".$usuarios_supervisados.")
+                UNION
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,count(*) as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,count(*) as n_no_pago,sum(b.renta) as n_rentas_no_pago,sum(a.upfront_supervisor) as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='NUEVA' and a.estatus_inicial='NO PAGO' and b.user_id in (".$usuarios_supervisados.")
+                    UNION
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,count(*) as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,count(*) as a_no_pago,sum(b.renta) as a_rentas_no_pago,sum(a.upfront_supervisor) as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='ADICION' and a.estatus_inicial='NO PAGO' and b.user_id in (".$usuarios_supervisados.")
+                    UNION
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,count(*) as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,count(*) as r_no_pago,sum(b.renta) as r_rentas_no_pago,sum(a.upfront_supervisor) as r_comision_no_pago,0 as r_bono_no_pago FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='RENOVACION' and a.estatus_inicial='NO PAGO' and b.user_id in (".$usuarios_supervisados.")
+                    ) as a group by a.user_id
+            ";
+            $pagos=DB::select(DB::raw($sql_pagos));
+            foreach($pagos as $pago)
+            {
+                //obtiene las comisiones que fueron calculadas como vendedor
+                $pagos_vendedor=PagosDistribuidor::where('calculo_id',$calculo->id)->where('version',$version)->where('user_id',$supervisor->id)->get();
+                $comision_nuevas_vendedor=0;
+                $comision_adiciones_vendedor=0;
+                $comision_renovaciones_vendedor=0;
+                $comision_nuevas_vendedor_no_pago=0;
+                $comision_adiciones_vendedor_no_pago=0;
+                $comision_renovaciones_vendedor_no_pago=0;
+                $charge_back_vendedor=0;
+                foreach($pagos_vendedor as $pago_vendedor)
+                {
+                    $comision_nuevas_vendedor=$comision_nuevas_vendedor+$pago_vendedor->comision_nuevas;
+                    $comision_adiciones_vendedor=$comision_adiciones_vendedor+$pago_vendedor->comision_adiciones;
+                    $comision_renovaciones_vendedor=$comision_renovaciones_vendedor+$pago_vendedor->comision_renovaciones;
+                    $comision_nuevas_vendedor_no_pago=$comision_nuevas_vendedor_no_pago+$pago_vendedor->nuevas_comision_no_pago;
+                    $comision_adiciones_vendedor_no_pago=$comision_adiciones_vendedor_no_pago+$pago_vendedor->adiciones_comision_no_pago;
+                    $comision_renovaciones_vendedor_no_pago=$comision_renovaciones_vendedor_no_pago+$pago_vendedor->renovaciones_comision_no_pago;
+                    $charge_back_vendedor=$charge_back_vendedor+$pago_vendedor->charge_back;
+                }
+                PagosDistribuidor::where('calculo_id',$calculo->id)->where('version',$version)->where('user_id',$supervisor->id)->delete();
+                $adelanto="1";
+                $porcentaje_adelanto=50;
+                $paga_residual="0";                
+                if(($adelanto=="1" && $version=="1") || $version=="2")
+                {
+                    $factor=$version=="1"?($porcentaje_adelanto/100):1;
+                    $registro=new PagosDistribuidor;
+                    $registro->calculo_id=$calculo->id;
+                    $registro->user_id=$pago->user_id;
+                    $registro->version=$version;
+                    $registro->nuevas=$pago->nuevas;
+                    $registro->renta_nuevas=$pago->n_rentas;
+                    $registro->comision_nuevas=$pago->n_comision*$factor+$comision_nuevas_vendedor;
+                    $registro->bono_nuevas=$pago->n_bono*$factor;
+                    $registro->adiciones=$pago->adiciones;
+                    $registro->renta_adiciones=$pago->a_rentas;
+                    $registro->comision_adiciones=$pago->a_comision*$factor+$comision_adiciones_vendedor;
+                    $registro->bono_adiciones=$pago->a_bono*$factor;
+                    $registro->renovaciones=$pago->renovaciones;
+                    $registro->renta_renovaciones=$pago->r_rentas;
+                    $registro->comision_renovaciones=$pago->r_comision*$factor+$comision_renovaciones_vendedor;
+                    $registro->bono_renovaciones=$pago->r_bono*$factor;
+
+
+                    $registro->nuevas_no_pago=$pago->n_no_pago;
+                    $registro->nuevas_renta_no_pago=$pago->n_rentas_no_pago;
+                    $registro->nuevas_comision_no_pago=$pago->n_comision_no_pago+$comision_nuevas_vendedor_no_pago;
+                    $registro->nuevas_bono_no_pago=$pago->n_bono_no_pago;
+
+                    $registro->adiciones_no_pago=$pago->a_no_pago;
+                    $registro->adiciones_renta_no_pago=$pago->a_rentas_no_pago;
+                    $registro->adiciones_comision_no_pago=$pago->a_comision_no_pago+$comision_adiciones_vendedor_no_pago;
+                    $registro->adiciones_bono_no_pago=$pago->a_bono_no_pago;
+
+                    $registro->renovaciones_no_pago=$pago->r_no_pago;
+                    $registro->renovaciones_renta_no_pago=$pago->r_rentas_no_pago;
+                    $registro->renovaciones_comision_no_pago=$pago->r_comision_no_pago+$comision_renovaciones_vendedor_no_pago;
+                    $registro->renovaciones_bono_no_pago=$pago->r_bono_no_pago;
+
+                    $anticipo_ordinario=0;
+                    $anticipo_no_pago=0;
+                    $residual=0; 
+                    $charge_back=0; 
+                    $retroactivos_reproceso=0;
+
+                    if($version=="2")
+                    {
+                        $anticipo=AnticipoNoPago::select(DB::raw('sum(anticipo) as anticipo'))
+                                            ->where('calculo_id',$calculo->id)
+                                            ->where('user_id',$pago->user_id)
+                                            ->get()
+                                            ->first();
+
+                        $anticipo_no_pago=is_null($anticipo->anticipo)?0:$anticipo->anticipo;
+
+                        $anticipo_ordinario_previo=PagosDistribuidor::where('calculo_id',$calculo->id)
+                                                            ->where('user_id',$pago->user_id)
+                                                            ->where('version',1)
+                                                            ->get()
+                                                            ->first();
+
+                        $anticipo_ordinario=is_null($anticipo_ordinario_previo)?0:$anticipo_ordinario_previo->total_pago;
+
+                        $charge_back=$comision_nuevas_vendedor_no_pago; //solo se calcula en el cierre
+                        $descuentos=ChargeBackDistribuidor::select(DB::raw('sum(charge_back_distribuidors.charge_back+charge_back_distribuidors.cargo_equipo) as charge_back'))
+                                                            ->join('comision_ventas','charge_back_distribuidors.comision_venta_id','=','comision_ventas.id')
+                                                            ->join('ventas','comision_ventas.venta_id','=','ventas.id')
+                                                            ->where('charge_back_distribuidors.calculo_id',$calculo->id)
+                                                            ->where('charge_back_distribuidors.comision_venta_id','!=',0)
+                                                            ->where('ventas.user_id',$pago->user_id)
+                                                            ->get()
+                                                            ->first();
+                        if(!is_null($descuentos->charge_back)){$charge_back=$charge_back+$descuentos->charge_back;}
+
+                        $residual=0; //solo se calcula en el cierre
+
+                        $residuales=ComisionResidual::select(DB::raw('sum(comision) as comision'))
+                                                    ->where('calculo_id',$calculo->id)
+                                                    ->where('user_id',$pago->user_id)
+                                                    ->get()
+                                                    ->first();
+
+                        if(!is_null($residuales->comision) && $paga_residual=="1"){$residual=$residuales->comision;}
+                        
+                        $retroactivos_reproceso=0; //solo se calcula en el cierre
+                    }
+
+                    $anticipos_extraordinarios=$this->aplicar_anticipos($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
+                    $registro->anticipos_extraordinarios=$anticipos_extraordinarios*$factor;
+
+                    $registro->anticipo_ordinario=$anticipo_ordinario; //Solo se calcula en el cierre
+                    $registro->anticipo_no_pago=$anticipo_no_pago; //Solo se calcula en el cierre
+                    $registro->residual=$residual; //Solo se calcula en el cierre
+                    $registro->charge_back=$charge_back;//Solo se calcula en el cierre
+                    $registro->retroactivos_reproceso=$retroactivos_reproceso;//Solo se calcula en el cierre
+                    
+                    
+                    $registro->carga_facturas='2021-01-01 00:00:01';
+                    $total_comisiones=($pago->n_comision+$pago->n_bono+$pago->a_comision+$pago->a_bono+$pago->r_comision+$pago->r_bono)*$factor
+                                                                        +$comision_nuevas_vendedor
+                                                                        +$comision_adiciones_vendedor
+                                                                        +$comision_renovaciones_vendedor
+                                                                        ;
+
+                    $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario;
+                    if(!$this->verifica_condiciones_pago_supervisor($calculo,$version,$pago->user_id))
+                    {
+                        $registro->total_pago=0;
+
+                        $especial=$this->verifica_autorizacion_especial($calculo,$pago->user_id);
+                        if($especial['tiene_autorizacion']=="SI")
+                        {
+                            $registro->total_pago=$total_comisiones*($especial['porcentaje_autorizado']/100)+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario;
+                        }
+                        else
+                        {
+                            $this->abandera_pago_cero($calculo,$pago->user_id);
+                        }
+                    }
+                    $registro->save();
+                }
+
+            }
+        }
+    }
+    private function abandera_pago_cero($calculo,$user_id)
+    {
+        $campo='porcentaje_pago_vendedor';
+        $empleado=User::where('id',$user_id)->get()->first();
+        if($empleado->perfil=='gerente')
+        {$campo='porcentaje_pago_supervisor';}
+        $supervisados=User::select('id')
+                        ->where('supervisor',$user_id)
+                        ->orWhere('id',$user_id)
+                        ->get();
+        $supervisados=$supervisados->pluck('id');
+        $ventas=Venta::select('id')
+                    ->whereBetween('fecha',[$calculo->periodo->fecha_inicio,$calculo->periodo->fecha_fin])
+                    ->where('validado','1')
+                    ->where(function($query) use ($supervisados)
+                            {
+                                $query->whereIn('user_id',$supervisados);
+                                $query->orWhereIn('supervisor_id',$supervisados);
+                            })
+                    ->get()->pluck('id');
+        ComisionVenta::whereIn('venta_id',$ventas)
+                        ->where('calculo_id',$calculo->id)
+                        ->update([
+                                    $campo=>0
+                                ]);
+    }
+    private function verifica_autorizacion_especial($calculo,$user_id)
+    {
+        $respuesta=[
+                    'tiene_autorizacion'=>"NO",
+                    'porcentaje_autorizado'=>0,
+                    ];
+        $autorizaciones=AutorizacionEspecial::where('calculo_id',$calculo->id)->where('user_id',$user_id)->get();
+        foreach($autorizaciones as $autorizacion)
+        {
+            echo "<br>----AUTORIZACION ESPECIAL ENCONTRADA para=".$autorizacion->user_id;
+            $respuesta['tiene_autorizacion']="SI";
+            $respuesta['porcentaje_autorizado']=$autorizacion->porcentaje_autorizado;
+            $campo='porcentaje_pago_vendedor';
+            $empleado=User::where('id',$user_id)->get()->first();
+            if($empleado->perfil=='gerente')
+            {$campo='porcentaje_pago_supervisor';}
+            $supervisados=User::select('id')
+                            ->where('supervisor',$user_id)
+                            ->orWhere('id',$user_id)
+                            ->get();
+            $supervisados=$supervisados->pluck('id');
+            $ventas=Venta::select('id')
+                        ->whereBetween('fecha',[$calculo->periodo->fecha_inicio,$calculo->periodo->fecha_fin])
+                        ->where('validado','1')
+                        ->where(function($query) use ($supervisados)
+                                {
+                                    $query->whereIn('user_id',$supervisados);
+                                    $query->orWhereIn('supervisor_id',$supervisados);
+                                })
+                        ->get()->pluck('id');
+            ComisionVenta::whereIn('venta_id',$ventas)
+                            ->where('calculo_id',$calculo->id)
+                            ->update([
+                                        $campo=>$autorizacion->porcentaje_autorizado
+                                    ]);
+        }
+        return($respuesta);
+    }
+    private function verifica_condiciones_pago_vendedor($calculo,$version,$user_id)
+    {
+        $empleado=Empleado::with('user')->where('user_id',$user_id)->get()->first();
+        if($empleado->user->perfil=="ejecutivo")
+        {   
+            echo "<br>-------VENDEDOR";
+            $fecha_medicion=$calculo->periodo->fecha_inicio;
+            echo "<br>-------fecha_medicion=".$fecha_medicion;
+            echo "<br>-------fecha_ingreso=".$empleado->fecha_ingreso;
+            $inicio_medicion  = new DateTime($fecha_medicion);
+            $ingreso_empleado = new DateTime($empleado->fecha_ingreso);
+            echo "<br>-------diferencia=".$inicio_medicion->diff($ingreso_empleado)->days;
+            if($inicio_medicion<=$ingreso_empleado) {echo "<br>----ENTRADA DESPUES DE INICIAR A MEDIR";return(true);}
+            if($inicio_medicion>$ingreso_empleado && $inicio_medicion->diff($ingreso_empleado)->days<90) {echo "<br>----TODAVIA NO CUMPLE 90 DIAS AL INICIAR";return(true);}
+            if($inicio_medicion>$ingreso_empleado && $inicio_medicion->diff($ingreso_empleado)->days>=90) 
+            {
+                echo "<br>----YA CUMPLIO 90 DIAS AL INICIAR";
+                $mediciones=Mediciones::where('calculo_id',$calculo->id)
+                                        ->where('version',$version)
+                                        ->where('user_id',$user_id)
+                                        ->get()
+                                        ->first();
+                $nuevas=$mediciones->nuevas;
+                $adiciones=$mediciones->adiciones;
+                $renovaciones=$mediciones->renovaciones;
+                $unidades=$nuevas+$adiciones+$renovaciones;
+                $lineas_nuevas=$nuevas+$adiciones;
+                if($unidades>=$empleado->cuota_unidades && $lineas_nuevas>=$empleado->aduana_nuevas)
+                {
+                    echo "<br>------EMPLEADO CUMPLE CONDICIONES";
+                    return true;
+                }
+                else 
+                {
+                    echo "<br>------EMPLEADO NO CUMPLE CONDICIONES";
+                    return false;
+                }
+            }
+            echo "<br>-------FIN VENDEDOR";
+        }
+        return true;
+    }
+    private function verifica_condiciones_pago_supervisor($calculo,$version,$user_id)
+    {
+        $empleado=Empleado::with('user')->where('user_id',$user_id)->get()->first();
+        if($empleado->user->perfil=="gerente")
+        {   
+            echo "<br>-------SUPERVISOR";
+            $fecha_medicion=$calculo->periodo->fecha_inicio;
+            echo "<br>-------fecha_medicion=".$fecha_medicion;
+            echo "<br>-------fecha_ingreso=".$empleado->fecha_ingreso;
+            $inicio_medicion  = new DateTime($fecha_medicion);
+            $ingreso_empleado = new DateTime($empleado->fecha_ingreso);
+            echo "<br>-------diferencia=".$inicio_medicion->diff($ingreso_empleado)->days;
+            if($inicio_medicion<=$ingreso_empleado) {echo "<br>----ENTRADA DESPUES DE INICIAR A MEDIR";return(true);}
+            if($inicio_medicion>$ingreso_empleado && $inicio_medicion->diff($ingreso_empleado)->days<90) {echo "<br>----TODAVIA NO CUMPLE 90 DIAS AL INICIAR";return(true);}
+            if($inicio_medicion>$ingreso_empleado && $inicio_medicion->diff($ingreso_empleado)->days>=90) 
+            {
+                echo "<br>----YA CUMPLIO 90 DIAS AL INICIAR";
+                $mediciones=Mediciones::where('calculo_id',$calculo->id)
+                                        ->where('version',$version)
+                                        ->where('user_id',$user_id)
+                                        ->get()
+                                        ->first();
+                $nuevas=$mediciones->nuevas;
+                $adiciones=$mediciones->adiciones;
+                $renovaciones=$mediciones->renovaciones;
+                $unidades=$nuevas+$adiciones+$renovaciones;
+                $lineas_nuevas=$nuevas+$adiciones;
+                if($unidades>=$empleado->cuota_unidades && $lineas_nuevas>=$empleado->aduana_nuevas)
+                {
+                    echo "<br>------EMPLEADO CUMPLE CONDICIONES";
+                    return true;
+                }
+                else 
+                {
+                    echo "<br>------EMPLEADO NO CUMPLE CONDICIONES";
+                    return false;
+                }
+            }
+            echo "<br>-------FIN VENDEDOR";
+
+        }
+        return true;
+    }
+    private function aplicar_anticipos($calculo_id,$user_id,$periodo_id,$version)
     {
         AnticipoExtraordinario::where('calculo_id_aplicado',$calculo_id)
                                         ->where('user_id',$user_id)
@@ -600,7 +1054,7 @@ class CalculoComisiones extends Controller
         }
         return($aplicados);
     }
-    public function alertas_cobranza($calculo,$version)
+    private function alertas_cobranza($calculo,$version)
     {
         if($version=="1") {return;}
 
@@ -872,7 +1326,7 @@ class CalculoComisiones extends Controller
         return;
 
     }
-    function ejecutar_conciliacion(Request $request)
+    public function ejecutar_conciliacion(Request $request)
     {
         $calculo_id=$request->id;
         $calculo=Calculo::find($calculo_id);
@@ -882,11 +1336,11 @@ class CalculoComisiones extends Controller
         $this->validar_residual_att($calculo);
         return(back()->withStatus('Conciliacion con AT&T del periodo de control ('.$calculo->descripcion.') ejecutado correctamente'));
     }
-    function validar_comisiones_att($calculo)
+    public function validar_comisiones_att($calculo)
     {
         return;
     }
-    function validar_residual_att($calculo)
+    public function validar_residual_att($calculo)
     {
 
         AlertaConciliacion::where('calculo_id',$calculo->id)->where('tipo','Residual_45D')->delete();

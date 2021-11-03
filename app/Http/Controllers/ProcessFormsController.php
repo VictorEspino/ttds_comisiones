@@ -142,7 +142,10 @@ class ProcessFormsController extends Controller
                   'porcentaje_adelanto' => $pa,
                   'emite_factura'=> $request->boolean('factura'),
                 ]);
-
+        User::where('id',$request->id_user)
+        ->update(['supervisor'=>$request->supervisor,
+                  'name'=>$request->nombre
+                ]);
 
         return(back()->withStatus('Registro de '.$request->nombre.' actualizado con exito'));
         

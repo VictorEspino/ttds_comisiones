@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\PagosDistribuidor;
 use App\Models\Distribuidor;
 use App\Models\Calculo;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class ShowPagosController extends Controller
@@ -17,6 +18,8 @@ class ShowPagosController extends Controller
                                 ->when(Auth::user()->perfil=='distribuidor',function($query){$query->where('user_id',Auth::user()->id);})
                                 ->orderBy('nombre','asc')->get();
         $calculos=Calculo::select('id','descripcion')->orderBy('id','desc')->get();
+        $solo_distribuidores=User::select('id')->where('perfil','distribuidor')->get();
+        $solo_distribuidores->pluck('id');
         $aplicado="NULO";
         $distribuidor="NULO";
         $calculo_id="NULO";
@@ -50,6 +53,7 @@ class ShowPagosController extends Controller
                     ->when(Auth::user()->perfil=='distribuidor',function($query){$query->where('user_id',Auth::user()->id);})
                     ->when($nuevos_pagos,function($query){$query->where('created_at','>=',Auth::user()->anterior_login);})
                     ->when($nuevas_facturas,function($query){$query->where('carga_facturas','>=',Auth::user()->anterior_login);})
+                    ->whereIn('user_id',$solo_distribuidores)
                     ->paginate(10);
         $pagos->appends($request->all());
         return(view('pagos',['pagos'=>$pagos,

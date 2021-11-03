@@ -26,6 +26,9 @@ class CreateComisionVentasTable extends Migration
             $table->string('estatus_final',50);
             $table->float('upfront')->default(0);
             $table->float('bono')->default(0);
+            $table->float('upfront_supervisor')->default(0);
+            $table->float('porcentaje_pago_vendedor')->default(100);
+            $table->float('porcentaje_pago_supervisor')->default(100);
             $table->float('upfront_final')->default(0); //se van a modificar cuando caiga el recalculo por inconsistencia
             $table->float('bono_final')->default(0); //se van a modificar cuando caiga el recalculo por inconsistencia
             $table->float('diferencia_inconsistencia')->default(0); ////se van a modificar cuando caiga el recalculo por inconsistencia

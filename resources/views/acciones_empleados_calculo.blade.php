@@ -5,7 +5,7 @@
 
     <div class="flex flex-col w-full bg-white text-gray-700 shadow-lg rounded-lg">
         <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-col border-b border-gray-800"> <!--ENCABEZADO-->
-            <div class="w-full text-xl font-bold text-gray-100">Pagos distribuidores</div>
+            <div class="w-full text-xl font-bold text-gray-100">Pagos internos</div>
             <div class="w-full text-lg font-semibold text-gray-100">{{$calculo->descripcion}}</div>            
             <div class="w-full text-xs font-semibold text-gray-100">De {{$calculo->periodo->fecha_inicio}} a {{$calculo->periodo->fecha_fin}}</div>            
         </div> <!--FIN ENCABEZADO-->
@@ -37,14 +37,13 @@
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Estado de<br>Cuenta</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Pago</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br><span class="text-red-700">{{$version=="1"?'% Anticipo':''}}</span></center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipos<br>Extraordinarios<br><span class="text-red-700">{{$version=="1"?'% Anticipo':''}}</center></center></div>
                                     @if($version=="2")
                                         <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo<br>Ordinario<br><span class="text-red-700">{{$version=="1"?'% Anticipo':''}}</center></center></div>
                                     @endif
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br>Pendientes</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipo {{$version=="1"?'para cierre':'Aplicado'}}<br>Comisiones Pendientes</center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>PDF</center></div>
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>XML</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Autorizacion<br>Especial</center></div>
+                    
                                 </div>
                                 <?php $color=true; ?>
                                 @foreach($registros as $registro)
@@ -52,12 +51,11 @@
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->numero_distribuidor}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->nombre}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-ttds {{$color?'bg-gray-100':'bg-white'}}">
-                                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}/{{$version}}"><i class="fas fa-balance-scale"></i></center></a>
+                                        <center><a href="/estado_cuenta_empleado/{{$calculo->id}}/{{$registro->id}}/{{$version}}"><i class="fas fa-balance-scale"></i></center></a>
                                     </div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->total_pago,0)}}</center></div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->comisiones,0)}}</center></div>
                                     
-                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->anticipos_extraordinarios,0)}}</center></div>
                                     @if($version=="2")
                                         <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->anticipo_ordinario,0)}}</center></div>
                                     @endif
@@ -70,25 +68,35 @@
                                             @endif
                                         </center>   
                                      </div>
-                                    <div class="table-cell border-r border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">
+                                     <div class="table-cell border-r border-l border-b border-gray-300 font-ligth text-green-700 {{$color?'bg-gray-100':'bg-white'}}">
                                         <center>
-                                            @if(!is_null($registro->pdf))
-                                            <a href="/facturas/{{$registro->pdf}}" download>
-                                                <i class="text-2xl text-red-700 far fa-file-pdf"></i>
+                                            @php
+                                            $autorizacion="NO";
+                                            $porcentaje=0;
+                                            try{
+                                                $porcentaje=$autorizaciones_especiales[$registro->id];
+                                                $autorizacion="SI";
+                                                if($porcentaje=="0")
+                                                {
+                                                    $autorizacion="NO";
+                                                    $porcentaje=0;
+                                                }
+                                            }
+                                            catch(\Exception $e)
+                                            {
+                                                ;
+                                            }
+                                                
+                                            @endphp
+                                            @if($version=="1" && $terminado=="0" && Auth::user()->perfil=='admin')
+                                            <a href="javascript:toogleFormaAutorizacion({{$calculo->id}},{{$registro->id}},'{{$registro->nombre}}');">
+                                                <i class="far fa-edit"></i> {{$autorizacion}} - {{$porcentaje}}%
                                             </a>
+                                            @else
+                                            {{$autorizacion}} - {{$porcentaje}}%
                                             @endif
-                                        </center>
-                                    </div>
-                                    <div class="table-cell border-r border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">
-                                        <center>
-                                            @if(!is_null($registro->pdf))
-                                            <a href="/facturas/{{$registro->xml}}" download>
-                                                <i class="text-2xl text-blue-600 far fa-file-code"></i>
-                                            </a>
-                                            @endif
-                                        </center>
-                                    </div>
-                                    
+                                        </center>   
+                                     </div>
                                 </div>
                                 <?php $color=!$color; ?>
                                 @endforeach
@@ -110,7 +118,7 @@
                                 <div class="table-row">
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->nombre}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-ttds {{$color?'bg-gray-100':'bg-white'}}">
-                                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}/{{$version}}"><i class="fas fa-balance-scale"></i></center></a>
+                                        <center><a href="/estado_cuenta_empleado/{{$calculo->id}}/{{$registro->id}}/{{$version}}"><i class="fas fa-balance-scale"></i></center></a>
                                     </div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->comisiones_pendientes,0)}}</center></div>
                                     <div class="table-cell border-r border-l border-b border-gray-300 font-ligth text-green-700 {{$color?'bg-gray-100':'bg-white'}}">
@@ -215,6 +223,43 @@
                         </form>
                     </div>
                 </div>
+                <div id=formaAutorizacion class="hidden w-full lg:w-1/3 flex justify-center pt-8 flex-col"> <!--FORMA DETALLES-->
+                    <div class="w-full bg-ttds-encabezado p-1 px-3 flex flex-col border-b border-gray-800 rounded-t"> <!--ENCABEZADO-->
+                        <div class="w-full text-base font-semibold text-gray-100">Autorizacion Especial</div>            
+                    </div> <!--FIN ENCABEZADO-->
+                    <div class="w-full flex flex-col border border-gray-300 bg-white rounded-b">
+                        <form action="{{route('empleados_autorizacion_especial')}}" method="POST">
+                            @csrf
+                            <input class="hidden" type="text" name="version_aut" id="version_aut" value="{{old('version_aut')}}">
+                            <input class="hidden" type="text" name="id_empleado_aut" id="id_empleado_aut" value="{{old('id_empleado_aut')}}">
+                            <input class="hidden" type="text" name="id_calculo_aut" id="id_calculo_aut" value="{{old('id_calculo_aut')}}">
+                            <div class="w-full px-2 flex flex-row">
+                                <div class="w-full">
+                                    <input class="w-full border border-white rounded" type="text" value="{{old('nombre_aut')}}" id="nombre_aut" name="nombre_aut" readonly>
+                                </div>
+                            </div>
+                            <div class="w-full px-2 flex flex-row">
+                                <div class="w-full">
+                                    <span class="text-xs text-ttds">Autorizacion</span><br>
+                                
+                                    <input class="w-1/2 border border-gray-600 rounded" type="text" name="porcentaje_autorizacion" value="{{old('porcentaje_autorizacion')}}" id="porcentaje_autorizacion">
+                                    <button class="bg-ttds hover:bg-ttds-hover rounded p-2 text-gray-200" type="button" onClick="document.getElementById('porcentaje_autorizacion').value=100">100%</button>
+                                    <button class="bg-ttds hover:bg-ttds-hover rounded p-2 text-gray-200" type="button" onClick="document.getElementById('porcentaje_autorizacion').value=50">50%</button>
+                                    <button class="bg-ttds hover:bg-ttds-hover rounded p-2 text-gray-200" type="button" onClick="document.getElementById('porcentaje_autorizacion').value=25">25%</button>
+                                    @error('anticipo_no_pago')
+                                        <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                    @enderror   
+                                </div>
+                            </div>
+                            <div class="w-full flex justify-center pt-6 pb-3 rounded-b">
+                                @if(Auth::user()->perfil=="admin")
+                                <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Guardar</button>
+                                @endif
+                                <button class="rounded p-1 border bg-red-500 hover:bg-red-700 text-gray-100 font-semibold" type="button" onClick="cerrarFormaAutorizacion()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div> <!-- FIN DEL CONTENIDO -->
         @if(session('status')!='')
@@ -226,6 +271,15 @@
         @endif
     </div> <!--DIV PRINCIPAL -->
     <script>
+        function cerrarFormaAutorizacion()
+        {
+            document.getElementById('formaAutorizacion').style.display="none";
+            document.getElementById('tabla').classList.remove("lg:w-1/2");
+            document.getElementById('tabla').classList.remove("w-full");
+            document.getElementById('tabla').classList.add("w-full");
+            document.getElementById('notas').style.display="none";
+            
+        }
         function cerrarForma()
         {
             document.getElementById('forma').style.display="none";
@@ -288,7 +342,46 @@
     
                 }
             };  
-            xmlhttp.open("GET", "/distribuidores_consulta_pago/" + id + "/" + user_id + "/{{$version}}", true);
+            xmlhttp.open("GET", "/empleados_consulta_pago/" + id + "/" + user_id + "/{{$version}}", true);
+            xmlhttp.send();
+        }
+        function toogleFormaAutorizacion(id,user_id,nombre)
+        {
+            document.getElementById('nombre_aut').value=nombre;
+            document.getElementById('formaAutorizacion').style.display="block";
+            document.getElementById('tabla').classList.remove("w-full");
+            //document.getElementById('tabla').classList.add("w-full")
+            //document.getElementById('tabla').classList.add("lg:w-1/2");
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    //document.getElementById("txtHint").innerHTML = this.responseText;
+                    if(this.responseText!='')
+                    {
+                        respuesta=JSON.parse(this.response);
+                        console.log(respuesta);
+                        var formatter = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+
+                        // These options are needed to round to whole numbers if that's what you want.
+                        //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+                        //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+                        });
+
+                        formatter.format(2500); /* $2,500.00 */
+                        document.getElementById("id_empleado_aut").value=respuesta.user_id;
+                        document.getElementById("id_calculo_aut").value=respuesta.calculo_id;
+                        document.getElementById("version_aut").value={{$version}};
+                    }
+                    else
+                    {
+                        alert("Error al consultar la base de datos, intente nuevamente!");
+                    }
+    
+                }
+            };  
+            xmlhttp.open("GET", "/empleados_consulta_pago/" + id + "/" + user_id + "/{{$version}}", true);
             xmlhttp.send();
         }
     <?php

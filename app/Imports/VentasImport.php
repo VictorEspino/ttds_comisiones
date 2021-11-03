@@ -55,6 +55,7 @@ class VentasImport implements ToModel,WithHeadingRow,WithValidation,WithBatchIns
         
         return new Venta([
             'user_id'=> Auth::user()->id,
+            'supervisor_id'=>Auth::user()->supervisor,
             'cuenta'=> trim($row['cuenta']),
             'cliente'=> trim($row['cliente']),
             'tipo'=> trim($row['tipo']),
@@ -74,6 +75,8 @@ class VentasImport implements ToModel,WithHeadingRow,WithValidation,WithBatchIns
             'user_id_carga'=> Auth::user()->id,
             'user_id_validacion'=> 0,
             'carga_id'=>$id_carga,
+            'lead'=>$row['lead'],
+            'padrino_lead'=>$row['padrino_lead']
 
         ]);
     }
@@ -92,6 +95,7 @@ class VentasImport implements ToModel,WithHeadingRow,WithValidation,WithBatchIns
             '*.renta' => ['required','numeric'],
             '*.descuento_multirenta' => ['required','numeric'],
             '*.afectacion_comision' => ['required','numeric'],
+            '*.padrino_lead'=>['exclude_unless:lead,1','required','exists:users,user']
         ];
     }
     public function batchSize(): int

@@ -80,6 +80,7 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
     </head>
     
     <body class="font-sans antialiased" >
+        {{Auth::user()->perfil}}
         <div class="min-h-screen bg-gray-100">
             @livewire('navigation-menu')
 
@@ -87,7 +88,7 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
             <header class="bg-gray-100">
                 <div id="mySidenav" class="sidenav flex flex-col">
                     <div><a href="javascript:void(0)" class="closebtn text-ttds" onclick="closeNav()">&times;</a></div>
-                    @if(Auth::user()->perfil!="distribuidor")
+                    @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
                     <div class="px-3 text-white flex flex-col">
                         <div class="text">
                             <i class="fas fa-tasks"></i>
@@ -100,19 +101,45 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                                     <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
                                     Nuevo Distribuidor
                                 </a>
-                            </div>
+                            </div>     
                             @endif
+                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('distribuidores_admin')}}">
                                     <span class="text-yellow-300"><i class="fas fa-table"></i></span>
                                     Base Distribuidores
                                 </a>
                             </div>
+                            @endif
                             @if(Auth::user()->perfil=="admin")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('distribuidores_anticipos_extraordinarios')}}">
                                     <span class="text-yellow-300"><i class="fas fa-table"></i></span>
                                     Anticipos
+                                </a>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+                    @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
+                    <div class="px-3 pt-2 text-white flex flex-col">
+                        <div class="text">
+                            <i class="fas fa-tasks"></i>
+                            Plantilla Ventas
+                        </div>
+                        <div class="flex flex-col" id="empleados">
+                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
+                            <div class="pl-5 pt-2">
+                                <a href="{{route('empleados_nuevo')}}">
+                                    <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
+                                    Nuevo
+                                </a>
+                            </div>
+                            <div class="pl-5 pt-2">
+                                <a href="{{route('empleados_admin')}}">
+                                    <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
+                                    Base plantilla
                                 </a>
                             </div>
                             @endif
@@ -161,13 +188,15 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                                 </a>
                             </div>
                             @endif
+                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('seguimiento_calculos')}}">
                                     <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
                                     Seguimiento
                                 </a>
                             </div>
-                            @if(Auth::user()->perfil!="distribuidor")
+                            @endif
+                            @if(Auth::user()->perfil!="distribuidor" && Auth::user()->perfil!="gerente" && Auth::user()->perfil!="ejecutivo")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('ventas_admin')}}">
                                     <span class="text-yellow-300"><i class="fas fa-table"></i></span>
@@ -178,17 +207,21 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                         </div>
                     </div>
                     <div class="px-3 pt-2 text-white flex flex-col">
+                        @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
                         <div class="text">
                             <i class="fas fa-tasks"></i>
                             Pagos
                         </div>
+                        @endif
                         <div class="flex flex-col"> 
+                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('pagos')}}">
                                     <span class="text-ttds"><i class="fas fa-coins"></i></span>
                                     Base de Pagos
                                 </a>
                             </div>
+                            @endif
                             @if($nuevos_pagos!="0")
                             <div class="pl-5 pt-2">
                                 <a href="/pagos?np=true">
@@ -197,7 +230,8 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                                 </a>
                             </div>
                             @endif
-                            @if(Auth::user()->perfil!="distribuidor")
+                            
+                            @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil!="administrativo"))
                             @if($nuevas_facturas!="0")
                             <div class="pl-5 pt-2">
                                 <a href="/pagos?nf=true">

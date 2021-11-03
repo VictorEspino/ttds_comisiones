@@ -179,14 +179,26 @@ class CalculoController extends Controller
         $n_pagos_cierre=0;
 
         $n_pagos=PagosDistribuidor::select(DB::raw('version,count(*) as n'))
+                        ->join('users','users.id','=','pagos_distribuidors.user_id')
                         ->where('calculo_id',$request->id)
+                        ->where('users.user','like','1%')
                         ->groupBy('version')
                         ->get();
-
         foreach($n_pagos as $pagos)
         {
-            if($pagos->version=="1"){$n_pagos_adelanto=$pagos->n;}
+            if($pagos->version=="1" ){$n_pagos_adelanto=$pagos->n;}
             else{$n_pagos_cierre=$pagos->n;}
+        }
+        $n_pagos_interno=PagosDistribuidor::select(DB::raw('version,count(*) as n'))
+                        ->join('users','users.id','=','pagos_distribuidors.user_id')
+                        ->where('calculo_id',$request->id)
+                        ->where('users.user','like','2%')
+                        ->groupBy('version')
+                        ->get();
+        foreach($n_pagos_interno as $pagos)
+        {
+            if($pagos->version=="1" ){$n_pagos_interno_adelanto=$pagos->n;}
+            else{$n_pagos_interno_cierre=$pagos->n;}
         }
 
         $n_inconsistencias=ComisionVenta::select(DB::raw('count(*) as n'))
@@ -255,6 +267,8 @@ class CalculoController extends Controller
                                        'porcentaje_comisionado_cierre'=>$porcentaje_comisionado_cierre,
                                        'n_pagos_adelanto'=>$n_pagos_adelanto,
                                        'n_pagos_cierre'=>$n_pagos_cierre,
+                                       'n_pagos_interno_adelanto'=>$n_pagos_interno_adelanto,
+                                       'n_pagos_interno_cierre'=>$n_pagos_interno_cierre,
                                        'n_inconsistencias'=>$n_inconsistencias->n,
                                        'n_reclamos'=>$n_reclamos->n,
                                        'n_callidus_sin_usar'=>$n_callidus_sin_usar,

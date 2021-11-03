@@ -16,6 +16,7 @@ class CreateVentasTable extends Migration
         Schema::create('ventas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
+            $table->foreignId('supervisor_id')->nullable();
             $table->date('fecha');
             $table->string('cliente');
             $table->string('dn');
@@ -35,6 +36,8 @@ class CreateVentasTable extends Migration
             $table->foreignId('user_id_carga');
             $table->foreignId('user_id_validacion');
             $table->string('carga_id',20);
+            $table->boolean('lead');
+            $table->foreignId('padrino_lead');
             $table->timestamps();
         });
     }

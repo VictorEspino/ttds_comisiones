@@ -97,17 +97,17 @@
                                         </div>
                                     </div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-gray-700 {{$color?'bg-gray-100':'bg-white'}}">
-                                        <div class="flex py-1 px-2 mx-2 text-sm flex justify-center font-bold text-green-700">{!!$registro->bono?'<i class="fas fa-check-circle"></i>':''!!}</div>
+                                        <div class="flex py-1 px-2 mx-2 text-sm flex justify-center font-bold text-green-500">{!!$registro->bono?'<i class="fas fa-check-circle"></i>':''!!}</div>
                                     </div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-gray-700 {{$color?'bg-gray-100':'bg-white'}}">
                                         <div class="flex flex-row">
-                                            <div class="w-1/2 flex text-sm flex justify-center font-bold text-green-700">{!!$registro->residual?'<i class="fas fa-check-circle"></i>':''!!}</div>
+                                            <div class="w-1/2 flex text-sm flex justify-center font-bold text-green-500">{!!$registro->residual?'<i class="fas fa-check-circle"></i>':''!!}</div>
                                             <div class="w-1/2 flex text-sm flex justify-center flex items-start">{{$registro->porcentaje_residual}}%</div>
                                         </div>   
                                     </div>
                                     <div class="table-cell border-l border-b border-r border-gray-300 font-ligth text-gray-700 {{$color?'bg-gray-100':'bg-white'}}">
                                         <div class="flex flex-row h-full">
-                                            <div class="w-1/2 flex text-sm flex justify-center font-bold text-green-700">{!!$registro->adelanto?'<i class="fas fa-check-circle"></i>':''!!}</div>
+                                            <div class="w-1/2 flex text-sm flex justify-center font-bold text-green-500">{!!$registro->adelanto?'<i class="fas fa-check-circle"></i>':''!!}</div>
                                             <div class="w-1/2 flex text-sm flex justify-center flex items-start">{{$registro->porcentaje_adelanto}}%</div>
                                         </div>   
                                     </div>
@@ -151,6 +151,7 @@
                         <form action="{{route('guarda_cambios_distribuidor')}}" method="POST">
                             @csrf
                             <input class="hidden" type="text" name="id_distribuidor" id="id_distribuidor" value="{{old('id_distribuidor')}}">
+                            <input class="hidden" type="text" name="id_user" id="id_user" value="{{old('id_user')}}">
                             <div class="w-full px-2">
                                 <span class="text-xs text-ttds">Nombre</span><br>
                                 <input class="w-full rounded p-1 border border-gray-300" type="text" name="nombre" value="{{old('nombre')}}" id="nombre">
@@ -168,6 +169,18 @@
                                     <option value="SUR" {{old('region')=='SUR'?'selected':''}}>SUR</option>
                                 </select>
                                 @error('region')
+                                <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                @enderror   
+                            </div> 
+                            <div class="w-full px-2">
+                                <span class="text-xs text-ttds">Supervisor</span><br>
+                                <select class="w-full rounded p-1 border border-gray-300" name="supervisor" id="supervisor">
+                                    <option value=""></option>
+                                    @foreach ($supervisores as $supervisor)
+                                    <option value="{{$supervisor->user_id}}">{{$supervisor->nombre}}</option>
+                                    @endforeach
+                                </select>
+                                @error('supervisor')
                                 <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
                                 @enderror   
                             </div> 
@@ -290,6 +303,7 @@
                         respuesta=JSON.parse(this.response);
                         console.log(respuesta);
                         document.getElementById("id_distribuidor").value=respuesta.id;
+                        document.getElementById("id_user").value=respuesta.user.id;
                         document.getElementById("nombre").value=respuesta.nombre;
                         document.getElementById("region").value=respuesta.region;
                         document.getElementById("a_24").value=respuesta.a_24;
@@ -304,6 +318,8 @@
                         document.getElementById("porcentaje_residual").value=respuesta.porcentaje_residual;
                         document.getElementById("porcentaje_adelanto").value=respuesta.porcentaje_adelanto;
                         document.getElementById("factura").checked=respuesta.emite_factura;
+                        document.getElementById("supervisor").value=respuesta.user.supervisor;
+
  
                     }
                     else

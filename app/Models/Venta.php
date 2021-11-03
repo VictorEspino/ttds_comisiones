@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Venta extends Model
 {
     protected $fillable = ['user_id',
+                            'supervisor_id',
                             'cuenta',
                             'cliente',
                             'fecha',
@@ -26,7 +27,9 @@ class Venta extends Model
                             'validado',
                             'user_id_carga',
                             'user_id_validacion',
-                            'carga_id'
+                            'carga_id',
+                            'lead',
+                            'padrino_lead'
                     ];
     use HasFactory;
     
