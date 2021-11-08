@@ -9,6 +9,7 @@ class AnticipoExtraordinario extends Model
 {
     use HasFactory;
 
+    protected $fillable=['aplicado'];
     public function user()
     {
         return $this->belongsTo(User::class);

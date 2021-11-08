@@ -23,7 +23,7 @@
                         </div>
                     </div>
                     <div class="w-1/6 text-3xl font-thin text-gray-500 flex flex-col text-center">
-                        @if(Auth::user()->perfil!='distribuidor')
+                        @if(Auth::user()->perfil!='distribuidor' && Auth::user()->perfil!='gerente' && Auth::user()->perfil!='ejecutivo')
                         <div class="w-full py-2 text-gray-500">
                             <a title="Comisiones Internas" href="#"><i class="fas fa-user-alt"></i></a>
                         </div>
@@ -33,7 +33,7 @@
                              <i class="fas fa-handshake"></i>
                             </a>
                         </div>
-                        @if(Auth::user()->perfil!='distribuidor')
+                        @if(Auth::user()->perfil!='distribuidor' && Auth::user()->perfil!='gerente' && Auth::user()->perfil!='ejecutivo')
                         <div class="w-full py-2">
                             <a title="Conciliacion ATT" href="{{route('detalle_conciliacion',['id'=>$calculo->id])}}"><i class="fas fa-project-diagram"></i></a>
                         </div>

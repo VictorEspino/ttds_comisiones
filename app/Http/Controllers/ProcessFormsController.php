@@ -289,28 +289,6 @@ class ProcessFormsController extends Controller
         return(back()->withStatus('Anticipo PROGRAMADO PARA CIERRE con exito!'));
 
     }
-    public function distribuidores_anticipos_extraordinarios_save(Request $request)
-    {
-        $request->validate([
-            'mes'=> 'required',
-            'año'=> 'required',
-            'anticipo'=>'required|numeric',
-            'descripcion'=>'required|max:255'
-        ]);
-        $periodo=Periodo::where('año',$request->año)->where('mes',$request->mes)->get()->first();
-        $registro=new AnticipoExtraordinario;
-        $registro->user_id=$request->id_distribuidor;
-        $registro->periodo_id=$periodo->id;
-        $registro->anticipo=$request->anticipo;
-        $registro->descripcion=$request->descripcion;
-        $registro->save();
-        return(back()->withStatus('Anticipo guardado con exito!'));
-    }
-    public function anticipos_extraordinarios_borrar(Request $request)
-    {
-        AnticipoExtraordinario::find($request->id)->delete();
-        return('OK');
-    }
     public function accion_inconsistencia(Request $request)
     {
         

@@ -77,17 +77,17 @@
                                     <select class="w-full rounded p-1 border border-gray-300" name="mes"  id="mes">
                                         <option value=''></option>
                                         <option value='1' {{old('mes')=="1"?'selected':''}}>enero</option>
-                                        <option value='2' {{old('mes')=="1"?'selected':''}}>febrero</option>
-                                        <option value='3' {{old('mes')=="1"?'selected':''}}>marzo</option>
-                                        <option value='4' {{old('mes')=="1"?'selected':''}}>abril</option>
-                                        <option value='5' {{old('mes')=="1"?'selected':''}}>mayo</option>
-                                        <option value='6' {{old('mes')=="1"?'selected':''}}>junio</option>
-                                        <option value='7' {{old('mes')=="1"?'selected':''}}>julio</option>
-                                        <option value='8' {{old('mes')=="1"?'selected':''}}>agosto</option>
-                                        <option value='9' {{old('mes')=="1"?'selected':''}}>septiembre</option>
-                                        <option value='10' {{old('mes')=="1"?'selected':''}}>octubre</option>
-                                        <option value='11' {{old('mes')=="1"?'selected':''}}>noviembre</option>
-                                        <option value='12' {{old('mes')=="1"?'selected':''}}>diciembre</option>
+                                        <option value='2' {{old('mes')=="2"?'selected':''}}>febrero</option>
+                                        <option value='3' {{old('mes')=="3"?'selected':''}}>marzo</option>
+                                        <option value='4' {{old('mes')=="4"?'selected':''}}>abril</option>
+                                        <option value='5' {{old('mes')=="5"?'selected':''}}>mayo</option>
+                                        <option value='6' {{old('mes')=="6"?'selected':''}}>junio</option>
+                                        <option value='7' {{old('mes')=="7"?'selected':''}}>julio</option>
+                                        <option value='8' {{old('mes')=="8"?'selected':''}}>agosto</option>
+                                        <option value='9' {{old('mes')=="9"?'selected':''}}>septiembre</option>
+                                        <option value='10' {{old('mes')=="10"?'selected':''}}>octubre</option>
+                                        <option value='11' {{old('mes')=="11"?'selected':''}}>noviembre</option>
+                                        <option value='12' {{old('mes')=="12"?'selected':''}}>diciembre</option>
                                     </select>
                                     @error('mes')
                                     <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
@@ -137,7 +137,7 @@
             </div>
         </div> <!-- FIN DEL CONTENIDO -->
         @if(session('status')!='')
-            <div class="w-full flex justify-center p-3 bg-green-300 rounded-b-lg" id="notas">
+            <div class="w-full flex justify-center p-3 {{substr(session('status'),0,2)=='OK'?'bg-green-300':'bg-red-300'}} rounded-b-lg" id="notas">
                 <span class="font-semibold text-sm text-gray-600">{{session('status')}}</span>
             </div>    
         @else

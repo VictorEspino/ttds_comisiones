@@ -252,33 +252,6 @@ class ProcessViewController extends Controller
     {
         return(PagosDistribuidor::where('calculo_id',$request->id)->where('user_id',$request->user_id)->where('version',$request->version)->get()->first());
     }
-
-    public function distribuidores_anticipos_extraordinarios(Request $request)
-    {
-        $años=Periodo::select(DB::raw('distinct(año) as valor'))
-                    ->whereRaw('fecha_fin>=(now()-60)')
-                    ->get()
-                    ->take(2);
-
-        if(isset($_GET['query']))
-        {
-            $registros=Distribuidor::where('nombre','like','%'.$_GET["query"].'%')
-                                    ->orderBy('nombre','asc')
-                                    ->paginate(10);
-            $registros->appends($request->all());
-            return(view('distribuidores_anticipos_extraordinarios',['registros'=>$registros,'query'=>$_GET['query'],'años'=>$años]));
-        }
-        else
-        {
-            $registros=Distribuidor::orderBy('nombre','asc')
-                                    ->paginate(10);
-            return(view('distribuidores_anticipos_extraordinarios',['registros'=>$registros,'query'=>'','años'=>$años]));
-        }
-    }
-    public function anticipos_extraordinarios_consulta(Request $request)
-    {
-        return(AnticipoExtraordinario::with('periodo')->where('user_id',$request->user_id)->where('calculo_id_aplicado',0)->get());
-    }
     public function ventas_review(Request $request)
     {
         if(isset($_GET['query']))
@@ -293,7 +266,7 @@ class ProcessViewController extends Controller
                                           ->orWhere('ventas.cuenta','like','%'.$_GET["query"].'%');
                                         })
                                 ->where('ventas.validado',true)
-                                ->when(Auth::user()->perfil=='distribuidor',function($query){$query->where('ventas.user_id',Auth::user()->id);})
+                                ->when(Auth::user()->perfil=='distribuidor' || Auth::user()->perfil=='ejecutivo' || Auth::user()->perfil=='gerente',function($query){$query->where('ventas.user_id',Auth::user()->id);})
                                 ->orderBy('ventas.cliente','asc')
                                 ->paginate(10);
             $registros->appends($request->all());
@@ -305,7 +278,7 @@ class ProcessViewController extends Controller
                                 ->join('users', 'users.id', '=', 'ventas.user_id')
                                 ->select('ventas.*','users.user','users.name')
                                 ->where('ventas.validado',true)
-                                ->when(Auth::user()->perfil=='distribuidor',function($query){$query->where('ventas.user_id',Auth::user()->id);})
+                                ->when(Auth::user()->perfil=='distribuidor' || Auth::user()->perfil=='ejecutivo' || Auth::user()->perfil=='gerente',function($query){$query->where('ventas.user_id',Auth::user()->id);})
                                 ->orderBy('ventas.cliente','asc')
                                 ->paginate(10);
             return(view('ventas_review',['registros'=>$registros,'query'=>'']));

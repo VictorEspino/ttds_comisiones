@@ -71,9 +71,9 @@ class CalculoController extends Controller
     }
     public function detalle_calculo(Request $request)
     {
-        if(Auth::user()->perfil=='distribuidor')
+        if(Auth::user()->perfil=='distribuidor' || Auth::user()->perfil=='ejecutivo' || Auth::user()->perfil=='gerente')
         {
-            return($this->detalle_calculo_distribuidor($request->id,Auth::user()->id));
+            return($this->detalle_calculo_actor($request->id,Auth::user()->id));
         }
         $calculo=Calculo::with('periodo')->find($request->id);
         $validaciones=Venta::select(DB::raw('validado,count(*) as n'))
@@ -177,6 +177,8 @@ class CalculoController extends Controller
 
         $n_pagos_adelanto=0;
         $n_pagos_cierre=0;
+        $n_pagos_interno_adelanto=0;
+        $n_pagos_interno_cierre=0;
 
         $n_pagos=PagosDistribuidor::select(DB::raw('version,count(*) as n'))
                         ->join('users','users.id','=','pagos_distribuidors.user_id')
@@ -277,17 +279,17 @@ class CalculoController extends Controller
                                        'alertas'=>$alertas,
                                     ]));
     }
-    public function detalle_calculo_distribuidor($id,$user_id)
+    private function detalle_calculo_actor($id,$user_id)
     {
-        $distribuidor=User::with('detalles')->find($user_id);
+        $actor=User::with('detalles','empleado')->find($user_id);
         $calculo=Calculo::find($id);
         $pagos=PagosDistribuidor::with('calculo')->where('calculo_id',$id)->where('user_id',$user_id)->get();
-        return(view('detalle_calculo_distribuidor',[
-                                                    'distribuidor'=>$distribuidor,
+        return(view('detalle_calculo_actor',[
+                                                    'actor'=>$actor,
                                                     'calculo'=>$calculo,
                                                     'pagos'=>$pagos
                                                     ]));
-    }
+    }    
     public function detalle_conciliacion(Request $request)
     {
         $calculo=Calculo::with('periodo')->find($request->id);

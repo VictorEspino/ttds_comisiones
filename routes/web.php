@@ -8,6 +8,7 @@ use App\Http\Controllers\CalculoComisiones;
 use App\Http\Controllers\CalculoController;
 use App\Http\Controllers\ShowPagosController;
 use App\Http\Controllers\EmpleadosController;
+use App\Http\Controllers\AnticiposExtraordinariosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,10 +44,10 @@ Route::get('/distribuidores_consulta/{id}',[ProcessViewController::class,'distri
 Route::post('/distribuidores_actualiza',[ProcessFormsController::class,'distribuidores_actualiza'])->name('guarda_cambios_distribuidor')->middleware('auth');
 Route::post('/distribuidores_nuevo',[ProcessFormsController::class,'distribuidores_nuevo'])->name('distribuidores_nuevo')->middleware('auth');
 Route::get('/distribuidores_nuevo',[ProcessViewController::class,'distribuidores_nuevo'])->name('distribuidores_nuevo')->middleware('auth');
-Route::get('/distribuidores_anticipos_extraordinarios',[ProcessViewController::class,'distribuidores_anticipos_extraordinarios'])->name('distribuidores_anticipos_extraordinarios')->middleware('auth');
-Route::post('/distribuidores_anticipos_extraordinarios',[ProcessFormsController::class,'distribuidores_anticipos_extraordinarios_save'])->name('distribuidores_anticipos_extraordinarios')->middleware('auth');
-Route::get('/anticipos_extraordinarios_consulta/{user_id}',[ProcessViewController::class,'anticipos_extraordinarios_consulta'])->middleware('auth');
-Route::get('/anticipos_extraordinarios_borrar/{id}',[ProcessFormsController::class,'anticipos_extraordinarios_borrar'])->middleware('auth');
+Route::get('/distribuidores_anticipos_extraordinarios',[AnticiposExtraordinariosController::class,'distribuidores_anticipos_extraordinarios'])->name('distribuidores_anticipos_extraordinarios')->middleware('auth');
+Route::post('/distribuidores_anticipos_extraordinarios',[AnticiposExtraordinariosController::class,'distribuidores_anticipos_extraordinarios_save'])->name('distribuidores_anticipos_extraordinarios')->middleware('auth');
+Route::get('/anticipos_extraordinarios_consulta/{user_id}',[AnticiposExtraordinariosController::class,'anticipos_extraordinarios_consulta'])->middleware('auth');
+Route::get('/anticipos_extraordinarios_borrar/{id}',[AnticiposExtraordinariosController::class,'anticipos_extraordinarios_borrar'])->middleware('auth');
 
 //RUTAS DE ADMINISTRACION DE EMPLEADOS
 
@@ -59,7 +60,6 @@ Route::get('/acciones_empleados_calculo/{id}/{version}',[EmpleadosController::cl
 Route::get('/empleados_consulta_pago/{id}/{user_id}/{version}',[EmpleadosController::class,'empleados_consulta_pago'])->middleware('auth');
 Route::post('/empleados_autorizacion_especial',[EmpleadosController::class,'empleados_autorizacion_especial'])->name('empleados_autorizacion_especial')->middleware('auth');
 Route::get('/estado_cuenta_empleado/{id}/{id_user}/{version}',[EmpleadosController::class,'estado_cuenta_empleado'])->middleware('auth');
-
 Route::get('/transacciones_pago_empleado/{id}/{id_user}/{version}',[EmpleadosController::class,'transacciones_pago_empleado'])->middleware('auth');
 Route::get('/transacciones_charge_back_empleado/{id}/{id_user}/{version}',[EmpleadosController::class,'transacciones_charge_back_empleado'])->middleware('auth');
 
@@ -116,3 +116,10 @@ Route::post('/cargar_factura_distribuidor',[CalculoController::class,'cargar_fac
 
 Route::get('/pagos',[ShowPagosController::class,'pagos'])->name('pagos')->middleware('auth');
 Route::post('/cambiar_estatus_pago',[ShowPagosController::class,'cambiar_estatus_pago'])->name('cambiar_estatus_pago')->middleware('auth');
+
+//ANTICIPOS EXTRAORDINARIOS
+
+Route::get('/anticipos_extraordinarios',[AnticiposExtraordinariosController::class,'anticipos_extraordinarios'])->name('anticipos_extraordinarios')->middleware('auth');
+Route::post('/cambiar_estatus_anticipo',[AnticiposExtraordinariosController::class,'cambiar_estatus_anticipo'])->name('cambiar_estatus_anticipo')->middleware('auth');
+Route::get('/facturar_anticipo/{id}',[AnticiposExtraordinariosController::class,'facturar_anticipo_form'])->name('facturar_anticipo_form')->middleware('auth');
+Route::post('/facturar_anticipo',[AnticiposExtraordinariosController::class,'facturar_anticipo_save'])->name('facturar_anticipo_save')->middleware('auth');

@@ -1,6 +1,8 @@
 <?php
 $nuevos_pagos=App\Http\Servicios\Notificaciones::nuevos_pagos();
 $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
+$nuevos_anticipos=App\Http\Servicios\Notificaciones::nuevos_anticipos();
+$nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_anticipo();
 ?>
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -34,10 +36,11 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
   /*z-index: 1; /* Stay on top */
   /*top: 0; /* Stay at the top */
   /*left: 0;*/
+  font-size: 14px;
   background-color:#383c3f; /* Black*/
   overflow-x: hidden; /* Disable horizontal scroll */
   padding-top: 60px; /* Place content 60px from the top */
-  transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+  transition: 0.2s; /* 0.5 second transition effect to slide in the sidenav */
 }
 
 /* The navigation menu links */
@@ -80,7 +83,6 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
     </head>
     
     <body class="font-sans antialiased" >
-        {{Auth::user()->perfil}}
         <div class="min-h-screen bg-gray-100">
             @livewire('navigation-menu')
 
@@ -152,7 +154,7 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                             Ventas
                         </div>
                         <div class="flex flex-col" id="distribuidores">
-                            @if(Auth::user()->perfil=="distribuidor")
+                            @if(Auth::user()->perfil=="distribuidor" || Auth::user()->perfil=="ejecutivo" || Auth::user()->perfil=="gerente")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('venta_nueva')}}">
                                     <span class="text-ttds"><i class="fas fa-coins"></i></span>
@@ -174,11 +176,13 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                             </div>
                         </div>
                     </div>
-                    <div class="px-3 pt-2 text-white flex flex-col">
+                    <div class="px-3 pt-2 text-white flex flex-col"> 
+                        @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" || Auth::user()->perfil=="ejecutivo" || Auth::user()->perfil=="gerente")
                         <div class="text">
                             <i class="fas fa-tasks"></i>
                             Comisiones
                         </div>
+                        @endif
                         <div class="flex flex-col" id="distribuidores">
                             @if(Auth::user()->perfil=="admin")
                             <div class="pl-5 pt-2">
@@ -188,7 +192,7 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                                 </a>
                             </div>
                             @endif
-                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
+                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" || Auth::user()->perfil=="ejecutivo" || Auth::user()->perfil=="gerente")
                             <div class="pl-5 pt-2">
                                 <a href="{{route('seguimiento_calculos')}}">
                                     <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
@@ -210,7 +214,7 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                         @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
                         <div class="text">
                             <i class="fas fa-tasks"></i>
-                            Pagos
+                            Pagos Comisiones
                         </div>
                         @endif
                         <div class="flex flex-col"> 
@@ -222,7 +226,7 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                                 </a>
                             </div>
                             @endif
-                            @if($nuevos_pagos!="0")
+                            @if($nuevos_pagos!="0" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" ))
                             <div class="pl-5 pt-2">
                                 <a href="/pagos?np=true">
                                     <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
@@ -231,12 +235,49 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
                             </div>
                             @endif
                             
-                            @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil!="administrativo"))
-                            @if($nuevas_facturas!="0")
+                            @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
+                            @if($nuevas_facturas!="0" )
                             <div class="pl-5 pt-2">
                                 <a href="/pagos?nf=true">
                                     <span class="text-yellow-300"><i class="fas fa-table"></i></span>
                                     Nuevas Facturas <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas}}</span>
+                                </a>
+                            </div>
+                            @endif
+                            @endif
+                        </div>
+                    </div>
+                    <div class="px-3 pt-2 text-white flex flex-col">
+                        @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
+                        <div class="text">
+                            <i class="fas fa-tasks"></i>
+                            Pagos Anticipos
+                        </div>
+                        @endif
+                        <div class="flex flex-col"> 
+                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
+                            <div class="pl-5 pt-2">
+                                <a href="{{route('anticipos_extraordinarios')}}">
+                                    <span class="text-ttds"><i class="fas fa-coins"></i></span>
+                                    Base de Anticipos
+                                </a>
+                            </div>
+                            @endif
+                            @if($nuevos_anticipos!="0" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" ))
+                            <div class="pl-5 pt-2">
+                                <a href="/anticipos_extraordinarios?np=true">
+                                    <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                    Nuevos Pagos <span class="rounded-full bg-red-700 text-white p-2">{{$nuevos_anticipos}}</span>
+                                </a>
+                            </div>
+                            @endif
+                            
+                            @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
+                            @if($nuevas_facturas_anticipo!="0")
+                            <div class="pl-5 pt-2">
+                                <a href="/anticipos_extraordinarios?nf=true">
+                                    <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                    Nuevas Facturas <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas_anticipo}}</span>
                                 </a>
                             </div>
                             @endif
@@ -282,7 +323,7 @@ $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
 <script>
         /* Set the width of the side navigation to 250px */
 function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
+  document.getElementById("mySidenav").style.width = "220px";
 }
 
 /* Set the width of the side navigation to 0 */

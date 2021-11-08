@@ -21,7 +21,12 @@ class CreateAnticipoExtraordinariosTable extends Migration
             $table->string('descripcion');
             $table->float('anticipo');
             $table->boolean('en_adelanto')->default(0);
+            $table->string('pdf',50)->nullable();
+            $table->string('xml',50)->nullable();
+            $table->boolean('aplicado')->default(false);
+            $table->dateTime('carga_facturas')->nullable();
             $table->timestamps();
+            
         });
     }
 

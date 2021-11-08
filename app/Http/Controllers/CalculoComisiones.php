@@ -49,6 +49,7 @@ class CalculoComisiones extends Controller
         ChargeBackDistribuidor::where('calculo_id',$calculo_id)->delete();
         PagosDistribuidor::where('calculo_id',$calculo_id)->delete();
         Reclamo::where('calculo_id',$calculo_id)->where('tipo','Faltante')->delete();
+        AlertaCobranza::where('calculo_id',$calculo_id)->delete();
         $calculo->save();
         return(back()->withStatus('Calculo de comisiones ('.$calculo->descripcion.') reseteado correctamente'));
     }

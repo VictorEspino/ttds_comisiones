@@ -7,7 +7,7 @@
         <div class="w-full rounded-t-lg bg-ttds-encabezado p-3 flex flex-col border-b border-gray-800"> <!--ENCABEZADO-->
             <div class="w-full text-lg font-semibold text-gray-100">Detalles</div> 
             <div class="w-full text-lg font-semibold text-gray-100">{{$calculo->descripcion}}</div>            
-            <div class="w-full text-sm font-semibold text-gray-100">{{$distribuidor->name}}</div>            
+            <div class="w-full text-sm font-semibold text-gray-100">{{$actor->name}}</div>            
         </div> <!--FIN ENCABEZADO-->
 
         <div class="w-full rounded-b-lg bg-white p-3 flex flex-wrap"> <!--CONTENIDO-->
@@ -22,7 +22,7 @@
                         <div class="text-gray-700 text-base">Renovaciones: {{$pago->renovaciones}}</div>
                     </div>
                     <div class="w-1/3 flex items-center">
-                        <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$distribuidor->id}}/{{$pago->version}}"><i class="fas fa-balance-scale text-ttds text-7xl"></i></center></a>
+                        <center><a href="/estado_cuenta_{{!is_null($actor->detalles)?'distribuidor':'empleado'}}/{{$calculo->id}}/{{$actor->id}}/{{$pago->version}}"><i class="fas fa-balance-scale text-ttds text-7xl"></i></center></a>
                     </div>
                 </div>
             @endif
