@@ -61,11 +61,11 @@ class ImportCallidusVentas implements ToModel,WithHeadingRow,WithValidation,With
         return [
             '*.tipo' => ['required'],
             '*.periodo' => ['required'],
-            '*.cuenta' => ['required'],
+            //'*.cuenta' => ['required'],
             '*.contrato' => ['required'],
             '*.plan' => ['required'],
             '*.dn' => ['required','exclude_if:*.tipo,DESACTIVACION_DESACTIVACIONES','exclude_if:*.tipo,ADDON','digits:10'],
-            '*.propiedad' => ['required'],
+            //'*.propiedad' => ['required'],
             '*.fecha' => ['required'],
             '*.plazo' => ['required','numeric'],
             '*.descuento_multirenta' => ['required','numeric'],

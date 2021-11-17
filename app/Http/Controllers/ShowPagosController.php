@@ -19,7 +19,8 @@ class ShowPagosController extends Controller
                                 ->orderBy('nombre','asc')->get();
         $calculos=Calculo::select('id','descripcion')->orderBy('id','desc')->get();
         $solo_distribuidores=User::select('id')->where('perfil','distribuidor')->get();
-        $solo_distribuidores->pluck('id');
+        $solo_distribuidores=$solo_distribuidores->pluck('id');
+        //return($solo_distribuidores);
         $aplicado="NULO";
         $distribuidor="NULO";
         $calculo_id="NULO";

@@ -281,6 +281,7 @@ class EmpleadosController extends Controller
     $empleado=User::with('empleado')->find($request->id_user);
     $medicion=Mediciones::where('calculo_id',$request->id)->where('user_id',$request->id_user)->where('version',$request->version)->get()->first();
     $sql_consulta="SELECT b.user_id,b.supervisor_id,a.upfront,a.bono,a.upfront_supervisor,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and (b.user_id='".$request->id_user."' or b.supervisor_id='".$request->id_user."') and a.estatus_inicial='PAGO' and a.version='".$request->version."'";
+    //return($sql_consulta);
     $query=DB::select(DB::raw(
         $sql_consulta
        ));
