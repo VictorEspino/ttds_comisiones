@@ -191,16 +191,24 @@ class ProcessViewController extends Controller
     public function transacciones_pago_distribuidor(Request $request)
     {
     $distribuidor=User::with('detalles')->find($request->id_user);
-    $sql_consulta="SELECT a.upfront,a.bono,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='PAGO' and a.version='".$request->version."'";
+    $pago=PagosDistribuidor::where('calculo_id',$request->id)
+                            ->where('version',$request->version)
+                            ->where('user_id',$request->id_user)
+                            ->get()
+                            ->first();
+    $sql_consulta="SELECT a.upfront as upfront,a.bono,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='PAGO' and a.version='".$request->version."'
+                    UNION
+                    SELECT a.comision as upfront,0 as bono,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_addons as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."'and a.version='".$request->version."'
+                ";
     $query=DB::select(DB::raw(
         $sql_consulta
        ));
-
     $sql_consulta_no_pago="SELECT a.upfront,a.bono,0 as c_renta,0 as c_plazo,0 as c_descuento_multirenta,0 as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='NO PAGO' and a.version='".$request->version."'";
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
-    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono]));
+    //return($distribuidor);
+    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono,'pago'=>$pago,'distribuidor'=>$distribuidor]));
     }
     public function transacciones_charge_back_distribuidor(Request $request)
     {
@@ -369,7 +377,8 @@ class ProcessViewController extends Controller
                                 ->where('user_id','=',$request->user_id)
                                 ->where('calculo_id',$request->id)
                                 ->get();
-        return(view('residuales_pagados',['query'=>$query]));
+        $distribuidor=User::find($request->user_id);
+        return(view('residuales_pagados',['query'=>$query,'distribuidor'=>$distribuidor]));
 
     }
     public function export_alertas(Request $request)

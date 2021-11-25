@@ -44,6 +44,8 @@ class CreatePagosDistribuidorsTable extends Migration
             $table->float('renovaciones_bono_no_pago');
             $table->float('anticipo_ordinario');
             $table->float('anticipo_no_pago');
+            $table->integer('addons');
+            $table->float('c_addons');
             $table->float('residual');
             $table->float('charge_back');
             $table->float('anticipos_extraordinarios');

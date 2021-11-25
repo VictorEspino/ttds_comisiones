@@ -1,65 +1,104 @@
 <?php
 header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=transacciones_empleado.xls");
+header("Content-Disposition: attachment; filename=".$empleado->name.".xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 ?>
-<span style="color:rgb(10, 71, 161);font-size:40px;">VENTAS PAGADAS</span>
 <br>
 <br>
 <br>
 <table border=1>
-<tr style="background-color:#777777;color:#FFFFFF">
-<td><b>Fecha</td>
-<td><b>Cliente</td>
-<td><b>DN</td>
-<td><b>Cuenta</td>
-<td><b>Tipo</td>
-<td><b>Folio</td>
-<td><b>Ciudad</td>
-<td><b>Plan</td>
-<td><b>Renta</td>
-<td><b>Equipo</td>
-<td><b>Propiedad Eq</td>
-<td><b>Plazo</td>
-<td><b>Descuento_multirenta</td>
-<td><b>Afectacion_comision</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_Renta</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_Plazo</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_descuento_multirenta</td>
-<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_afectacion_comision</td>
-<td style="background-color:#0000FF;color:#FFFFFF"><b>Comision</td>
-
-
+	<tr>
+		<td colspan=28 style="font-size:40px;"><center>CÁLCULO DE COMISIONES DE ACTIVACIONES Y RENOVACIONES REALIZADAS DURANTE OCTUBRE 2021
+		</td>
+	</tr>		
+<tr style="background-color:#ffffff;color:#ffffff00">
+<td>Concepto</td>
+<td>Commission Name</td>	
+<td>Periodo / Week</td>
+<td>Canal / Direccion / Division</td>
+<td>Nombre Distribuidor</td>
+<td>Clave Distribuidor</td>
+<td>Cuenta</td>
+<td>Contrato / Co_id</td>
+<td>Nombre del Cliente</td>
+<td>Plan / Nombre Plan</td>
+<td>Telefono</td>
+<td>Propiedad Equipo</td>
+<td>Fecha</td>
+<td>Razon Movimiento</td>
+<td>Plazo Forzoso</td>
+<td>Descripción del Servicio</td>
+<td>Descuento Multirenta</td>
+<td>Renta sin impuestos</td>
+<td>Descuento Adicional</td>
+<td>Descuento de Servicio</td>
+<td style="background-color:#ffee02">Commission&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>Renta</td>
+<td>Tipo de Periodo</td>
+<td>Esquema (Solo aplica en marcas legado)</td>
+<td>Sistema Origen</td>
+<td>Marca</td>
+<td>Performance</td>
+<td>Subcategoria</td>
 </tr>
 <?php
 
 foreach ($query as $transaccion) {
 	?>
 	<tr>
+	<td>{{$transaccion->c_tipo}}</td>
+	<td>{{$transaccion->c_tipo}}</td>
+	<td>{{$transaccion->c_periodo}}</td>
+	<td>DISTRIBUIDORES</td>
+	<td>TV TELCO & DATA SOLUTIONS SA DE CV</td>
+	<td>108249</td>
+	<td>{{$transaccion->c_cuenta}}</td>
+	<td>{{$transaccion->c_contrato}}</td>
+	<td>{{$transaccion->c_cliente}}</td>
+	<td>{{$transaccion->c_plan}}</td>
+	<td>{{$transaccion->c_dn}}</td>
+	<td>{{$transaccion->c_propiedad}}</td>
 	<td>{{$transaccion->fecha}}</td>
-	<td>{{$transaccion->cliente}}</td>
-	<td>{{$transaccion->dn}}</td>
-	<td>{{$transaccion->cuenta}}</td>
 	<td>{{$transaccion->tipo}}</td>
-	<td>{{$transaccion->folio}}</td>
-	<td>{{$transaccion->ciudad}}</td>
-	<td>{{$transaccion->plan}}</td>
-	<td>{{$transaccion->renta}}</td>
-	<td>{{$transaccion->equipo}}</td>
-	<td>{{$transaccion->propiedad}}</td>
-	<td>{{$transaccion->plazo}}</td>
-	<td>{{$transaccion->descuento_multirenta}}</td>
-	<td>{{$transaccion->afectacion_comision}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_renta}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_plazo}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_descuento_multirenta}}</td>
-	<td style="color:#0000FF">{{$transaccion->c_afectacion_comision}}</td>
-    <td style="color:#0000FF">{{($empleado->id==$transaccion->user_id)?($empleado->perfil=='gerente'?$transaccion->upfront+$transaccion->upfront_supervisor:$transaccion->upfront):$transaccion->upfront_supervisor}}</td>
+	<td>{{$transaccion->c_plazo}}</td>
+	<td>EMPRESAS</td>
+	<td>{{$transaccion->c_descuento_multirenta}}</td>
+	<td>${{number_format($transaccion->c_renta/1.16/1.03,2)}}</td>
+	<td>{{$transaccion->c_afectacion_comision}}</td>
+	<td>TV TELCO & DATA SOLUTIONS SA DE CV</td>
+	<td style="background-color:#f3e848">{{($empleado->id==$transaccion->user_id)?($empleado->perfil=='gerente'?$transaccion->upfront+$transaccion->upfront_supervisor:$transaccion->upfront):$transaccion->upfront_supervisor}}</td>
+	<td>${{$transaccion->c_renta}}</td>
+	<td>Monthly</td>
+	<td>ESPECIAL_442545</td>
+	<td>NEXTEL</td>
+	<td>IUSACELL</td>
+	<td>$0</td>
+	<td>{{$transaccion->tipo}}</td>
 	</tr>
 <?php
 }
 ?>
+	<tr>
+		<td colspan=19 rowspan=4></td>
+		<td><b>Subtotal</td>
+		<td>${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones+$pago->c_addons,2)}}</td>
+	</tr>
+	<tr>
+		
+		<td><b>Residual</td>
+		<td>${{number_format($pago->residual,2)}}</td>
+	</tr>
+	<tr>
+		
+		<td><b>Charge Back</td>
+		<td>${{number_format($pago->charge_back,2)}}</td>
+	</tr>
+	<tr>
+		
+		<td><b>TOTAL</td>
+		<td>${{number_format($pago->total_pago,2)}}</td>
+	</tr>
 </table>
 @if(!empty($query_no_pago))
 <br>
@@ -89,6 +128,7 @@ foreach ($query as $transaccion) {
 	<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_descuento_multirenta</td>
 	<td style="background-color:#FF0000;color:#FFFFFF"><b>Callidus_afectacion_comision</td>
 	<td style="background-color:#0000FF;color:#FFFFFF"><b>Comision</td>
+	<td style="background-color:#0000FF;color:#FFFFFF"><b>Bono</td>
 	</tr>
 	<?php
 	
@@ -112,7 +152,8 @@ foreach ($query as $transaccion) {
 			<td style="color:#0000FF">{{$transaccion->c_plazo}}</td>
 			<td style="color:#0000FF">{{$transaccion->c_descuento_multirenta}}</td>
 			<td style="color:#0000FF">{{$transaccion->c_afectacion_comision}}</td>
-			<td style="color:#0000FF">{{($empleado->id==$transaccion->user_id)?($empleado->perfil=='gerente'?$transaccion->upfront+$transaccion->upfront_supervisor:$transaccion->upfront):$transaccion->upfront_supervisor}}</td>
+			<td style="color:#0000FF">{{$transaccion->upfront}}</td>
+			<td style="color:#0000FF">{{$transaccion->bono}}</td>
 		</tr>
 	<?php
 	}

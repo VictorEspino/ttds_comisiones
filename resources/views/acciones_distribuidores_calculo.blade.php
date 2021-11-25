@@ -35,6 +35,9 @@
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tl-lg"></div>
                                     <div class="table-cell font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Estado de<br>Cuenta</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Sabana<br>Comisiones</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Sabana<br>Residuales</center></div>
+
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Pago</center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Comisiones<br><span class="text-red-700">{{$version=="1"?'% Anticipo':''}}</span></center></div>
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Anticipos<br>Extraordinarios<br><span class="text-red-700">{{$version=="1"?'% Anticipo':''}}</center></center></div>
@@ -53,6 +56,12 @@
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">{{$registro->nombre}}</div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth text-ttds {{$color?'bg-gray-100':'bg-white'}}">
                                         <center><a href="/estado_cuenta_distribuidor/{{$calculo->id}}/{{$registro->id}}/{{$version}}"><i class="fas fa-balance-scale"></i></center></a>
+                                    </div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth text-green-600 {{$color?'bg-gray-100':'bg-white'}}">
+                                        <center><a href="/transacciones_pago_distribuidor/{{$calculo->id}}/{{$registro->id}}/{{$version}}"><i class="far fa-file-excel"></i></center></a>
+                                    </div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth text-green-600 {{$color?'bg-gray-100':'bg-white'}}">
+                                        <center><a href="/residuales_distribuidor/{{$calculo->id}}/{{$registro->id}}"><i class="far fa-file-excel"></i></center></a>
                                     </div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->total_pago,0)}}</center></div>
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>${{number_format($registro->comisiones,0)}}</center></div>

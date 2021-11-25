@@ -212,6 +212,11 @@
                             <td class="border-b border-gray-500 px-3">Comisiones <span class="text-red-700">{{$version=="1"?number_format($user->detalles->porcentaje_adelanto).'%':'100%'}}</span></td>
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones,0)}}</center></td>
                         </tr>
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"></td>
+                            <td class="border-b border-gray-500 px-3">ADDONS <span class="text-red-700">{{$version=="1"?number_format($user->detalles->porcentaje_adelanto).'%':'100%'}}</span></td>
+                            <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->c_addons,0)}}</center></td>
+                        </tr>
                         @if($user->detalles->bono=="1")
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"></td>

@@ -278,9 +278,18 @@ class EmpleadosController extends Controller
     }
     public function transacciones_pago_empleado(Request $request)
     {
+        $pago=PagosDistribuidor::where('calculo_id',$request->id)
+                                ->where('version',$request->version)
+                                ->where('user_id',$request->id_user)
+                                ->get()
+                                ->first();
+
     $empleado=User::with('empleado')->find($request->id_user);
     $medicion=Mediciones::where('calculo_id',$request->id)->where('user_id',$request->id_user)->where('version',$request->version)->get()->first();
-    $sql_consulta="SELECT b.user_id,b.supervisor_id,a.upfront,a.bono,a.upfront_supervisor,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and (b.user_id='".$request->id_user."' or b.supervisor_id='".$request->id_user."') and a.estatus_inicial='PAGO' and a.version='".$request->version."'";
+    $sql_consulta="SELECT b.user_id,b.supervisor_id,a.upfront as upfront,a.bono,a.upfront_supervisor,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and (b.user_id='".$request->id_user."' or b.supervisor_id='".$request->id_user."') and a.estatus_inicial='PAGO' and a.version='".$request->version."'
+                    UNION
+                    SELECT b.user_id,b.supervisor_id,a.comision as upfront,0 as bono,a.comision_supervisor as upfront_supervisor,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_addons as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_id=c.id and a.calculo_id='".$request->id."' and (b.user_id='".$request->id_user."' or b.supervisor_id='".$request->id_user."') and a.version='".$request->version."'
+                ";
     //return($sql_consulta);
     $query=DB::select(DB::raw(
         $sql_consulta
@@ -290,7 +299,7 @@ class EmpleadosController extends Controller
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
-    return(view('transacciones_pago_empleado',['empleado'=>$empleado,'query'=>$query,'query_no_pago'=>$query_no_pago]));
+    return(view('transacciones_pago_empleado',['empleado'=>$empleado,'query'=>$query,'query_no_pago'=>$query_no_pago,'pago'=>$pago]));
     }
     public function transacciones_charge_back_empleado(Request $request)
     {
