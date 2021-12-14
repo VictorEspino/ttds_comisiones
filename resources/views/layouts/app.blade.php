@@ -17,7 +17,7 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 
         <!-- Styles -->
-        <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+        <link rel="stylesheet" href="{{ mix('css/app.css') }}?v=4">
 
         @livewireStyles
 
@@ -26,7 +26,7 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
 
 <!-- PARA EL DASHBOARD -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://unpkg.com/tailwindcss/dist/tailwind.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
     /* The side navigation menu */
 .sidenav {

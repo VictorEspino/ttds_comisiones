@@ -102,7 +102,7 @@
                                 @enderror                    
                             </div>
                             <div class="w-1/5 flex items-end">
-                                <button onClick="carga_ventas_callidus()" type="button" class="rounded px-3 py-2 border bg-ttds hover:bg-ttds-hover text-gray-100 font-semibold">Cargar</button>
+                                <button onClick="carga_ventas_callidus()" type="button" class="rounded px-3 py-2 border text-gray-100 font-semibold bg-[#186D92] hover:bg-ttds-hover">Cargar</button>
                             </div>                
                         </div>
                     </div> <!--FIN CONTENIDO-->
@@ -125,7 +125,7 @@
                                 @enderror                    
                             </div>
                             <div class="w-1/5 flex items-end">
-                                <button onClick="carga_residual_callidus()" type="button" class="rounded px-3 py-2 border bg-ttds hover:bg-ttds-hover text-gray-100 font-semibold">Cargar</button>
+                                <button onClick="carga_residual_callidus()" type="button" class="rounded px-3 py-2 border bg-[#186D92] hover:bg-ttds-hover text-gray-100 font-semibold">Cargar</button>
                             </div>                
                         </div>
                     </div> <!--FIN CONTENIDO-->
@@ -152,7 +152,7 @@
                             <input type="hidden" name="version" value="1">
                             <input type="hidden" name="id" value="{{$id_calculo}}">
                             @if($n_callidus>0)
-                            <button type="button" onClick="ejecuta_calculo(1)" class="bg-ttds text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
+                            <button type="button" onClick="ejecuta_calculo(1)" class="bg-[#186D92] text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
                                 {{($adelanto=="1")?'Actualizar':'Ejecutar'}} Adelanto
                             </button>
                             @else
@@ -170,7 +170,7 @@
                             <input type="hidden" name="version" value="2">
                             <input type="hidden" name="id" value="{{$id_calculo}}">
                             @if($n_callidus_residual>0)
-                            <button type="button" onClick="ejecuta_calculo(2)" class="bg-ttds text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
+                            <button type="button" onClick="ejecuta_calculo(2)" class="bg-[#186D92] text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
                                 {{($cierre=="1")?'Actualizar':'Ejecutar'}} Cierre
                             </button>
                             @else
@@ -186,7 +186,7 @@
                         <form class="w-full" method="post" action="{{route('calculo_terminar')}}" id="forma_finaliza">
                             @csrf
                             <input type="hidden" name="id" value="{{$id_calculo}}">
-                            <button type="button" onClick="confirmar_finalizacion()" class="bg-ttds text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
+                            <button type="button" onClick="confirmar_finalizacion()" class="bg-[#186D92] text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
                                 Finalizar Calculo
                             </button>
                         </form>

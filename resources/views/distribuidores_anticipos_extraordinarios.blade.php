@@ -126,7 +126,7 @@
                                 </div>
                             </div>
                             <div class="w-full flex justify-center pt-6 pb-3 rounded-b">
-                                <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold">Guardar</button>
+                                <button class="rounded p-1 border bg-ttds hover:bg-ttds-hover text-gray-100 font-semibold">Guardar</button>
                                 <button class="rounded p-1 border bg-red-500 hover:bg-red-700 text-gray-100 font-semibold" type="button" onClick="cerrarForma()">Cancelar</button>
                             </div>
                             <div id="no_aplicados" class="w-full text-sm px-5">

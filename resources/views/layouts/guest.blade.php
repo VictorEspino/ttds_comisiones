@@ -15,7 +15,7 @@
 
         <!-- Scripts -->
         <script src="{{ mix('js/app.js') }}" defer></script>
-        <link rel="stylesheet" href="https://unpkg.com/tailwindcss/dist/tailwind.min.css">
+        <script src="https://cdn.tailwindcss.com"></script>
         <style>
             .body-bg {
                 background-color: #4A98AC;
