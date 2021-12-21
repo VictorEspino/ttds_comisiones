@@ -10,6 +10,7 @@ use App\Models\Venta;
 use App\Models\ComisionVenta;
 use App\Models\AutorizacionEspecial;
 use App\Models\PagosDistribuidor;
+use App\Models\ChargeBackDistribuidor;
 use App\Models\Mediciones;
 use App\Models\AlertaCobranza;
 use Illuminate\Support\Facades\DB;
