@@ -55,6 +55,7 @@ class CreatePagosDistribuidorsTable extends Migration
             $table->string('xml',50)->nullable();
             $table->boolean('aplicado')->default(false);
             $table->dateTime('carga_facturas')->nullable();
+            $table->boolean('activo');
             $table->timestamps();
         });
     }

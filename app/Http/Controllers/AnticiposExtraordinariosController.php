@@ -51,7 +51,7 @@ class AnticiposExtraordinariosController extends Controller
     public function distribuidores_anticipos_extraordinarios(Request $request)
     {
         $años=Periodo::select(DB::raw('distinct(año) as valor'))
-                    ->whereRaw('fecha_fin>=(now()-60)')
+                    ->whereRaw('DATEDIFF( now(),fecha_fin)<60')
                     ->get()
                     ->take(2);
         $filtro=false;

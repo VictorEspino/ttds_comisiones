@@ -28,7 +28,9 @@ header("Expires: 0");
 foreach ($query as $transaccion) {
 	?>
 	<tr>
-	<td>{{$transaccion->venta->fecha}}</td>
+<?php try{
+?>
+	<td>{{$transaccion->venta->fecha}}
 	<td>{{$transaccion->venta->cliente}}</td>
 	<td>{{$transaccion->venta->dn}}</td>
 	<td>{{$transaccion->venta->cuenta}}</td>
@@ -41,6 +43,28 @@ foreach ($query as $transaccion) {
 	<td>{{$transaccion->venta->plazo}}</td>
 	<td>{{$transaccion->venta->descuento_multirenta}}</td>
 	<td>{{$transaccion->venta->afectacion_comision}}</td>
+<?php
+	}
+    catch(\Exception $e)
+	{
+?>
+	{{$transaccion->callidus->fecha}}</td>
+	<td>{{$transaccion->callidus->cliente}}</td>
+	<td>{{$transaccion->callidus->dn}}</td>
+	<td>{{$transaccion->callidus->cuenta}}</td>
+	<td>{{$transaccion->callidus->tipo}}</td>
+	<td>{{$transaccion->callidus->contrato}}</td>
+	<td></td>
+	<td>{{$transaccion->callidus->plan}}</td>
+	<td>{{$transaccion->callidus->renta}}</td>
+	<td>{{$transaccion->callidus->modelo}}</td>
+	<td>{{$transaccion->callidus->plazo}}</td>
+	<td>{{$transaccion->callidus->descuento_multirenta}}</td>
+	<td>{{$transaccion->callidus->afectacion_comision}}</td>
+<?php
+	}
+?>
+
     <td>{{$transaccion->tipo}}</td>
     <td>{{$transaccion->razon}}</td>
     <td>{{$transaccion->monto}}</td>

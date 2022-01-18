@@ -24,6 +24,9 @@
                 <div class="w-full lg:w-1/2 flex justify-center lg:justify-end text-xs">
                 {{$registros->links()}}
                 </div>
+                <div class="w-full lg:w-1/2 flex justify-center lg:justify-end text-xs">
+                    <a href="/transacciones_pago_distribuidor/{{$calculo->id}}/5000/{{$version}}"><span style="cursor: pointer;">MONTERREY</span></a>
+                </div>
             </div>
             <div class="flex flex-col lg:flex-row lg:space-x-5 flex items-start justify-center pt-2">
                 <div id="tabla" class="w-full pt-5 flex flex-col"> <!--TABLA DE CONTENIDO-->

@@ -13,4 +13,8 @@ class Reclamo extends Model
     {
         return $this->belongsTo(Venta::class);
     }
+    public function callidus()
+    {
+        return $this->belongsTo(CallidusVenta::class,'callidus_id');
+    }
 }

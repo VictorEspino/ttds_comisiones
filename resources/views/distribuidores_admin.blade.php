@@ -312,14 +312,43 @@
                         document.getElementById("r_24").value=respuesta.r_24;
                         document.getElementById("r_18").value=respuesta.r_18;
                         document.getElementById("r_12").value=respuesta.r_12;
-                        document.getElementById("bono").checked=respuesta.bono;
-                        document.getElementById("residual").checked=respuesta.residual;
-                        document.getElementById("adelanto").checked=respuesta.adelanto;
+                        if(respuesta.bono=='1')
+                        {
+                            document.getElementById("bono").checked=true;
+                        }
+                        else
+                        {
+                            document.getElementById("bono").checked=false;
+                        }
+                        if(respuesta.residual=='1')
+                        {
+                        document.getElementById("residual").checked=true;
+                        }
+                        else
+                        {
+                            document.getElementById("residual").checked=false;
+                        }
+                        if(respuesta.adelanto=='1')
+                        {
+                            document.getElementById("adelanto").checked=true;
+                        }
+                        else
+                        {
+                            document.getElementById("adelanto").checked=false;
+                        }
                         document.getElementById("porcentaje_residual").value=respuesta.porcentaje_residual;
                         document.getElementById("porcentaje_adelanto").value=respuesta.porcentaje_adelanto;
-                        document.getElementById("factura").checked=respuesta.emite_factura;
+                        if(respuesta.emite_factura=='1')
+                        {
+                            document.getElementById("factura").checked=true;
+                        }
+                        else
+                        {
+                            document.getElementById("factura").checked=false;
+                        }
+                        
                         document.getElementById("supervisor").value=respuesta.user.supervisor;
-
+                        //console.log('NADA');
  
                     }
                     else

@@ -21,6 +21,7 @@ class CreateCalculosTable extends Migration
             $table->boolean('adelanto')->default(0);
             $table->boolean('cierre')->default(0);
             $table->boolean('terminado')->default(0);
+            $table->boolean('visible')->default(1);
             $table->timestamps();
         });
     }
