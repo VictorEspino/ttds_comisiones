@@ -32,6 +32,7 @@ class CalculoComisiones extends Controller
     {
         $calculo_id=$request->id;
         $calculo=Calculo::find($calculo_id);
+        PagosDistribuidor::where('version',2)->where('calculo_id',$calculo_id)->update(['activo'=>1,'created_at'=>now()->toDateTimeString()]);
         $calculo->terminado=1;
         $calculo->save();
         return(back()->withStatus('Calculo de comisiones ('.$calculo->descripcion.') terminado'));
@@ -722,8 +723,11 @@ class CalculoComisiones extends Controller
                 $charge_back=0; 
                 $retroactivos_reproceso=0;
 
+                $activo=1;
+
                 if($version=="2")
                 {
+                    $activo=0;
                     $anticipo=AnticipoNoPago::select(DB::raw('sum(anticipo) as anticipo'))
                                         ->where('calculo_id',$calculo->id)
                                         ->where('user_id',$pago->user_id)
@@ -765,7 +769,7 @@ class CalculoComisiones extends Controller
 
                 $anticipos_extraordinarios=$this->aplicar_anticipos($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
                 $registro->anticipos_extraordinarios=$anticipos_extraordinarios*$factor;
-
+                $registro->activo=$activo;
                 $registro->anticipo_ordinario=$anticipo_ordinario; //Solo se calcula en el cierre
                 $registro->anticipo_no_pago=$anticipo_no_pago; //Solo se calcula en el cierre
                 $registro->residual=$residual; //Solo se calcula en el cierre
@@ -907,8 +911,11 @@ class CalculoComisiones extends Controller
                     $charge_back=0; 
                     $retroactivos_reproceso=0;
 
+                    $activo=1;
+
                     if($version=="2")
                     {
+                        $activo=0;
                         $anticipo=AnticipoNoPago::select(DB::raw('sum(anticipo) as anticipo'))
                                             ->where('calculo_id',$calculo->id)
                                             ->where('user_id',$pago->user_id)
@@ -951,7 +958,7 @@ class CalculoComisiones extends Controller
 
                     $anticipos_extraordinarios=$this->aplicar_anticipos($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
                     $registro->anticipos_extraordinarios=$anticipos_extraordinarios*$factor;
-
+                    $registro->activo=$activo;
                     $registro->anticipo_ordinario=$anticipo_ordinario; //Solo se calcula en el cierre
                     $registro->anticipo_no_pago=$anticipo_no_pago; //Solo se calcula en el cierre
                     $registro->residual=$residual; //Solo se calcula en el cierre

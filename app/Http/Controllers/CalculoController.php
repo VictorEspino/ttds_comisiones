@@ -54,7 +54,7 @@ class CalculoController extends Controller
     }
     public function seguimiento_calculos(Request $request)
     {
-        $calculos=Calculo::with('periodo')->orderBy('id','desc')->get()->take(10);
+        $calculos=Calculo::with('periodo')->where('visible',1)->orderBy('id','desc')->get()->take(10);
         $meses=array('Ene',
                   'Feb',
                   'Mar',
@@ -372,11 +372,11 @@ class CalculoController extends Controller
            ]);
         
         $upload_path = public_path('facturas');
+        $upload_path="/home/icubecom/ttds.icube.com.mx/facturas";
+
         $file_name = $request->file("pdf_file")->getClientOriginalName();
         $generated_new_name_pdf = $request->user_id.'_'.$request->calculo_id.'_'.$request->version.'_'.time() . '.' . $request->file("pdf_file")->getClientOriginalExtension();
         $request->file("pdf_file")->move($upload_path, $generated_new_name_pdf);
-
-        $upload_path = public_path('facturas');
         $file_name = $request->file("xml_file")->getClientOriginalName();
         $generated_new_name_xml = $request->user_id.'_'.$request->calculo_id.'_'.$request->version.'_'.time() . '.' . $request->file("xml_file")->getClientOriginalExtension();
         $request->file("xml_file")->move($upload_path, $generated_new_name_xml);

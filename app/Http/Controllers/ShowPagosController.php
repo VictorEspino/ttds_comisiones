@@ -17,7 +17,7 @@ class ShowPagosController extends Controller
         $distribuidores=Distribuidor::select('user_id','nombre')
                                 ->when(Auth::user()->perfil=='distribuidor',function($query){$query->where('user_id',Auth::user()->id);})
                                 ->orderBy('nombre','asc')->get();
-        $calculos=Calculo::select('id','descripcion')->orderBy('id','desc')->get();
+        $calculos=Calculo::select('id','descripcion')->where('visible',1)->orderBy('id','desc')->get();
         $solo_distribuidores=User::select('id')->where('perfil','distribuidor')->get();
         $solo_distribuidores=$solo_distribuidores->pluck('id');
         //return($solo_distribuidores);
@@ -55,6 +55,7 @@ class ShowPagosController extends Controller
                     ->when($nuevos_pagos,function($query){$query->where('created_at','>=',Auth::user()->anterior_login);})
                     ->when($nuevas_facturas,function($query){$query->where('carga_facturas','>=',Auth::user()->anterior_login);})
                     ->whereIn('user_id',$solo_distribuidores)
+                    ->where('activo',1)
                     ->paginate(10);
         $pagos->appends($request->all());
         return(view('pagos',['pagos'=>$pagos,

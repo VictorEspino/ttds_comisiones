@@ -18,7 +18,7 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
 
         <!-- Styles -->
         <link rel="stylesheet" href="{{ mix('css/app.css') }}?v=4">
-
+        <script src="https://cdn.tailwindcss.com"></script>
         @livewireStyles
 
         <!-- Scripts -->
@@ -26,7 +26,7 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
 
 <!-- PARA EL DASHBOARD -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
     /* The side navigation menu */
 .sidenav {
@@ -39,7 +39,8 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
   font-size: 14px;
   background-color:#383c3f; /* Black*/
   overflow-x: hidden; /* Disable horizontal scroll */
-  padding-top: 60px; /* Place content 60px from the top */
+  overflow-y: scroll;
+  padding-top: 25px; /* Place content 60px from the top */
   transition: 0.2s; /* 0.5 second transition effect to slide in the sidenav */
 }
 
@@ -76,7 +77,7 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
 /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
 @media screen and (max-height: 450px) {
   .sidenav {padding-top: 15px;}
-  .sidenav a {font-size: 18px;}
+  .sidenav a {font-size: 14px;}
 }
 
 </style>
@@ -89,203 +90,221 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
             <!-- Page Heading -->
             <header class="bg-gray-100">
                 <div id="mySidenav" class="sidenav flex flex-col">
-                    <div><a href="javascript:void(0)" class="closebtn text-ttds" onclick="closeNav()">&times;</a></div>
-                    @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
-                    <div class="px-3 text-white flex flex-col">
-                        <div class="text">
-                            <i class="fas fa-tasks"></i>
-                            Distribuidores
-                        </div>
-                        <div class="flex flex-col" id="distribuidores">
-                            @if(Auth::user()->perfil=="admin")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('distribuidores_nuevo')}}">
-                                    <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
-                                    Nuevo Distribuidor
-                                </a>
-                            </div>     
-                            @endif
-                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('distribuidores_admin')}}">
-                                    <span class="text-yellow-300"><i class="fas fa-table"></i></span>
-                                    Base Distribuidores
-                                </a>
+                    <div class="flex flex-col overflow-y-auto">
+                        <div><a href="javascript:void(0)" class="closebtn text-ttds" onclick="closeNav()">&times;</a></div>
+                        @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
+                        <div class="px-3 text-white flex flex-col">
+                            <div class="text">
+                                <i class="fas fa-tasks"></i>
+                                Distribuidores
                             </div>
-                            @endif
-                            @if(Auth::user()->perfil=="admin")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('distribuidores_anticipos_extraordinarios')}}">
-                                    <span class="text-yellow-300"><i class="fas fa-table"></i></span>
-                                    Anticipos
-                                </a>
+                            <div class="flex flex-col" id="distribuidores">
+                                @if(Auth::user()->perfil=="admin")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('distribuidores_nuevo')}}">
+                                        <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
+                                        Nuevo Distribuidor
+                                    </a>
+                                </div>     
+                                @endif
+                                @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('distribuidores_admin')}}">
+                                        <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                        Base Distribuidores
+                                    </a>
+                                </div>
+                                @endif
+                                @if(Auth::user()->perfil=="admin")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('distribuidores_anticipos_extraordinarios')}}">
+                                        <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                        Anticipos
+                                    </a>
+                                </div>
+                                @endif
                             </div>
-                            @endif
-                        </div>
-                    </div>
-                    @endif
-                    @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
-                    <div class="px-3 pt-2 text-white flex flex-col">
-                        <div class="text">
-                            <i class="fas fa-tasks"></i>
-                            Plantilla Ventas
-                        </div>
-                        <div class="flex flex-col" id="empleados">
-                            @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('empleados_nuevo')}}">
-                                    <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
-                                    Nuevo
-                                </a>
-                            </div>
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('empleados_admin')}}">
-                                    <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
-                                    Base plantilla
-                                </a>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                    @endif
-                    <div class="px-3 pt-2 text-white flex flex-col">
-                        <div class="text">
-                            <i class="fas fa-tasks"></i>
-                            Ventas
-                        </div>
-                        <div class="flex flex-col" id="distribuidores">
-                            @if(Auth::user()->perfil=="distribuidor" || Auth::user()->perfil=="ejecutivo" || Auth::user()->perfil=="gerente")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('venta_nueva')}}">
-                                    <span class="text-ttds"><i class="fas fa-coins"></i></span>
-                                    Registro Nueva
-                                </a>
-                            </div>
-                            @endif
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('venta_import')}}">
-                                    <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
-                                    Carga Archivo
-                                </a>
-                            </div>
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('ventas_review')}}">
-                                    <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
-                                    Base de ventas
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-3 pt-2 text-white flex flex-col"> 
-                        @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" || Auth::user()->perfil=="ejecutivo" || Auth::user()->perfil=="gerente")
-                        <div class="text">
-                            <i class="fas fa-tasks"></i>
-                            Comisiones
                         </div>
                         @endif
-                        <div class="flex flex-col" id="distribuidores">
-                            @if(Auth::user()->perfil=="admin")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('calculo_nuevo')}}">
-                                    <span class="text-ttds"><i class="fas fa-coins"></i></span>
-                                    Nuevo Periodo
-                                </a>
+                        @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
+                        <div class="px-3 pt-2 text-white flex flex-col">
+                            <div class="text">
+                                <i class="fas fa-tasks"></i>
+                                Plantilla Ventas
                             </div>
-                            @endif
+                            <div class="flex flex-col" id="empleados">
+                                @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('empleados_nuevo')}}">
+                                        <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
+                                        Nuevo
+                                    </a>
+                                </div>
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('empleados_admin')}}">
+                                        <span class="text-ttds"><i class="fas fa-user-tie"></i></span>
+                                        Base plantilla
+                                    </a>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+                        <div class="px-3 pt-2 text-white flex flex-col">
+                            <div class="text">
+                                <i class="fas fa-tasks"></i>
+                                Ventas
+                            </div>
+                            
+                            <div class="flex flex-col" id="distribuidores">
+                                @if(Auth::user()->perfil=="gerente" || Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="mesa")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('venta_nueva')}}">
+                                        <span class="text-ttds"><i class="fas fa-coins"></i></span>
+                                        Registro Nueva
+                                    </a>
+                                </div>                                
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('venta_import')}}">
+                                        <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                        Carga Archivo
+                                    </a>
+                                </div>
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('ventas_review')}}">
+                                        <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                        Base de ventas
+                                    </a>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="px-3 pt-2 text-white flex flex-col"> 
                             @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" || Auth::user()->perfil=="ejecutivo" || Auth::user()->perfil=="gerente")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('seguimiento_calculos')}}">
-                                    <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
-                                    Seguimiento
-                                </a>
+                            <div class="text">
+                                <i class="fas fa-tasks"></i>
+                                Comisiones
                             </div>
                             @endif
-                            @if(Auth::user()->perfil!="distribuidor" && Auth::user()->perfil!="gerente" && Auth::user()->perfil!="ejecutivo")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('ventas_admin')}}">
-                                    <span class="text-yellow-300"><i class="fas fa-table"></i></span>
-                                    Validacion Ventas
-                                </a>
+                            <div class="flex flex-col" id="distribuidores">
+                                @if(Auth::user()->perfil=="admin")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('calculo_nuevo')}}">
+                                        <span class="text-ttds"><i class="fas fa-coins"></i></span>
+                                        Nuevo Periodo
+                                    </a>
+                                </div>
+                                @endif
+                                @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" || Auth::user()->perfil=="ejecutivo" || Auth::user()->perfil=="gerente")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('seguimiento_calculos')}}">
+                                        <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                        Seguimiento
+                                    </a>
+                                </div>
+                                @endif
+                                @if(Auth::user()->perfil!="distribuidor" && Auth::user()->perfil!="gerente" && Auth::user()->perfil!="ejecutivo")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('ventas_admin')}}">
+                                        <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                        Validacion Ventas
+                                    </a>
+                                </div>
+                                @endif
                             </div>
-                            @endif
                         </div>
-                    </div>
-                    <div class="px-3 pt-2 text-white flex flex-col">
-                        @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
-                        <div class="text">
-                            <i class="fas fa-tasks"></i>
-                            Pagos Comisiones
-                        </div>
-                        @endif
-                        <div class="flex flex-col"> 
+                        <div class="px-3 pt-2 text-white flex flex-col">
                             @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('pagos')}}">
-                                    <span class="text-ttds"><i class="fas fa-coins"></i></span>
-                                    Base de Pagos
-                                </a>
+                            <div class="text">
+                                <i class="fas fa-tasks"></i>
+                                Pagos Comisiones
                             </div>
                             @endif
-                            @if($nuevos_pagos!="0" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" ))
-                            <div class="pl-5 pt-2">
-                                <a href="/pagos?np=true">
-                                    <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
-                                    Nuevos Pagos <span class="rounded-full bg-red-700 text-white p-2">{{$nuevos_pagos}}</span>
-                                </a>
+                            <div class="flex flex-col"> 
+                                @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('pagos')}}">
+                                        <span class="text-ttds"><i class="fas fa-coins"></i></span>
+                                        Base de Pagos
+                                    </a>
+                                </div>
+                                @endif
+                                @if($nuevos_pagos!="0" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" ))
+                                <div class="pl-5 pt-2">
+                                    <a href="/pagos?np=true">
+                                        <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                        Nuevos Pagos <span class="rounded-full bg-red-700 text-white p-2">{{$nuevos_pagos}}</span>
+                                    </a>
+                                </div>
+                                @endif
+                                
+                                @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
+                                @if($nuevas_facturas!="0" )
+                                <div class="pl-5 pt-2">
+                                    <a href="/pagos?nf=true">
+                                        <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                        Nuevas Facturas <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas}}</span>
+                                    </a>
+                                </div>
+                                @endif
+                                @endif
                             </div>
-                            @endif
-                            
-                            @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
-                            @if($nuevas_facturas!="0" )
-                            <div class="pl-5 pt-2">
-                                <a href="/pagos?nf=true">
-                                    <span class="text-yellow-300"><i class="fas fa-table"></i></span>
-                                    Nuevas Facturas <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas}}</span>
-                                </a>
-                            </div>
-                            @endif
-                            @endif
                         </div>
-                    </div>
-                    <div class="px-3 pt-2 text-white flex flex-col">
-                        @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
-                        <div class="text">
-                            <i class="fas fa-tasks"></i>
-                            Pagos Anticipos
-                        </div>
-                        @endif
-                        <div class="flex flex-col"> 
+                        <div class="px-3 pt-2 text-white flex flex-col">
                             @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
-                            <div class="pl-5 pt-2">
-                                <a href="{{route('anticipos_extraordinarios')}}">
-                                    <span class="text-ttds"><i class="fas fa-coins"></i></span>
-                                    Base de Anticipos
-                                </a>
+                            <div class="text">
+                                <i class="fas fa-tasks"></i>
+                                Pagos Anticipos
                             </div>
                             @endif
-                            @if($nuevos_anticipos!="0" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" ))
-                            <div class="pl-5 pt-2">
-                                <a href="/anticipos_extraordinarios?np=true">
-                                    <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
-                                    Nuevos Pagos <span class="rounded-full bg-red-700 text-white p-2">{{$nuevos_anticipos}}</span>
-                                </a>
+                            <div class="flex flex-col"> 
+                                @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('anticipos_extraordinarios')}}">
+                                        <span class="text-ttds"><i class="fas fa-coins"></i></span>
+                                        Base de Anticipos
+                                    </a>
+                                </div>
+                                @endif
+                                @if($nuevos_anticipos!="0" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" ))
+                                <div class="pl-5 pt-2">
+                                    <a href="/anticipos_extraordinarios?np=true">
+                                        <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                        Nuevos Pagos <span class="rounded-full bg-red-700 text-white p-2">{{$nuevos_anticipos}}</span>
+                                    </a>
+                                </div>
+                                @endif
+                                
+                                @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
+                                @if($nuevas_facturas_anticipo!="0")
+                                <div class="pl-5 pt-2">
+                                    <a href="/anticipos_extraordinarios?nf=true">
+                                        <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                        Nuevas Facturas <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas_anticipo}}</span>
+                                    </a>
+                                </div>
+                                @endif
+                                @endif
                             </div>
-                            @endif
-                            
-                            @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
-                            @if($nuevas_facturas_anticipo!="0")
-                            <div class="pl-5 pt-2">
-                                <a href="/anticipos_extraordinarios?nf=true">
-                                    <span class="text-yellow-300"><i class="fas fa-table"></i></span>
-                                    Nuevas Facturas <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas_anticipo}}</span>
-                                </a>
-                            </div>
-                            @endif
-                            @endif
                         </div>
-                    </div>
-                    
-
+                        
+                        <div class="px-3 text-[#383c3f] flex flex-col">.
+                        </div>
+                        <div class="px-3 text-[#383c3f] flex flex-col">.
+                        </div>
+                        <div class="px-3 text-[#383c3f] flex flex-col">.
+                        </div>
+                        <div class="px-3 text-[#383c3f] flex flex-col">.
+                        </div>
+                        <div class="px-3 text-[#383c3f] flex flex-col">.
+                        </div>
+                        <div class="px-3 text-[#383c3f] flex flex-col">.
+                        </div>
+                        <div class="px-3 text-[#383c3f] flex flex-col">.
+                        </div>
+                        <div class="px-3 text-[#383c3f] flex flex-col">.
+                        </div>
+                    </div> 
                 </div>
                 <div class="max-w-7xl mx-auto py-4 px-2 sm:px-2 px-4 flex justify-between flex-row">
                     <div class="flex">

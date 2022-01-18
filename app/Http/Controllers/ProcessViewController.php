@@ -99,14 +99,12 @@ class ProcessViewController extends Controller
             $registros=DB::table('ventas')
                                 ->join('users', 'users.id', '=', 'ventas.user_id')
                                 ->select('ventas.*','users.user','users.name')
-                                ->where('ventas.validado',false)
-                                ->orderBy('ventas.cliente','asc')
+                                ->where('ventas.validado',false) 
                                 ->paginate(10);
             $distribuidores=DB::table('ventas')
                                 ->join('users', 'users.id', '=', 'ventas.user_id')
                                 ->select(DB::raw('distinct users.id,users.name'))
                                 ->where('ventas.validado',false)
-                                ->orderBy('ventas.cliente','asc')
                                 ->get();
             return(view('ventas_admin',['registros'=>$registros,'query'=>'','distribuidores'=>$distribuidores]));
         }

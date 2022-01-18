@@ -13,6 +13,7 @@ Class Notificaciones{
         $anterior_login=Auth::user()->anterior_login;
         $nuevos=PagosDistribuidor::where('created_at','>',$anterior_login)
                                     ->when(Auth::user()->perfil=='distribuidor',function($query){$query->where('user_id',Auth::user()->id);})
+                                    ->where('activo',1)
                                     ->select(DB::raw('count(*) as n'))
                                     ->get()
                                     ->first();
