@@ -144,6 +144,7 @@ class ProcessFormsController extends Controller
                 ]);
         User::where('id',$request->id_user)
         ->update(['supervisor'=>$request->supervisor,
+                  'administrador'=>$request->administrador,  
                   'name'=>$request->nombre
                 ]);
 

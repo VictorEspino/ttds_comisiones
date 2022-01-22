@@ -9,11 +9,11 @@ header("Expires: 0");
 <br>
 <table border=1>
 	<tr>
-		<td colspan=28 style="font-size:40px;"><center>CÁLCULO DE COMISIONES DE ACTIVACIONES Y RENOVACIONES REALIZADAS DURANTE OCTUBRE 2021
+		<td colspan=28 style="font-size:40px;"><center>CÁLCULO DE COMISIONES DE ACTIVACIONES Y RENOVACIONES REALIZADAS DURANTE DICIEMBRE 2021
 		</td>
 	</tr>		
 <tr style="background-color:#ffffff;color:#ffffff00">
-<td>Concepto</td>
+<td>Vendedor</td>
 <td>Commission Name</td>	
 <td>Periodo / Week</td>
 <td>Canal / Direccion / Division</td>
@@ -34,6 +34,7 @@ header("Expires: 0");
 <td>Descuento Adicional</td>
 <td>Descuento de Servicio</td>
 <td style="background-color:#ffee02">Commission&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td style="background-color:#ffee02">Commission Supervisor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 <td>Renta</td>
 <td>Tipo de Periodo</td>
 <td>Esquema (Solo aplica en marcas legado)</td>
@@ -47,7 +48,7 @@ header("Expires: 0");
 foreach ($query as $transaccion) {
 	?>
 	<tr>
-	<td>{{$transaccion->c_tipo}}</td>
+	<td>{{$transaccion->vendedor}}</td>
 	<td>{{$transaccion->c_tipo}}</td>
 	<td>{{$transaccion->c_periodo}}</td>
 	<td>DISTRIBUIDORES</td>
@@ -67,7 +68,8 @@ foreach ($query as $transaccion) {
 	<td>${{number_format($transaccion->c_renta/1.16/1.03,2)}}</td>
 	<td>{{$transaccion->c_afectacion_comision}}</td>
 	<td>TV TELCO & DATA SOLUTIONS SA DE CV</td>
-	<td style="background-color:#f3e848">{{($empleado->id==$transaccion->user_id)?($empleado->perfil=='gerente'?$transaccion->upfront+$transaccion->upfront_supervisor:$transaccion->upfront):$transaccion->upfront_supervisor}}</td>
+	<td style="background-color:#f3e848">{{$transaccion->upfront}}</td>
+	<td style="background-color:#f3e848">{{$transaccion->upfront_supervisor}}</td>
 	<td>${{$transaccion->c_renta}}</td>
 	<td>Monthly</td>
 	<td>ESPECIAL_442545</td>
@@ -80,24 +82,40 @@ foreach ($query as $transaccion) {
 }
 ?>
 	<tr>
-		<td colspan=19 rowspan=4></td>
+		<td colspan=19 rowspan=6></td>
 		<td><b>Subtotal</td>
-		<td>${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones+$pago->c_addons,2)}}</td>
+		<td colspan=2>${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones+$pago->c_addons,2)}}</td>
 	</tr>
+	@if(intval($pago->residual)>0)
 	<tr>
 		
 		<td><b>Residual</td>
 		<td>${{number_format($pago->residual,2)}}</td>
 	</tr>
+	@endif
+	@if(intval($pago->anticipos_extraordinarios)>0)
+	<tr>
+		
+		<td><b>Anticipo extraordinario</td>
+		<td>-${{number_format($pago->anticipos_extraordinarios,2)}}</td>
+	</tr>
+	@endif
+	@if(intval($pago->anticipo_ordinario)>0)
+	<tr>
+		
+		<td><b>Anticipo ordinario</td>
+		<td>-${{number_format($pago->anticipo_ordinario,2)}}</td>
+	</tr>
+	@endif
 	<tr>
 		
 		<td><b>Charge Back</td>
-		<td>${{number_format($pago->charge_back,2)}}</td>
+		<td colspan=2>${{number_format($pago->charge_back,2)}}</td>
 	</tr>
 	<tr>
 		
 		<td><b>TOTAL</td>
-		<td>${{number_format($pago->total_pago,2)}}</td>
+		<td colspan=2>${{number_format($pago->total_pago,2)}}</td>
 	</tr>
 </table>
 @if(!empty($query_no_pago))

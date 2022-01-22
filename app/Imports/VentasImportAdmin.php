@@ -26,11 +26,18 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
         $fecha=$row['fecha'];
         $fecha_db=\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($fecha);
         $vendedor=User::where('user',$row['vendedor'])->get()->first();
+        $user_id=$vendedor->id;
+        $user_origen_id=$vendedor->id;
+        if(!is_null($vendedor->administrador))
+        {
+            $user_id=$vendedor->administrador;
+        }
         $id_carga=session('id_carga');
 
         return new Venta([
-            'user_id'=> $vendedor->id,
+            'user_id'=> $user_id,
             'supervisor_id'=> $vendedor->supervisor,
+            'user_origen_id'=> $vendedor->id,
             'cuenta'=> trim($row['cuenta']),
             'cliente'=> trim($row['cliente']),
             'tipo'=> trim($row['tipo']),

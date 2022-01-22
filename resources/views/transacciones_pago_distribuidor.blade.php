@@ -9,10 +9,11 @@ header("Expires: 0");
 <br>
 <table border=1>
 	<tr>
-		<td colspan=28 style="font-size:40px;"><center>CÁLCULO DE COMISIONES DE ACTIVACIONES Y RENOVACIONES REALIZADAS DURANTE OCTUBRE 2021
+		<td colspan=28 style="font-size:40px;"><center>CÁLCULO DE COMISIONES DE ACTIVACIONES Y RENOVACIONES REALIZADAS DURANTE DICIEMBRE 2021
 		</td>
 	</tr>		
 <tr style="background-color:#ffffff;color:#ffffff00">
+<td>Vendedor</td>
 <td>Concepto</td>
 <td>Commission Name</td>	
 <td>Periodo / Week</td>
@@ -47,6 +48,7 @@ header("Expires: 0");
 foreach ($query as $transaccion) {
 	?>
 	<tr>
+	<td>{{$transaccion->vendedor}}</td>
 	<td>{{$transaccion->c_tipo}}</td>
 	<td>{{$transaccion->c_tipo}}</td>
 	<td>{{$transaccion->c_periodo}}</td>
@@ -80,19 +82,34 @@ foreach ($query as $transaccion) {
 }
 ?>
 	<tr>
-		<td colspan=19 rowspan=4></td>
+		<td colspan=20 rowspan=6></td>
 		<td><b>Subtotal</td>
 		<td>${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones+$pago->c_addons,2)}}</td>
 	</tr>
+	@if(intval($pago->residual)>0)
 	<tr>
 		
 		<td><b>Residual</td>
 		<td>${{number_format($pago->residual,2)}}</td>
 	</tr>
+	@endif
+	@if(intval($pago->anticipos_extraordinarios)>0)
 	<tr>
 		
+		<td><b>Anticipo extraordinario</td>
+		<td>-${{number_format($pago->anticipos_extraordinarios,2)}}</td>
+	</tr>
+	@endif
+	@if(intval($pago->anticipo_ordinario)>0)
+	<tr>
+		
+		<td><b>Anticipo ordinario</td>
+		<td>-${{number_format($pago->anticipo_ordinario,2)}}</td>
+	</tr>
+	@endif
+	<tr>
 		<td><b>Charge Back</td>
-		<td>${{number_format($pago->charge_back,2)}}</td>
+		<td>-${{number_format($pago->charge_back,2)}}</td>
 	</tr>
 	<tr>
 		
@@ -110,6 +127,7 @@ foreach ($query as $transaccion) {
 <br>
 <table border=1>
 	<tr style="background-color:#777777;color:#FFFFFF">
+	<td><b>Vendedor</td>
 	<td><b>Fecha</td>
 	<td><b>Cliente</td>
 	<td><b>DN</td>
@@ -135,6 +153,7 @@ foreach ($query as $transaccion) {
 	foreach ($query_no_pago as $transaccion) {
 		?>
 		<tr>
+			<td>{{$transaccion->vendedor}}</td>
 			<td>{{$transaccion->fecha}}</td>
 			<td>{{$transaccion->cliente}}</td>
 			<td>{{$transaccion->dn}}</td>

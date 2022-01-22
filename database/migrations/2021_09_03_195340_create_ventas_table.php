@@ -17,6 +17,7 @@ class CreateVentasTable extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->foreignId('supervisor_id')->nullable();
+            $table->foreignId('user_origen_id');
             $table->date('fecha');
             $table->string('cliente');
             $table->string('dn');

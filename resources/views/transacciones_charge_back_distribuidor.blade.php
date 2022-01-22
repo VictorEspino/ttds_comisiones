@@ -10,6 +10,7 @@ header("Expires: 0");
 <br>
 <table border=1>
 <tr style="background-color:#777777;color:#FFFFFF">
+<td><b>Vendedor</td>
 <td><b>Fecha</td>
 <td><b>Cliente</td>
 <td><b>DN</td>
@@ -39,6 +40,7 @@ header("Expires: 0");
 foreach ($query as $transaccion) {
 	?>
 	<tr>
+	<td>{{$transaccion->vendedor}}</td>
 	<td>{{$transaccion->fecha}}</td>
 	<td>{{$transaccion->cliente}}</td>
 	<td>{{$transaccion->dn}}</td>

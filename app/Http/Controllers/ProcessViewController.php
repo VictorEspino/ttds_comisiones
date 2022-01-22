@@ -27,19 +27,20 @@ class ProcessViewController extends Controller
     public function distribuidores_admin(Request $request)
     {
         $supervisores=Empleado::select('user_id','nombre')->where('puesto','GERENTE')->get();
+        $administradores=User::select('id','name')->orderBy('name','asc')->get();
         if(isset($_GET['query']))
         {
             $registros=Distribuidor::where('nombre','like','%'.$_GET["query"].'%')
                                     ->orderBy('nombre','asc')
                                     ->paginate(10);
             $registros->appends($request->all());
-            return(view('distribuidores_admin',['registros'=>$registros,'supervisores'=>$supervisores,'query'=>$_GET['query']]));
+            return(view('distribuidores_admin',['registros'=>$registros,'supervisores'=>$supervisores,'administradores'=>$administradores,'query'=>$_GET['query']]));
         }
         else
         {
             $registros=Distribuidor::orderBy('nombre','asc')
                                     ->paginate(10);
-            return(view('distribuidores_admin',['registros'=>$registros,'supervisores'=>$supervisores,'query'=>'']));
+            return(view('distribuidores_admin',['registros'=>$registros,'supervisores'=>$supervisores,'administradores'=>$administradores,'query'=>'']));
         }
     }
     public function distribuidores_consulta(Request $request)
@@ -195,38 +196,18 @@ class ProcessViewController extends Controller
                             ->get()
                             ->first();
     
-    $sql_consulta="SELECT a.upfront as upfront,a.bono,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='PAGO' and a.version='".$request->version."'
+    $sql_consulta="SELECT b.vendedor,a.upfront as upfront,a.bono,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='PAGO' and a.version='".$request->version."'
                     UNION
-                    SELECT a.comision as upfront,0 as bono,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_addons as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."'and a.version='".$request->version."'
+                    SELECT b.vendedor,a.comision as upfront,0 as bono,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_addons as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_id=c.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."'and a.version='".$request->version."'
                 ";
     $query=DB::select(DB::raw(
         $sql_consulta
        ));
-    $sql_consulta_no_pago="SELECT a.upfront,a.bono,0 as c_renta,0 as c_plazo,0 as c_descuento_multirenta,0 as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='NO PAGO' and a.version='".$request->version."'";
+    $sql_consulta_no_pago="SELECT b.vendedor,a.upfront,a.bono,0 as c_renta,0 as c_plazo,0 as c_descuento_multirenta,0 as c_afectacion_comision,b.* FROM comision_ventas as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b WHERE a.venta_id=b.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='NO PAGO' and a.version='".$request->version."'";
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
     //return($distribuidor);
-    if($request->id_user=='5000')
-    {
-        $pago=PagosDistribuidor::where('calculo_id',$request->id)
-                            ->where('version',$request->version)
-                            ->whereIn('user_id',[75,76,78,80,93])
-                            ->get()
-                            ->first();
-                            $sql_consulta="SELECT a.upfront as upfront,a.bono,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and b.user_id IN (75,76,78,80,93) and a.estatus_inicial='PAGO' and a.version='".$request->version."'
-                            UNION
-                            SELECT a.comision as upfront,0 as bono,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_addons as a,ventas as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_id=c.id and a.calculo_id='".$request->id."' and and b.user_id IN (75,76,78,80,93) and a.version='".$request->version."'
-                        ";
-            $query=DB::select(DB::raw(
-                $sql_consulta
-               ));
-            $sql_consulta_no_pago="SELECT a.upfront,a.bono,0 as c_renta,0 as c_plazo,0 as c_descuento_multirenta,0 as c_afectacion_comision,b.* FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id='".$request->id."' and b.user_id in (75,76,78,80,93) and a.estatus_inicial='NO PAGO' and a.version='".$request->version."'";
-            $query_no_pago=DB::select(DB::raw(
-                $sql_consulta_no_pago
-               ));
-               return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>0,'pago'=>$pago,'distribuidor'=>$distribuidor]));
-    }
     return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono,'pago'=>$pago,'distribuidor'=>$distribuidor]));
     }
     public function transacciones_charge_back_distribuidor(Request $request)
@@ -243,7 +224,7 @@ class ProcessViewController extends Controller
                                               'comision_ventas.bono'
                                               )
                                     ->join('comision_ventas','charge_back_distribuidors.comision_venta_id','=','comision_ventas.id')
-                                    ->join(DB::raw('(select ventas.*,users.name from ventas left join users on ventas.user_id=users.id) as ventas'),
+                                    ->join(DB::raw('(select ventas.*,users.name,origen.name as vendedor from ventas left join users on ventas.user_id=users.id left join users as origen on ventas.user_origen_id=origen.id) as ventas'),
                                     'comision_ventas.venta_id','=','ventas.id')
                                     ->join('callidus_ventas','charge_back_distribuidors.callidus_venta_id','=','callidus_ventas.id')
                                     ->where('charge_back_distribuidors.calculo_id',$calculo_id)->where('charge_back_distribuidors.comision_venta_id','!=',0)

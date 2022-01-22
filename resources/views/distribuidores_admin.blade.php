@@ -184,6 +184,18 @@
                                 <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
                                 @enderror   
                             </div> 
+                            <div class="w-full px-2">
+                                <span class="text-xs text-ttds">Administrador ventas</span><br>
+                                <select class="w-full rounded p-1 border border-gray-300" name="administrador" id="administrador">
+                                    <option value=""></option>
+                                    @foreach ($administradores as $administrador)
+                                    <option value="{{$administrador->id}}">{{$administrador->name}}</option>
+                                    @endforeach
+                                </select>
+                                @error('administrador')
+                                <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                @enderror   
+                            </div> 
                             <div class="w-full px-2 pt-2">
                                 <span class="text-sm font-semibold text-gray-700">Comision Activaciones (Factor)</span>
                             </div>
@@ -348,6 +360,7 @@
                         }
                         
                         document.getElementById("supervisor").value=respuesta.user.supervisor;
+                        document.getElementById("administrador").value=respuesta.user.administrador;
                         //console.log('NADA');
  
                     }

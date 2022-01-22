@@ -9,6 +9,7 @@ class Venta extends Model
 {
     protected $fillable = ['user_id',
                             'supervisor_id',
+                            'user_origen_id',
                             'cuenta',
                             'cliente',
                             'fecha',
@@ -36,5 +37,9 @@ class Venta extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function user_origen()
+    {
+        return $this->belongsTo(User::class,'user_origen_id');
     }
 }
