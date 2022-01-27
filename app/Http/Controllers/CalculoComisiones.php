@@ -37,6 +37,15 @@ class CalculoComisiones extends Controller
         $calculo->save();
         return(back()->withStatus('Calculo de comisiones ('.$calculo->descripcion.') terminado'));
     }
+    public function reabrir_calculo(Request $request)
+    {
+        $calculo_id=$request->id;
+        $calculo=Calculo::find($calculo_id);
+        PagosDistribuidor::where('version',2)->where('calculo_id',$calculo_id)->update(['activo'=>0,'created_at'=>now()->toDateTimeString()]);
+        $calculo->terminado=0;
+        $calculo->save();
+        return(back()->withStatus('Calculo de comisiones ('.$calculo->descripcion.') reabierto'));
+    }
     public function reset_calculo(Request $request)
     {
         $calculo_id=$request->id;
@@ -77,8 +86,12 @@ class CalculoComisiones extends Controller
         $this->charge_back($calculo,$version);
         echo "<br>Inicio residual=".now();
         $this->residual($calculo,$version,$distribuidores);
+        echo "<br>Respalda Facturas".now();
+        $facturas_precargadas=$this->respaldaFacturas($calculo,$version);
         echo "<br>Inicio pagos=".now();
         $this->pagos($calculo,$version,$distribuidores);
+        echo "<br>Inicia reconstruccion de ligas a facturas=".now();
+        $this->restoreFacturas($facturas_precargadas);
         echo "<br>Inicio alertas=".now();
         $this->alertas_cobranza($calculo,$version);
         echo "<br>Fin calculo=".now(); 
@@ -93,6 +106,30 @@ class CalculoComisiones extends Controller
         }
         $calculo->save();
         return(back()->withStatus('Calculo de comisiones ('.$calculo->descripcion.') ejecutado correctamente'));
+    }
+    private function respaldaFacturas($calculo,$version)
+    {
+        return(
+        PagosDistribuidor::select('user_id','calculo_id','version','pdf','xml','carga_facturas','aplicado')
+                          ->where('calculo_id',$calculo->id) 
+                          ->where('version',$version)
+                          ->get()
+        );
+    }
+    private function restoreFacturas($facturas_precargadas)
+    {
+        foreach($facturas_precargadas as $factura)
+        {
+            PagosDistribuidor::where('calculo_id',$factura->calculo_id)
+                            ->where('version',$factura->version)
+                            ->where('user_id',$factura->user_id)
+                            ->update([
+                                'xml'=>$factura->xml,
+                                'pdf'=>$factura->pdf,
+                                'aplicado'=>$factura->aplicado,
+                                'carga_facturas'=>$factura->carga_facturas
+                            ]);
+        }
     }
     private function ejecutar_mediciones($calculo,$version)
     {

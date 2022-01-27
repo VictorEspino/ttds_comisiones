@@ -243,11 +243,12 @@ class ProcessViewController extends Controller
                                             'callidus_ventas.tipo_baja',
                                             'comision_ventas.upfront',
                                             'comision_ventas.bono',
-                                            'comision_ventas.name'
+                                            'comision_ventas.name',
+                                            'comision_ventas.vendedor'
                                               )
                                     ->leftJoin(DB::raw(
-                                        '(select a.*,b.name from comision_ventas as a left join 
-                                        (select ventas.id,users.name from ventas left join users on ventas.user_id=users.id)
+                                        '(select a.*,b.name,b.vendedor from comision_ventas as a left join 
+                                        (select ventas.id,users.name,origen.name as vendedor from ventas left join users on ventas.user_id=users.id left join users as origen on ventas.user_origen_id=origen.id)
                                         as b on a.venta_id=b.id) as comision_ventas'
                                         ),
                                             'charge_back_distribuidors.comision_venta_id','=','comision_ventas.id')

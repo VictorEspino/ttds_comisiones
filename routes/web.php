@@ -73,6 +73,7 @@ Route::get('/detalle_calculo/{id}',[CalculoController::class,'detalle_calculo'])
 Route::get('/detalle_conciliacion/{id}',[CalculoController::class,'detalle_conciliacion'])->name('detalle_conciliacion')->middleware('auth');
 Route::post('/calculo_ejecutar',[CalculoComisiones::class,'ejecutar_calculo'])->name('calculo_ejecutar')->middleware('auth');
 Route::post('/calculo_terminar',[CalculoComisiones::class,'terminar_calculo'])->name('calculo_terminar')->middleware('auth');
+Route::post('/calculo_reabrir',[CalculoComisiones::class,'reabrir_calculo'])->name('calculo_reabrir')->middleware('auth');
 Route::post('/calculo_reset',[CalculoComisiones::class,'reset_calculo'])->name('calculo_reset')->middleware('auth');
 Route::post('/conciliacion_reset',[CalculoComisiones::class,'reset_conciliacion'])->name('conciliacion_reset')->middleware('auth');
 Route::post('/conciliacion_ejecutar',[CalculoComisiones::class,'ejecutar_conciliacion'])->name('conciliacion_ejecutar')->middleware('auth');

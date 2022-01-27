@@ -197,6 +197,13 @@
                             <span class="text-ttd-azul text-2xl font-semibold p-10">
                                 El calculo de comisiones se encuentra finalizado
                             </span>
+                            <form class="w-full" method="post" action="{{route('calculo_reabrir')}}" id="forma_reabrir">
+                                @csrf
+                                <input type="hidden" name="id" value="{{$id_calculo}}">
+                                <button type="button" onClick="confirmar_reabrir()" class="bg-red-500 text-gray-200 text-4xl font-semibold rounded-lg hover:bg-ttds-hover shadow-lg w-full border p-10">
+                                    Reabrir Calculo
+                                </button>
+                            </form>
                     </div>
                     @endif
                 </div>
@@ -598,6 +605,33 @@
         @endif
     </div>
 <!--MODAL CONFIRMACION-->
+<div class="fixed hidden inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full" id="modal_reabrir">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                <i class="text-green-500 text-2xl font-bold far fa-check-circle"></i>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 p-3">¿Desea continuar?</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500">
+                    Esta operacion habilitara nuevamente el calculo para procesar informacion faltante, mientras realiza las modificacion el estado de cuenta de cierre no estara disponible para los distribuidores, sera necesario finalizar el calculo nuevamente al terminar las modificaciones.                    
+                </p>
+            </div>
+            <div class="px-4 py-3 flex flex-row">
+                <div class="w-1/2 flex justify-center">
+                    <button onClick="ejecuta_reabrir()" class="px-3 w-2/3 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                        OK
+                    </button>
+                </div>
+                <div class="w-1/2 flex justify-center">
+                    <button onClick="cancelar_reabrir()" class="px-3 w-2/3 py-2 bg-red-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="fixed hidden inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full" id="modal_finalizacion">
     <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
@@ -803,6 +837,10 @@
         {
             document.getElementById('forma_finaliza').submit();
         }
+        function ejecuta_reabrir() 
+        {
+            document.getElementById('forma_reabrir').submit();
+        }
 
         function confirmar_finalizacion()
         {
@@ -811,6 +849,15 @@
         function cancelar_finalizacion()
         {
             document.getElementById('modal_finalizacion').style.display="none"
+        }
+
+        function confirmar_reabrir()
+        {
+            document.getElementById('modal_reabrir').style.display="block"
+        }
+        function cancelar_reabrir()
+        {
+            document.getElementById('modal_reabrir').style.display="none"
         }
 
         function confirmar_reset()
