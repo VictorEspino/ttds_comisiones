@@ -78,13 +78,15 @@ class AnticiposExtraordinariosController extends Controller
         if(is_null($periodo->calculo))
         {
             $respuesta['viable']=true;
+            $respuesta['estatus']='';
+            return($respuesta);
         }
         else
         {
             if($periodo->calculo->terminado=="1")
                 {
                     $respuesta['viable']=false;
-                    $respuesta['estatus']='Periodo de medicion';
+                    $respuesta['estatus']='Periodo de medicion terminado';
                     return($respuesta);
                 }                
             if($periodo->calculo->cierre=="1")

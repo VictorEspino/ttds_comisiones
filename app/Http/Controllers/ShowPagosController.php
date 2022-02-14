@@ -47,7 +47,7 @@ class ShowPagosController extends Controller
         $pagos=[];
         $pagos=PagosDistribuidor::with('user','user.detalles','calculo')
                     ->select('id','user_id','calculo_id','total_pago','xml','pdf','aplicado','carga_facturas','version')
-                    ->orderBy('created_at','desc')
+                    ->orderBy('id','desc')
                     ->when($filtro && $aplicado!="NULO",function ($query) use ($aplicado){$query->where('aplicado',$aplicado);})
                     ->when($filtro && $distribuidor!="NULO",function ($query) use ($distribuidor){$query->where('user_id',$distribuidor);})
                     ->when($filtro && $calculo_id!="NULO",function ($query) use ($calculo_id){$query->where('calculo_id',$calculo_id);})

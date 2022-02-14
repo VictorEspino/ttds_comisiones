@@ -26,7 +26,6 @@ class CalculoController extends Controller
         $años=Periodo::select(DB::raw('distinct(año) as valor'))
                     ->whereRaw('DATEDIFF( now(),fecha_fin)<60')
                     ->get()
-                    ->get()
                     ->take(2);
         return(view('calculo_nuevo',['años'=>$años,
                                      'nombre'=>Auth::user()->name,

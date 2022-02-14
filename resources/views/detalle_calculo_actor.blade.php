@@ -11,6 +11,20 @@
         </div> <!--FIN ENCABEZADO-->
 
         <div class="w-full rounded-b-lg bg-white p-3 flex flex-wrap"> <!--CONTENIDO-->
+            @if($actor->detalles->adelanto==0)
+            <div class="w-full md:w-1/2 p-3">
+                <div class="w-fullshadow-xl bg-ttds-secundario-2 rounded-lg flex flex-row p-2">
+                    <div class="w-2/3 flex flex-col text-center px-12">
+                        <div class="text-2xl font-semibold">PREVIO</div>
+                        <div class="text-xl font-semibold">Sabana de comisiones</div>
+                        <div class="text-sm font-normal">Emite el listado de ventas que seran incluidas en su calculo de comisiones</div>
+                    </div>
+                    <div class="w-1/3 flex items-center text-center">
+                        <center><a href="/transacciones_pago_distribuidor/{{$calculo->id}}/{{$actor->id}}/1"><i class="far fa-file-excel text-green-500 text-7xl"></i></a></center>
+                    </div>
+                </div>
+            </div> 
+            @endif
             @foreach ($pagos as $pago)
             @if(($pago->version=="2" && $calculo->terminado=="1") || ($pago->version=="1"))
             <div class="w-full md:w-1/2 p-3">
@@ -25,8 +39,8 @@
                         <center><a href="/estado_cuenta_{{!is_null($actor->detalles)?'distribuidor':'empleado'}}/{{$calculo->id}}/{{$actor->id}}/{{$pago->version}}"><i class="fas fa-balance-scale text-ttds text-7xl"></i></center></a>
                     </div>
                 </div>
-            @endif
-            </div>   
+            </div> 
+            @endif  
             @endforeach
         </div> <!--FIN CONTENIDO-->
 

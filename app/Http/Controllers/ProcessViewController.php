@@ -208,7 +208,7 @@ class ProcessViewController extends Controller
         $sql_consulta_no_pago
        ));
     //return($distribuidor);
-    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono,'pago'=>$pago,'distribuidor'=>$distribuidor]));
+    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono,'pago'=>$pago,'distribuidor'=>$distribuidor,'version'=>$request->version]));
     }
     public function transacciones_charge_back_distribuidor(Request $request)
     {

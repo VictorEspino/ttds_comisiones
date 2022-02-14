@@ -80,6 +80,8 @@ foreach ($query as $transaccion) {
 	</tr>
 <?php
 }
+if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
+{
 ?>
 	<tr>
 		<td colspan=20 rowspan=6></td>
@@ -116,6 +118,9 @@ foreach ($query as $transaccion) {
 		<td><b>TOTAL</td>
 		<td>${{number_format($pago->total_pago,2)}}</td>
 	</tr>
+<?php
+}
+?>
 </table>
 @if(!empty($query_no_pago))
 <br>
