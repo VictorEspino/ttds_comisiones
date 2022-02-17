@@ -301,7 +301,7 @@ class ProcessViewController extends Controller
         if(isset($_GET['query']))
         {
             $registros=DB::table('comision_ventas')
-            ->select('ventas.id','ventas.user','ventas.plan','ventas.name','ventas.cliente','ventas.dn','ventas.cuenta','ventas.folio','ventas.renta','ventas.plazo','ventas.descuento_multirenta','ventas.afectacion_comision','callidus_ventas.renta as c_renta','callidus_ventas.plazo as c_plazo','callidus_ventas.descuento_multirenta as c_descuento_multirenta','callidus_ventas.afectacion_comision as c_afectacion_comision')
+            ->select('ventas.tipo','ventas.id','ventas.user','ventas.plan','ventas.name','ventas.cliente','ventas.dn','ventas.cuenta','ventas.folio','ventas.renta','ventas.plazo','ventas.descuento_multirenta','ventas.afectacion_comision','callidus_ventas.renta as c_renta','callidus_ventas.plazo as c_plazo','callidus_ventas.descuento_multirenta as c_descuento_multirenta','callidus_ventas.afectacion_comision as c_afectacion_comision')
                                 ->join(DB::raw('(
                                         select ventas.*,users.user,users.name
                                         from ventas,users
@@ -326,7 +326,7 @@ class ProcessViewController extends Controller
         else
         {
             $registros=DB::table('comision_ventas')
-                                ->select('ventas.id','ventas.user','ventas.plan','ventas.name','ventas.cliente','ventas.dn','ventas.cuenta','ventas.folio','ventas.renta','ventas.plazo','ventas.descuento_multirenta','ventas.afectacion_comision','callidus_ventas.renta as c_renta','callidus_ventas.plazo as c_plazo','callidus_ventas.descuento_multirenta as c_descuento_multirenta','callidus_ventas.afectacion_comision as c_afectacion_comision')
+                                ->select('ventas.tipo','ventas.id','ventas.user','ventas.plan','ventas.name','ventas.cliente','ventas.dn','ventas.cuenta','ventas.folio','ventas.renta','ventas.plazo','ventas.descuento_multirenta','ventas.afectacion_comision','callidus_ventas.renta as c_renta','callidus_ventas.plazo as c_plazo','callidus_ventas.descuento_multirenta as c_descuento_multirenta','callidus_ventas.afectacion_comision as c_afectacion_comision')
                                 ->join(DB::raw('(
                                         select ventas.*,users.user,users.name
                                         from ventas,users
