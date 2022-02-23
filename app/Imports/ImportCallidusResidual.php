@@ -25,12 +25,21 @@ class ImportCallidusResidual implements ToModel,WithHeadingRow,WithValidation,Wi
         $fecha_raw=$row['fecha'];
         $fecha=\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($fecha_raw);
         $id=session('id_calculo');
+        $contrato_anterior=trim($row['contrato']);
+        try{
+            $contrato_anterior=trim($row['contrato_anterior']);
+        }
+        catch(\Exception $e)
+        {
+            $contrato_anterior=trim($row['contrato']);
+        }
 
         return new CallidusResidual([
             'calculo_id'=>$id,            
             'periodo'=> trim($row['periodo']),
             'cuenta'=> trim($row['cuenta']),
             'contrato'=> trim($row['contrato']),
+            'contrato_anterior'=> $contrato_anterior=='-1'?trim($row['contrato']):$contrato_anterior,
             'cliente'=>trim($row['cliente']),
             'plan'=> trim($row['plan']),
             'dn'=> trim($row['dn']),

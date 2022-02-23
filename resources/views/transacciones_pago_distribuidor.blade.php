@@ -184,3 +184,56 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 	?>
 	</table>
 @endif
+@if(!empty($query_addons_faltantes))
+<br>
+<br>
+<br>
+<span style="color:rgb(10, 71, 161);font-size:40px;">ADDONS CONTROL ESPERADOS NO PAGADOS POR AT&T</span>
+<br>
+<br>
+<br>
+<table border=1>
+	<tr style="background-color:#777777;color:#FFFFFF">
+	<td><b>Vendedor</td>
+	<td><b>Fecha</td>
+	<td><b>Cliente</td>
+	<td><b>DN</td>
+	<td><b>Cuenta</td>
+	<td><b>Tipo</td>
+	<td><b>Folio</td>
+	<td><b>Ciudad</td>
+	<td><b>Plan</td>
+	<td><b>Renta</td>
+	<td><b>Equipo</td>
+	<td><b>Plazo</td>
+	<td><b>Descuento_multirenta</td>
+	<td><b>Afectacion_comision</td>
+	<td style="background-color:#FF0000;color:#FFFFFF"><b>Renta ADDON CONTROL Faltante</td>
+	</tr>
+	<?php
+	
+	foreach ($query_addons_faltantes as $transaccion) {
+		?>
+		<tr>
+			<td>{{$distribuidor->name}}</td>
+			<td>{{$transaccion->fecha}}</td>
+			<td>{{$transaccion->cliente}}</td>
+			<td>{{$transaccion->dn}}</td>
+			<td>{{$transaccion->cuenta}}</td>
+			<td>{{$transaccion->tipo}}</td>
+			<td>{{$transaccion->folio}}</td>
+			<td>{{$transaccion->ciudad}}</td>
+			<td>{{$transaccion->plan}}</td>
+			<td>{{$transaccion->renta}}</td>
+			<td>{{$transaccion->equipo}}</td>
+			<td>{{$transaccion->plazo}}</td>
+			<td>{{$transaccion->descuento_multirenta}}</td>
+			<td>{{$transaccion->afectacion_comision}}</td>
+			<td>{{$transaccion->renta_faltante}}</td>
+
+		</tr>
+	<?php
+	}
+	?>
+	</table>
+@endif

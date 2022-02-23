@@ -203,12 +203,35 @@ class ProcessViewController extends Controller
     $query=DB::select(DB::raw(
         $sql_consulta
        ));
+
+    $lineas=collect($query)->pluck('contrato');  
+    $in_contratos="";
+    $x=0;
+    foreach($lineas as $contrato_faltante)
+    {
+        if($x==0)
+        {
+            $in_contratos="'".$contrato_faltante."'";
+        }
+        else
+        {
+            $in_contratos=$in_contratos.",'".$contrato_faltante."'";
+        }
+        $x=$x+1;
+    }
+    $sql_addons_faltantes="SELECT b.*,a.monto/3 as 'renta_faltante' FROM reclamos as a,ventas as b WHERE a.tipo='ADDON CTRL Faltante' and a.calculo_id=".$request->id." and a.venta_id=b.id and b.contrato in (".$in_contratos.")";
+
+    $query_addons_faltantes=DB::select(DB::raw(
+        $sql_addons_faltantes
+       ));
+
+
     $sql_consulta_no_pago="SELECT b.vendedor,a.upfront,a.bono,0 as c_renta,0 as c_plazo,0 as c_descuento_multirenta,0 as c_afectacion_comision,b.* FROM comision_ventas as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b WHERE a.venta_id=b.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='NO PAGO' and a.version='".$request->version."'";
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
     //return($distribuidor);
-    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono,'pago'=>$pago,'distribuidor'=>$distribuidor,'version'=>$request->version]));
+    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono,'pago'=>$pago,'distribuidor'=>$distribuidor,'version'=>$request->version,'query_addons_faltantes'=>$query_addons_faltantes]));
     }
     public function transacciones_charge_back_distribuidor(Request $request)
     {

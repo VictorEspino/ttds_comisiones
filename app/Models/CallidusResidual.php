@@ -14,6 +14,7 @@ class CallidusResidual extends Model
             'periodo',
             'cuenta',
             'contrato',
+            'contrato_anterior',
             'cliente',
             'plan',
             'dn',

@@ -19,6 +19,7 @@ class CreateCallidusResidualsTable extends Migration
             $table->string('periodo');
             $table->string('cuenta');
             $table->string('contrato');
+            $table->string('contrato_anterior');
             $table->string('cliente')->nullable();
             $table->string('plan');
             $table->string('dn');

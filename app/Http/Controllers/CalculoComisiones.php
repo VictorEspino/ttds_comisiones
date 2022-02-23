@@ -67,13 +67,13 @@ class CalculoComisiones extends Controller
     }
     public function ejecutar_calculo(Request $request)
     {
-        set_time_limit(0);
+        //set_time_limit(0);
         
         $calculo_id=$request->id;
         $version=$request->version;
         $calculo=Calculo::find($calculo_id);
         $distribuidores=Distribuidor::all();
-        
+
         echo "Inicio acreditar=".now();
         $this->acreditar_ventas($calculo,$version);
         echo "<br>Inicio mediciones=".now();
@@ -222,6 +222,7 @@ class CalculoComisiones extends Controller
 
         DB::delete('delete from comision_ventas where calculo_id='.$calculo->id.' and version='.$version);
         Reclamo::where('calculo_id',$calculo->id)->where('tipo','Faltante')->delete();
+        Reclamo::where('calculo_id',$calculo->id)->where('tipo','ADDON CTRL Faltante')->delete();
         $callidus=CallidusVenta::select('id','contrato','cuenta','dn','renta','plazo','descuento_multirenta','afectacion_comision')
                                 ->where('tipo','<>','ADDON')
                                 ->where('calculo_id',$calculo->id)
@@ -367,10 +368,10 @@ class CalculoComisiones extends Controller
 
         $registro=$callidus->where('contrato',$venta->folio.'_DL')->first();
 
-        if(is_null($registro))
-        {
-            $registro=$callidus->where('dn',$venta->dn)->where('cuenta','like',$venta->cuenta.'%')->first();
-        }
+        //if(is_null($registro))
+        //{
+        //    $registro=$callidus->where('dn',$venta->dn)->where('cuenta','like',$venta->cuenta.'%')->first();
+        //}
 
         if(!is_null($registro))
         {
@@ -378,7 +379,38 @@ class CalculoComisiones extends Controller
             $respuesta['consistente']=true;
             $respuesta['callidus_id']=$registro->id;
             $error_renta=$venta->renta-$registro->renta;
-            if($error_renta<(-1) || $error_renta>(1)){$respuesta['consistente']=false;}
+            if($error_renta<(-1) || $error_renta>(1))
+            {
+                $respuesta['consistente']=false;
+                if(($error_renta>=49.5 && $error_renta<=50.5) || ($error_renta>=99.5 && $error_renta<=100.5)) //Buscaremos ADDON
+                {
+                    $addon_control=CallidusVenta::select('contrato','renta')
+                                    ->where('calculo_id',$calculo_id)
+                                    ->where('tipo','ADDON')
+                                    ->where('plan','like','%ADDON CONTROL%')
+                                    ->where('contrato',$venta->folio.'_DL')
+                                    ->get()
+                                    ->first(); 
+                    //dd($error_renta);
+                    //dd($venta->folio);
+                    //dd($addon_control); 
+                    if(!is_null($addon_control))
+                    {
+                        $respuesta['consistente']=true;
+                    }
+                    else
+                    {
+                        //dd($venta->folio);
+                        $reclamo=new Reclamo;
+                        $reclamo->venta_id=$venta->id;
+                        $reclamo->calculo_id=$calculo_id;
+                        $reclamo->monto=$error_renta*3;
+                        $reclamo->razon="Addon no pagado";
+                        $reclamo->tipo="ADDON CTRL Faltante";
+                        $reclamo->save(); 
+                    }
+                }
+            }
             if($venta->plazo!=$registro->plazo){$respuesta['consistente']=false;}
             if($venta->descuento_multirenta!=$registro->descuento_multirenta){$respuesta['consistente']=false;}
             if($venta->afectacion_comision!=$registro->afectacion_comision){$respuesta['consistente']=false;}
@@ -556,12 +588,12 @@ class CalculoComisiones extends Controller
         if($version=="1") {return;}
 
         $usuarios=User::select('id','perfil')->get();
-        $perfiles=$usuarios->pluck('perfil','id');
+        $perfiles=$usuarios->pluck('perfil','id');       
 
         ComisionResidual::where('calculo_id',$calculo->id)->delete();
-
+        
         $periodos_anteriores=$this->periodos_anteriores($calculo);
-
+        
         $calculo_anterior=$periodos_anteriores['menos_1'];
         $calculo_anterior_2=$periodos_anteriores['menos_2'];
 
@@ -573,11 +605,11 @@ class CalculoComisiones extends Controller
         $pago_anterior=DB::select(DB::raw(
             $sql_mes_anterior
         ));
-        $pago_anterior=collect($pago_anterior);
+        $pago_anterior=collect($pago_anterior);        
         $periodo_anterior=$pago_anterior->pluck('user_id_ant','contrato_ant');
         $venta_anterior=$pago_anterior->pluck('venta_id_ant','contrato_ant');
-    
-        $residuales_actuales=CallidusResidual::select('id','contrato','renta','estatus','plazo')->where('calculo_id',$calculo->id)->get();
+
+        $residuales_actuales=CallidusResidual::select('id','contrato','contrato_anterior','renta','estatus','plazo','factor_comision')->where('calculo_id',$calculo->id)->get();
 
         $sql_ventas_anteriores="
                                 select ventas.id,ventas.user_id,ventas.contrato,comision_ventas.calculo_id 
@@ -586,7 +618,7 @@ class CalculoComisiones extends Controller
                                     comision_ventas.venta_id=ventas.id and 
                                     comision_ventas.calculo_id in (".$calculo_anterior.",".$calculo_anterior_2.") 
                             ";
-                    //and ventas.contrato='".$contrato_consulta[0]."'
+                    //and ventas.contrato='".$contrato_consulta[0]."'        
         $ventas_anteriores=DB::select(DB::raw(
             $sql_ventas_anteriores
             ));
@@ -605,6 +637,10 @@ class CalculoComisiones extends Controller
             $venta_id=0;
             $calculo_id=0;
             $comision=0;
+            $intento=1;
+            $factor_estandar=0.05;
+            $factor_linea=1*$actual->factor_comision;
+            $factor_correccion=$factor_linea/$factor_estandar;
 
             try{
                 $user_id_anterior=$periodo_anterior[$actual->contrato];
@@ -612,6 +648,16 @@ class CalculoComisiones extends Controller
             catch(\Exception $e)
             {
                 $user_id_anterior=-1;
+            }
+            if($user_id_anterior==-1 && $actual->contrato!=$actual->contrato_anterior) //SEGUNDO INTENTO SIEMPRE QUE LOS CONTRATOS SEAN DISTINTOS
+            {
+                try{
+                    $user_id_anterior=$periodo_anterior[$actual->contrato_anterior];
+                }
+                catch(\Exception $e)
+                {
+                    $user_id_anterior=-1;
+                }
             }
             if($user_id_anterior==-1) //SI NO LO ENCUENTRA VA A BUSCAR A LA BASE DE VENTAS DE 2 PERIODOS ANTERIORES
                 {
@@ -646,18 +692,24 @@ class CalculoComisiones extends Controller
                     }
                     $user_id=$user_id_anterior;
                     $callidus_residual_id=$actual->id;
-                    $venta_id=$venta_anterior[$actual->contrato];
+                    try{
+                        $venta_id=$venta_anterior[$actual->contrato];
+                        }
+                    catch(\Exception $e)
+                        {
+                        $venta_id=$venta_anterior[$actual->contrato_anterior];
+                        }
                     $calculo_id=$calculo->id;
                     $comision=$actual->estatus=="ACTIVO"?$actual->renta*$factor_residual/100:0;
                 }
             if($calculo_id!="0") //SIGNIFICA QUE PASO POR CUALQUIER ESCENARIO Y PUDO MAPEAR LA LINEA
-            {
+            {                
                 $registros[]=[
                             'user_id'=>$user_id,
                             'callidus_residual_id'=>$callidus_residual_id,
                             'venta_id'=>$venta_id,
                             'calculo_id'=>$calculo_id,
-                            'comision'=>$comision,
+                            'comision'=>$comision*$factor_correccion,
                             'created_at'=>now()->toDateTimeString(),
                             'updated_at'=>now()->toDateTimeString(),
                         ];
@@ -839,8 +891,10 @@ class CalculoComisiones extends Controller
                    
                 }
                 
-
-                $registro->save();
+                if($registro->user_id!='109') //NO EMITE PAGO PARA CONCENTRADOR DE NO PAGO
+                {
+                  $registro->save();
+                }
             }
 
         }

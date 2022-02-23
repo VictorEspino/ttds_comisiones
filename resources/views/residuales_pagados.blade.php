@@ -1,6 +1,15 @@
 <?php
+$nombre_archivo="residuales";
+try
+{
+	$nombre_archivo=$nombre_archivo.'_'.$distribuidor->name;
+}
+catch (\Exception $e)
+{
+	;
+}
 header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=residuales_".$distribuidor->name.".xls");
+header("Content-Disposition: attachment; filename=".$nombre_archivo.".xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 ?>

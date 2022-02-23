@@ -27,7 +27,7 @@ class CreateDistribuidorsTable extends Migration
             $table->float('r_12');
             $table->boolean('bono')->default('0');
             $table->boolean('residual')->default('0');
-            $table->integer('porcentaje_residual')->default('0');
+            $table->float('porcentaje_residual')->default('0');
             $table->boolean('adelanto')->default('0');
             $table->integer('porcentaje_adelanto')->default('0');
             $table->boolean('emite_factura')->default(0);
