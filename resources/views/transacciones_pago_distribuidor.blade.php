@@ -9,7 +9,7 @@ header("Expires: 0");
 <br>
 <table border=1>
 	<tr>
-		<td colspan=28 style="font-size:40px;"><center>CÁLCULO DE COMISIONES DE ACTIVACIONES Y RENOVACIONES REALIZADAS DURANTE DICIEMBRE 2021
+		<td colspan=28 style="font-size:40px;"><center>CÁLCULO DE COMISIONES DE ACTIVACIONES Y RENOVACIONES
 		</td>
 	</tr>		
 <tr style="background-color:#ffffff;color:#ffffff00">

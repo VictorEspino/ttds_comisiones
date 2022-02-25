@@ -83,7 +83,7 @@
                                     @if(Auth::user()->perfil=="distribuidor")
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm"><center>Tramitar<br>pago</center></div>
                                     @endif
-                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2  {{(Auth::user()->perfil=='distribuidor')?'rounded-tr-lg':''}} text-sm"><center>Procesado</center></div>
+                                    <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2  {{(Auth::user()->perfil=='distribuidor')?'rounded-tr-lg':''}} text-sm"><center>Estatus Actual</center></div>
                                     @if(Auth::user()->perfil!="distribuidor")
                                     <div class="table-cell border-l font-semibold bg-ttds-encabezado text-gray-200 py-1 px-2 mx-2 text-sm rounded-tr-lg"><center>Cambiar<br>estatus a:</center></div>
                                     @endif
@@ -103,7 +103,7 @@
                                             <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>{!!$pago->user->detalles->emite_factura=="1"?'<a href="/facturar_anticipo/'.$pago->id.'">Tramitar</a>':'NA'!!}</div>
                                         @endif
                                     @endif
-                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-green-300 py-1 px-2 mx-2 text-sm"><center>{!!$pago->aplicado?'<i class="fas fa-check-circle"></i>':''!!}</center></div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-white py-1 px-2 mx-2 text-sm {!!$pago->aplicado?'bg-green-500':'bg-red-500'!!}"><center>{!!$pago->aplicado?'Procesado':'Pendiente'!!}</center></div>
                                     @if(Auth::user()->perfil!="distribuidor")
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">
                                         <form method="POST" action="{{route('cambiar_estatus_anticipo')}}">
@@ -112,7 +112,7 @@
                                             <input type="hidden" name="nombre" value="{{$pago->user->name}}">
                                             <input type="hidden" name="monto" value="{{$pago->anticipo}}">
                                             <input type="hidden" name="nuevo_estatus" value="{{$pago->aplicado?'0':'1'}}">
-                                            <button class="rounded {{$pago->aplicado=="0"?'bg-green-500 hover:bg-green-700':'bg-red-500 hover:bg-red-700'}} text-sm text-gray-100 font-semibold py-1 px-3">{{$pago->aplicado?'Pendiente':'Procesado'}}</button>
+                                            <button class="rounded border border-gray-500 bg-gray-100 text-sm text-gray-700 font-normal py-1 px-3">{{$pago->aplicado?'Pendiente':'Procesado'}}</button>
                                         </form>
                                     </div>
                                     @endif
@@ -140,7 +140,7 @@
                                         <b>{{$pago->user->name}}</b><br>
                                         <span class="text-xs">{{$pago->periodo->descripcion}}</span><br>
                                         <b>${{number_format($pago->anticipo,0)}}</b><br>
-                                        {!!$pago->aplicado?'PROCESADO':'NO PROCESADO'!!}
+                                        {!!$pago->aplicado?'<span class="font-bold text-green-500">PROCESADO</span>':'<span class="font-bold text-red-700">NO PROCESADO</span>'!!}
                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{!!$pago->user->detalles->emite_factura=="1"?(is_null($pago->pdf)?'':'<a href="/facturas/'.$pago->pdf.'" download><i class="text-2xl text-red-700 far fa-file-pdf"></i></a>'):'NA'!!}
 
                                     </div>
@@ -152,7 +152,7 @@
                                             <input type="hidden" name="nombre" value="{{$pago->user->name}}">
                                             <input type="hidden" name="monto" value="{{$pago->anticipo}}">
                                             <input type="hidden" name="nuevo_estatus" value="{{$pago->aplicado?'0':'1'}}">
-                                            <button class="rounded {{$pago->aplicado=="0"?'bg-green-500 hover:bg-green-700':'bg-red-500 hover:bg-red-700'}} text-sm text-gray-100 font-semibold py-1 px-3">{{$pago->aplicado?'Pendiente':'Procesado'}}</button>
+                                            <button class="rounded border border-gray-500 bg-gray-100 text-sm text-gray-700 font-normal py-1 px-3">{{$pago->aplicado?'Pendiente':'Procesado'}}</button>
                                         </form>
                                     </div>
                                     @endif
