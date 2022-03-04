@@ -420,7 +420,7 @@ class CalculoComisiones extends Controller
     }
     private function comision_ventas($calculo,$version,$distribuidores)
     {
-        $comisionables=ComisionVenta::with('venta','callidus','venta.user','venta.user_origen')
+        $comisionables=ComisionVenta::with('venta','callidus','venta.user','venta.user_origen','venta.padrino')
                         ->where('calculo_id',$calculo->id)
                         ->where('version',$version)
                         ->get();
@@ -429,6 +429,13 @@ class CalculoComisiones extends Controller
                                 ->get();
         foreach($comisionables as $credito)
         {
+            $a_12_padrino=0;
+            $a_18_padrino=0;
+            $a_24_padrino=0;
+            $r_12_padrino=0;
+            $r_18_padrino=0;
+            $r_24_padrino=0;
+
             if($credito->venta->user_origen->perfil=="distribuidor")
             {
                 $distribuidor=$distribuidores->where('user_id',$credito->venta->user_origen->id)->first();  
@@ -449,6 +456,15 @@ class CalculoComisiones extends Controller
                 $r_18=1.0;
                 $r_24=1.5;
                 $paga_bono='0';
+            }
+            if(!is_null($credito->venta->padrino)) //SIEMPRE DEBE SER UN EMPLEADO POR LO TANTO SE APLICAN FACTORES DIRECTO
+            {
+                $a_12_padrino=0.75;
+                $a_18_padrino=0.75;
+                $a_24_padrino=1;
+                $r_12_padrino=0.75;
+                $r_18_padrino=0.75;
+                $r_24_padrino=0.75;
             }
                 $medicion=$mediciones->where('user_id',$credito->venta->user_origen->id)->first();                                
                 $tipo=$credito->venta->tipo;
@@ -473,21 +489,47 @@ class CalculoComisiones extends Controller
 
                 $renta_neta=($renta/1.16/1.03)*(1-($dmr/100))*(1-($afectacion/100));
                 $comision_supervisor=0;
+                $comision_padrino=0;
                 $comision=0;
                 $bono=0;
                 $factor_correccion=1;
+                $factor_padrino=0;
                 if($tipo=='NUEVA' || $tipo=='ADICION')
                 {
-                    if($plazo=='12' || $plazo=='6' || $plazo=='0'){ $comision=$renta_neta*$a_12;}
-                    if($plazo=='18'){ $comision=$renta_neta*$a_18;}
-                    if($plazo=='24' || $plazo=='36'){ $comision=$renta_neta*$a_24;}
+                    if($plazo=='12' || $plazo=='6' || $plazo=='0')
+                    { 
+                        $comision=$renta_neta*$a_12;
+                        $factor_padrino=$a_12_padrino;
+                    }
+                    if($plazo=='18')
+                    { 
+                        $comision=$renta_neta*$a_18;
+                        $factor_padrino=$a_18_padrino;
+                    }
+                    if($plazo=='24' || $plazo=='36')
+                    { 
+                        $comision=$renta_neta*$a_24;
+                        $factor_padrino=$a_24_padrino;
+                    }
                     //if($medicion->porcentaje_nuevas>=30 && $renta_neta>=200 && $paga_bono=="1"){$bono=0;}//{$bono=100;}
                 }
                 if($tipo=='RENOVACION')
                 {
-                    if($plazo=='12' || $plazo=='6' || $plazo=='0'){ $comision=$renta_neta*$r_12;}
-                    if($plazo=='18'){ $comision=$renta_neta*$r_18;}
-                    if($plazo=='24' || $plazo=='36'){ $comision=$renta_neta*$r_24;}
+                    if($plazo=='12' || $plazo=='6' || $plazo=='0')
+                    { 
+                        $comision=$renta_neta*$r_12;
+                        $factor_padrino=$r_12_padrino;
+                    }
+                    if($plazo=='18')
+                    { 
+                        $comision=$renta_neta*$r_18;
+                        $factor_padrino=$r_18_padrino;
+                    }
+                    if($plazo=='24' || $plazo=='36')
+                    { 
+                        $comision=$renta_neta*$r_24;
+                        $factor_padrino=$r_24_padrino;
+                    }
 
                     if($propiedad=='PROPIO')
                     {
@@ -498,8 +540,13 @@ class CalculoComisiones extends Controller
                 {
                     $comision_supervisor=$renta_neta*0.5;
                 }
+                if(!is_null($credito->venta->padrino))
+                {
+                    $comision_padrino=$renta_neta*$factor_padrino;
+                }
                 $credito->upfront_supervisor=$comision_supervisor*$factor_correccion;
                 $credito->upfront=$comision*$factor_correccion;
+                $credito->upfront_padrino=$comision_padrino*$factor_correccion;
                 $credito->bono=$bono;
                 $credito->save();
             
@@ -750,6 +797,7 @@ class CalculoComisiones extends Controller
             SELECT b.user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,count(*) as addons,sum(a.comision) as c_addons FROM comision_addons as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." group by b.user_id
                 ) as a group by a.user_id
         ";
+        //dd($sql_pagos);
         $pagos=DB::select(DB::raw(
             $sql_pagos
            ));
@@ -917,27 +965,29 @@ class CalculoComisiones extends Controller
                 $x=$x+1;
             }
             $sql_pagos="    
-            select user_id,sum(nuevas) as nuevas,sum(n_rentas) as n_rentas, sum(n_comision) as n_comision,sum(n_bono) as n_bono,sum(adiciones) as adiciones,sum(a_rentas) as a_rentas, sum(a_comision) as a_comision,sum(a_bono) as a_bono,sum(renovaciones) as renovaciones,sum(r_rentas) as r_rentas, sum(r_comision) as r_comision,sum(r_bono) as r_bono,sum(n_no_pago) as n_no_pago,sum(n_rentas_no_pago) as n_rentas_no_pago, sum(n_comision_no_pago) as n_comision_no_pago,sum(n_bono_no_pago) as n_bono_no_pago,sum(a_no_pago) as a_no_pago,sum(a_rentas_no_pago) as a_rentas_no_pago, sum(a_comision_no_pago) as a_comision_no_pago,sum(a_bono_no_pago) as a_bono_no_pago,sum(r_no_pago) as r_no_pago,sum(r_rentas_no_pago) as r_rentas_no_pago, sum(r_comision_no_pago) as r_comision_no_pago,sum(r_bono_no_pago) as r_bono_no_pago,sum(addons) as addons,sum(c_addons) as c_addons FROM (
-                SELECT ".$supervisor->id." as user_id,count(*) nuevas,sum(b.renta) as n_rentas,sum(a.upfront_supervisor) as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='NUEVA' and a.estatus_inicial='PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
+            select user_id,sum(nuevas) as nuevas,sum(n_rentas) as n_rentas, sum(n_comision) as n_comision,sum(n_bono) as n_bono,sum(adiciones) as adiciones,sum(a_rentas) as a_rentas, sum(a_comision) as a_comision,sum(a_bono) as a_bono,sum(renovaciones) as renovaciones,sum(r_rentas) as r_rentas, sum(r_comision) as r_comision,sum(r_bono) as r_bono,sum(n_no_pago) as n_no_pago,sum(n_rentas_no_pago) as n_rentas_no_pago, sum(n_comision_no_pago) as n_comision_no_pago,sum(n_bono_no_pago) as n_bono_no_pago,sum(a_no_pago) as a_no_pago,sum(a_rentas_no_pago) as a_rentas_no_pago, sum(a_comision_no_pago) as a_comision_no_pago,sum(a_bono_no_pago) as a_bono_no_pago,sum(r_no_pago) as r_no_pago,sum(r_rentas_no_pago) as r_rentas_no_pago, sum(r_comision_no_pago) as r_comision_no_pago,sum(r_bono_no_pago) as r_bono_no_pago,sum(addons) as addons,sum(c_addons) as c_addons,sum(c_leads) as c_leads FROM (
+                SELECT ".$supervisor->id." as user_id,count(*) nuevas,sum(b.renta) as n_rentas,sum(a.upfront_supervisor) as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons,sum(a.upfront_padrino) as c_leads FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='NUEVA' and a.estatus_inicial='PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
                 UNION
-                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,count(*) as adiciones,sum(b.renta) as a_rentas,sum(a.upfront_supervisor) as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='ADICION' and a.estatus_inicial='PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,count(*) as adiciones,sum(b.renta) as a_rentas,sum(a.upfront_supervisor) as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons,sum(a.upfront_padrino) as c_leads FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='ADICION' and a.estatus_inicial='PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
                 UNION
-                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,count(*) as renovaciones,sum(b.renta) as r_rentas,sum(a.upfront_supervisor) as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='RENOVACION' and a.estatus_inicial='PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,count(*) as renovaciones,sum(b.renta) as r_rentas,sum(a.upfront_supervisor) as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons,sum(a.upfront_padrino) as c_leads FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='RENOVACION' and a.estatus_inicial='PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
                 UNION
-                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,count(*) as n_no_pago,sum(b.renta) as n_rentas_no_pago,sum(a.upfront_supervisor) as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='NUEVA' and a.estatus_inicial='NO PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,count(*) as n_no_pago,sum(b.renta) as n_rentas_no_pago,sum(a.upfront_supervisor) as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons,sum(a.upfront_padrino) as c_leads FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='NUEVA' and a.estatus_inicial='NO PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
                     UNION
-                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,count(*) as a_no_pago,sum(b.renta) as a_rentas_no_pago,sum(a.upfront_supervisor) as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='ADICION' and a.estatus_inicial='NO PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,count(*) as a_no_pago,sum(b.renta) as a_rentas_no_pago,sum(a.upfront_supervisor) as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons,sum(a.upfront_padrino) as c_leads FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='ADICION' and a.estatus_inicial='NO PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
                     UNION
-                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,count(*) as r_no_pago,sum(b.renta) as r_rentas_no_pago,sum(a.upfront_supervisor) as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='RENOVACION' and a.estatus_inicial='NO PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,count(*) as r_no_pago,sum(b.renta) as r_rentas_no_pago,sum(a.upfront_supervisor) as r_comision_no_pago,0 as r_bono_no_pago,0 as addons,0 as c_addons,sum(a.upfront_padrino) as c_leads FROM comision_ventas as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.tipo='RENOVACION' and a.estatus_inicial='NO PAGO' and b.user_origen_id in (".$usuarios_supervisados.")
                 UNION
-                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,count(*) as addons,sum(comision_supervisor) as c_addons FROM comision_addons as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.user_origen_id in (".$usuarios_supervisados.")
+                SELECT ".$supervisor->id." as user_id,0 nuevas,0 as n_rentas,0 as n_comision,0 as n_bono,0 as adiciones,0 as a_rentas,0 as a_comision, 0 as a_bono,0 as renovaciones,0 as r_rentas,0 as r_comision, 0 as r_bono,0 as n_no_pago,0 as n_rentas_no_pago,0 as n_comision_no_pago,0 as n_bono_no_pago,0 as a_no_pago,0 as a_rentas_no_pago,0 as a_comision_no_pago,0 as a_bono_no_pago,0 as r_no_pago,0 as r_rentas_no_pago,0 as r_comision_no_pago,0 as r_bono_no_pago,count(*) as addons,sum(comision_supervisor) as c_addons,0 as c_leads FROM comision_addons as a,ventas as b WHERE a.venta_id=b.id and a.calculo_id=".$calculo->id." and a.version=".$version." and b.user_origen_id in (".$usuarios_supervisados.")
                     ) as a group by a.user_id
             ";
             $pagos=DB::select(DB::raw($sql_pagos));
+            //dd($sql_pagos);
             foreach($pagos as $pago)
             {
                 //obtiene las comisiones que fueron calculadas como vendedor
                 $pagos_vendedor=PagosDistribuidor::where('calculo_id',$calculo->id)->where('version',$version)->where('user_id',$supervisor->id)->get();
+                //dd($pagos_vendedor);
                 $comision_nuevas_vendedor=0;
                 $comision_adiciones_vendedor=0;
                 $comision_renovaciones_vendedor=0;
@@ -1004,6 +1054,10 @@ class CalculoComisiones extends Controller
                     $residual=0; 
                     $charge_back=0; 
                     $retroactivos_reproceso=0;
+                    //ASUME QUE UN LEAD SIEMPRE TIENE UN SUPERVISOR Y ADEMAS ES ADMINISTRADOR DE VENTAS
+                    $registro->leads=$pago->c_leads*$factor;
+                    //$registro->leads=0;
+                    //dd($registro);
 
                     $activo=1;
 
@@ -1066,6 +1120,7 @@ class CalculoComisiones extends Controller
                                                                         +$comision_adiciones_vendedor
                                                                         +$comision_renovaciones_vendedor
                                                                         +$pago->c_addons*$factor+$comision_addons_vendedor
+                                                                        +$pago->c_leads*$factor
                                                                         ;
 
                     $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario;

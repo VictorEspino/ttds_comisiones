@@ -130,7 +130,7 @@ class EmpleadosController extends Controller
                                             )
                                     ->select('users.id',DB::raw('users.user as numero_empleado'),DB::raw('users.name as nombre'),
                                                                 'pagos_distribuidors.total_pago',
-                                                                DB::raw('pagos_distribuidors.comision_nuevas + pagos_distribuidors.bono_nuevas +  pagos_distribuidors.comision_adiciones + pagos_distribuidors.bono_adiciones +pagos_distribuidors.comision_renovaciones + pagos_distribuidors.bono_renovaciones as comisiones'),
+                                                                DB::raw('pagos_distribuidors.comision_nuevas + pagos_distribuidors.bono_nuevas +  pagos_distribuidors.comision_adiciones + pagos_distribuidors.bono_adiciones +pagos_distribuidors.comision_renovaciones + pagos_distribuidors.bono_renovaciones+pagos_distribuidores.leads+pagos_distribuidors.c_addons as comisiones'),
                                                                 DB::raw('pagos_distribuidors.nuevas_comision_no_pago + pagos_distribuidors.nuevas_bono_no_pago +  pagos_distribuidors.adiciones_comision_no_pago + pagos_distribuidors.adiciones_bono_no_pago + pagos_distribuidors.renovaciones_comision_no_pago + pagos_distribuidors.renovaciones_bono_no_pago as comisiones_pendientes'),
                                                                 'pagos_distribuidors.anticipo_ordinario',
                                                                 'pagos_distribuidors.anticipo_no_pago',
@@ -160,7 +160,7 @@ class EmpleadosController extends Controller
                                             )
                                 ->select('users.id',DB::raw('users.user as numero_distribuidor'),DB::raw('users.name as nombre'),
                                                                 'pagos_distribuidors.total_pago',
-                                                                DB::raw('pagos_distribuidors.comision_nuevas + pagos_distribuidors.bono_nuevas +  pagos_distribuidors.comision_adiciones + pagos_distribuidors.bono_adiciones +pagos_distribuidors.comision_renovaciones + pagos_distribuidors.bono_renovaciones as comisiones'),
+                                                                DB::raw('pagos_distribuidors.comision_nuevas + pagos_distribuidors.bono_nuevas +  pagos_distribuidors.comision_adiciones + pagos_distribuidors.bono_adiciones +pagos_distribuidors.comision_renovaciones + pagos_distribuidors.bono_renovaciones+pagos_distribuidors.leads+pagos_distribuidors.c_addons as comisiones'),
                                                                 DB::raw('pagos_distribuidors.nuevas_comision_no_pago + pagos_distribuidors.nuevas_bono_no_pago +  pagos_distribuidors.adiciones_comision_no_pago + pagos_distribuidors.adiciones_bono_no_pago + pagos_distribuidors.renovaciones_comision_no_pago + pagos_distribuidors.renovaciones_bono_no_pago as comisiones_pendientes'),
                                                                 'pagos_distribuidors.anticipo_ordinario',
                                                                 'pagos_distribuidors.anticipo_no_pago',
@@ -286,12 +286,13 @@ class EmpleadosController extends Controller
                                 ->where('user_id',$request->id_user)
                                 ->get()
                                 ->first();
+        $usuarios=User::all()->pluck('name','id');
 
     $empleado=User::with('empleado')->find($request->id_user);
     $medicion=Mediciones::where('calculo_id',$request->id)->where('user_id',$request->id_user)->where('version',$request->version)->get()->first();
-    $sql_consulta="SELECT b.vendedor,b.user_id,b.supervisor_id,a.upfront as upfront,a.bono,a.upfront_supervisor,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and (b.user_id='".$request->id_user."' or b.supervisor_id='".$request->id_user."') and a.estatus_inicial='PAGO' and a.version='".$request->version."'
+    $sql_consulta="SELECT b.padrino_lead,b.vendedor,b.user_id,b.supervisor_id,a.upfront as upfront,a.bono,a.upfront_supervisor,a.upfront_padrino as padrino,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_ventas as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_venta_id=c.id and a.calculo_id='".$request->id."' and (b.user_id='".$request->id_user."' or b.supervisor_id='".$request->id_user."') and a.estatus_inicial='PAGO' and a.version='".$request->version."'
                     UNION
-                    SELECT b.vendedor,b.user_id,b.supervisor_id,a.comision as upfront,0 as bono,a.comision_supervisor as upfront_supervisor,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_addons as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_id=c.id and a.calculo_id='".$request->id."' and (b.user_id='".$request->id_user."' or b.supervisor_id='".$request->id_user."') and a.version='".$request->version."'
+                    SELECT 0 as padrino_lead,b.vendedor,b.user_id,b.supervisor_id,a.comision as upfront,0 as bono,a.comision_supervisor as upfront_supervisor,0 as padrino,c.tipo as c_tipo,c.periodo as c_periodo,c.contrato as c_contrato,c.cuenta as c_cuenta,c.cliente as c_cliente,c.plan as c_plan,c.dn as c_dn,c.propiedad as c_propiedad,c.renta as c_renta,c.plazo as c_plazo,c.descuento_multirenta as c_descuento_multirenta,c.afectacion_comision as c_afectacion_comision,b.* FROM comision_addons as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b,callidus_ventas as c WHERE a.venta_id=b.id and a.callidus_id=c.id and a.calculo_id='".$request->id."' and (b.user_id='".$request->id_user."' or b.supervisor_id='".$request->id_user."') and a.version='".$request->version."'
                 ";
     //return($sql_consulta);
     $query=DB::select(DB::raw(
@@ -302,7 +303,7 @@ class EmpleadosController extends Controller
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
-    return(view('transacciones_pago_empleado',['empleado'=>$empleado,'query'=>$query,'query_no_pago'=>$query_no_pago,'pago'=>$pago]));
+    return(view('transacciones_pago_empleado',['empleado'=>$empleado,'query'=>$query,'query_no_pago'=>$query_no_pago,'pago'=>$pago,'usuarios'=>$usuarios]));
     }
     public function transacciones_charge_back_empleado(Request $request)
     {

@@ -42,4 +42,8 @@ class Venta extends Model
     {
         return $this->belongsTo(User::class,'user_origen_id');
     }
+    public function padrino()
+    {
+        return $this->belongsTo(User::class,'padrino_lead');
+    }
 }

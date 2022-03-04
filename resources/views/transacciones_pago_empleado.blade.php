@@ -35,6 +35,8 @@ header("Expires: 0");
 <td>Descuento de Servicio</td>
 <td style="background-color:#ffee02">Commission&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 <td style="background-color:#ffee02">Commission Supervisor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td style="background-color:#ffee02">Commission Padrino Lead&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td style="background-color:#ffee02">Padrino Lead&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 <td>Renta</td>
 <td>Tipo de Periodo</td>
 <td>Esquema (Solo aplica en marcas legado)</td>
@@ -68,8 +70,17 @@ foreach ($query as $transaccion) {
 	<td>${{number_format($transaccion->c_renta/1.16/1.03,2)}}</td>
 	<td>{{$transaccion->c_afectacion_comision}}</td>
 	<td>TV TELCO & DATA SOLUTIONS SA DE CV</td>
-	<td style="background-color:#f3e848">{{$transaccion->upfront}}</td>
+	<td style="background-color:#f3e848">{{$transaccion->user_id==$empleado->id?$transaccion->upfront:0}}</td>
 	<td style="background-color:#f3e848">{{$transaccion->upfront_supervisor}}</td>
+	<td style="background-color:#f3e848">{{$transaccion->padrino}}</td>
+	<td style="background-color:#f3e848">
+		@php
+			if($transaccion->padrino>0)
+			{
+				echo $usuarios[$transaccion->padrino_lead];
+			}
+		@endphp
+	</td>
 	<td>${{$transaccion->c_renta}}</td>
 	<td>Monthly</td>
 	<td>ESPECIAL_442545</td>
@@ -84,7 +95,7 @@ foreach ($query as $transaccion) {
 	<tr>
 		<td colspan=19 rowspan=6></td>
 		<td><b>Subtotal</td>
-		<td colspan=2>${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones+$pago->c_addons,2)}}</td>
+		<td colspan=4>${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones+$pago->c_addons+$pago->leads,2)}}</td>
 	</tr>
 	@if(intval($pago->residual)>0)
 	<tr>
@@ -110,12 +121,12 @@ foreach ($query as $transaccion) {
 	<tr>
 		
 		<td><b>Charge Back</td>
-		<td colspan=2>${{number_format($pago->charge_back,2)}}</td>
+		<td colspan=4>${{number_format($pago->charge_back,2)}}</td>
 	</tr>
 	<tr>
 		
 		<td><b>TOTAL</td>
-		<td colspan=2>${{number_format($pago->total_pago,2)}}</td>
+		<td colspan=4>${{number_format($pago->total_pago,2)}}</td>
 	</tr>
 </table>
 @if(!empty($query_no_pago))
