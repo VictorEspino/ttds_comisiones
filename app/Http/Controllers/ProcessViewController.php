@@ -16,6 +16,7 @@ use App\Models\ComisionResidual;
 use App\Models\Mediciones;
 use App\Models\CallidusVenta;
 use App\Models\Reclamo;
+use App\Models\Retroactivo;
 use App\Models\Periodo;
 use App\Models\AlertaCobranza;
 use Illuminate\Support\Facades\Auth;
@@ -219,6 +220,7 @@ class ProcessViewController extends Controller
         }
         $x=$x+1;
     }
+    if($x==0){$in_contratos="'NADA'";}
     $sql_addons_faltantes="SELECT b.*,a.monto/3 as 'renta_faltante' FROM reclamos as a,ventas as b WHERE a.tipo='ADDON CTRL Faltante' and a.calculo_id=".$request->id." and a.venta_id=b.id and b.contrato in (".$in_contratos.")";
 
     $query_addons_faltantes=DB::select(DB::raw(
@@ -230,8 +232,13 @@ class ProcessViewController extends Controller
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
-    //return($distribuidor);
-    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono,'pago'=>$pago,'distribuidor'=>$distribuidor,'version'=>$request->version,'query_addons_faltantes'=>$query_addons_faltantes]));
+
+    $retroactivos=Retroactivo::with('user_origen','venta','callidus')
+                            ->where('calculo_id',$request->id)
+                            ->where('user_id',$request->id_user)
+                            ->get();
+ 
+    return(view('transacciones_pago_distribuidor',['query'=>$query,'query_no_pago'=>$query_no_pago,'bono'=>$distribuidor->detalles->bono,'pago'=>$pago,'distribuidor'=>$distribuidor,'version'=>$request->version,'query_addons_faltantes'=>$query_addons_faltantes,'retroactivos'=>$retroactivos]));
     }
     public function transacciones_charge_back_distribuidor(Request $request)
     {

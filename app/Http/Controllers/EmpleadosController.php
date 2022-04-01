@@ -13,6 +13,7 @@ use App\Models\PagosDistribuidor;
 use App\Models\ChargeBackDistribuidor;
 use App\Models\Mediciones;
 use App\Models\AlertaCobranza;
+use App\Models\Retroactivo;
 use Illuminate\Support\Facades\DB;
 
 class EmpleadosController extends Controller
@@ -303,7 +304,35 @@ class EmpleadosController extends Controller
     $query_no_pago=DB::select(DB::raw(
         $sql_consulta_no_pago
        ));
-    return(view('transacciones_pago_empleado',['empleado'=>$empleado,'query'=>$query,'query_no_pago'=>$query_no_pago,'pago'=>$pago,'usuarios'=>$usuarios]));
+
+    $retroactivos=Retroactivo::with('user_origen','venta','callidus')
+       ->where('calculo_id',$request->id)
+       ->where('user_id',$request->id_user)
+       ->get();
+
+    $lineas=collect($query)->pluck('contrato');  
+    $in_contratos="";
+    $x=0;
+    foreach($lineas as $contrato_faltante)
+    {
+        if($x==0)
+        {
+            $in_contratos="'".$contrato_faltante."'";
+        }
+        else
+        {
+            $in_contratos=$in_contratos.",'".$contrato_faltante."'";
+        }
+        $x=$x+1;
+    }
+    if($x==0){$in_contratos="'NADA'";}
+    $sql_addons_faltantes="SELECT b.*,a.monto/3 as 'renta_faltante' FROM reclamos as a,ventas as b WHERE a.tipo='ADDON CTRL Faltante' and a.calculo_id=".$request->id." and a.venta_id=b.id and b.contrato in (".$in_contratos.")";
+
+    $query_addons_faltantes=DB::select(DB::raw(
+        $sql_addons_faltantes
+        ));
+
+    return(view('transacciones_pago_empleado',['empleado'=>$empleado,'query'=>$query,'query_no_pago'=>$query_no_pago,'pago'=>$pago,'usuarios'=>$usuarios,'version'=>$request->version,'retroactivos'=>$retroactivos,'query_addons_faltantes'=>$query_addons_faltantes]));
     }
     public function transacciones_charge_back_empleado(Request $request)
     {

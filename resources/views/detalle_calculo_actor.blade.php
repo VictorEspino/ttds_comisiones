@@ -11,6 +11,7 @@
         </div> <!--FIN ENCABEZADO-->
 
         <div class="w-full rounded-b-lg bg-white p-3 flex flex-wrap"> <!--CONTENIDO-->
+            @if($actor->perfil=="distribuidor")
             @if($actor->detalles->adelanto==0)
             <div class="w-full md:w-1/2 p-3">
                 <div class="w-fullshadow-xl bg-ttds-secundario-2 rounded-lg flex flex-row p-2">
@@ -24,6 +25,7 @@
                     </div>
                 </div>
             </div> 
+            @endif
             @endif
             @foreach ($pagos as $pago)
             @if(($pago->version=="2" && $calculo->terminado=="1") || ($pago->version=="1"))

@@ -105,6 +105,7 @@ class AnticiposExtraordinariosController extends Controller
         if(is_null($ventas->n))
         {
             $respuesta['viable']=false;
+            $respuesta['viable']=true;//force OK
             $respuesta['estatus']='El distribuidor no tiene ventas en el periodo indicado';
             return($respuesta);
         }
@@ -113,6 +114,7 @@ class AnticiposExtraordinariosController extends Controller
             if($ventas->n==0)
             {
                 $respuesta['viable']=false;
+                $respuesta['viable']=true;//force OK
                 $respuesta['estatus']='El distribuidor no tiene ventas en el periodo indicado';
                 return($respuesta);
             }
@@ -131,6 +133,7 @@ class AnticiposExtraordinariosController extends Controller
                 $porcentaje_maximo_a_aplicar=$porcentaje_proteccion-$porcentaje_cubierto;
                 $cantidad_maxima_anticipo=($porcentaje_maximo_a_aplicar/100)*$estimado_comisiones;
                 $respuesta['viable']=false;
+                $respuesta['viable']=true;//force OK
                 $respuesta['estatus']='La cantidad del anticipo excede el % de proteccion integrado al sistema, especifique un adelanto menor a $'.number_format($cantidad_maxima_anticipo,0);
                 return($respuesta);
             }

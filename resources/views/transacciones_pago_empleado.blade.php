@@ -118,6 +118,13 @@ foreach ($query as $transaccion) {
 		<td>-${{number_format($pago->anticipo_ordinario,2)}}</td>
 	</tr>
 	@endif
+	@if($version==2 && !empty($retroactivos))
+	<tr>
+		
+		<td><b>Retroactivos</td>
+		<td colspan=4>${{number_format($pago->retroactivos_reproceso,2)}}</td>
+	</tr>
+	@endif
 	<tr>
 		
 		<td><b>Charge Back</td>
@@ -183,6 +190,114 @@ foreach ($query as $transaccion) {
 			<td style="color:#0000FF">{{$transaccion->c_afectacion_comision}}</td>
 			<td style="color:#0000FF">{{$transaccion->upfront}}</td>
 			<td style="color:#0000FF">{{$transaccion->bono}}</td>
+		</tr>
+	<?php
+	}
+	?>
+	</table>
+@endif
+@if(!empty($query_addons_faltantes))
+<br>
+<br>
+<br>
+<span style="color:rgb(10, 71, 161);font-size:40px;">ADDONS CONTROL ESPERADOS NO PAGADOS POR AT&T</span>
+<br>
+<br>
+<br>
+<table border=1>
+	<tr style="background-color:#777777;color:#FFFFFF">
+	<td><b>Vendedor</td>
+	<td><b>Fecha</td>
+	<td><b>Cliente</td>
+	<td><b>DN</td>
+	<td><b>Cuenta</td>
+	<td><b>Tipo</td>
+	<td><b>Folio</td>
+	<td><b>Ciudad</td>
+	<td><b>Plan</td>
+	<td><b>Renta</td>
+	<td><b>Equipo</td>
+	<td><b>Plazo</td>
+	<td><b>Descuento_multirenta</td>
+	<td><b>Afectacion_comision</td>
+	<td style="background-color:#FF0000;color:#FFFFFF"><b>Renta ADDON CONTROL Faltante</td>
+	</tr>
+	<?php
+	
+	foreach ($query_addons_faltantes as $transaccion) {
+		?>
+		<tr>
+			<td>{{$usuarios[$transaccion->user_origen_id]}}</td>
+			<td>{{$transaccion->fecha}}</td>
+			<td>{{$transaccion->cliente}}</td>
+			<td>{{$transaccion->dn}}</td>
+			<td>{{$transaccion->cuenta}}</td>
+			<td>{{$transaccion->tipo}}</td>
+			<td>{{$transaccion->folio}}</td>
+			<td>{{$transaccion->ciudad}}</td>
+			<td>{{$transaccion->plan}}</td>
+			<td>{{$transaccion->renta}}</td>
+			<td>{{$transaccion->equipo}}</td>
+			<td>{{$transaccion->plazo}}</td>
+			<td>{{$transaccion->descuento_multirenta}}</td>
+			<td>{{$transaccion->afectacion_comision}}</td>
+			<td>{{$transaccion->renta_faltante}}</td>
+
+		</tr>
+	<?php
+	}
+	?>
+	</table>
+@endif
+@if($version==2 && !empty($retroactivos))
+<br>
+<br>
+<br>
+<span style="color:rgb(10, 71, 161);font-size:40px;">RETROACTIVOS PERIODOS ANTERIORES</span>
+<br>
+<br>
+<br>
+<table border=1>
+	<tr style="background-color:#777777;color:#FFFFFF">
+	<td><b>Vendedor</td>
+	<td><b>Fecha</td>
+	<td><b>Cliente</td>
+	<td><b>DN</td>
+	<td><b>Cuenta</td>
+	<td><b>Tipo</td>
+	<td><b>Folio</td>
+	<td><b>Ciudad</td>
+	<td><b>Plan</td>
+	<td><b>Renta</td>
+	<td><b>Equipo</td>
+	<td><b>Plazo</td>
+	<td><b>Descuento_multirenta</td>
+	<td><b>Afectacion_comision</td>
+	<td style="background-color:#FF0000;color:#FFFFFF"><b>RETROACTIVO</td>
+	<td style="background-color:#FF0000;color:#FFFFFF"><b>COMENTARIO</td>
+	</tr>
+	<?php
+	
+	foreach ($retroactivos as $transaccion) {
+		?>
+		<tr>
+			<td>{{$transaccion->user_origen->name}}</td>
+			<td>{{$transaccion->venta->fecha}}</td>
+			<td>{{$transaccion->venta->cliente}}</td>
+			<td>{{$transaccion->venta->dn}}</td>
+			<td>{{$transaccion->venta->cuenta}}</td>
+			<td>{{$transaccion->venta->tipo}}</td>
+			<td>{{$transaccion->venta->folio}}</td>
+			<td>{{$transaccion->venta->ciudad}}</td>
+			<td>{{$transaccion->venta->plan}}</td>
+			<td>{{$transaccion->venta->renta}}</td>
+			<td>{{$transaccion->venta->equipo}}</td>
+			<td>{{$transaccion->venta->plazo}}</td>
+			<td>{{$transaccion->callidus->descuento_multirenta}}</td>
+			<td>{{$transaccion->callidus->afectacion_comision}}</td>
+			<td>{{$transaccion->retroactivo}}</td>
+			<td>{{$transaccion->comentario}}</td>
+
 		</tr>
 	<?php
 	}

@@ -109,6 +109,13 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 		<td>-${{number_format($pago->anticipo_ordinario,2)}}</td>
 	</tr>
 	@endif
+	@if($version==2 && !empty($retroactivos))
+	<tr>
+		
+		<td><b>Retroactivos</td>
+		<td>${{number_format($pago->retroactivos_reproceso,2)}}</td>
+	</tr>
+	@endif
 	<tr>
 		<td><b>Charge Back</td>
 		<td>-${{number_format($pago->charge_back,2)}}</td>
@@ -230,6 +237,61 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 			<td>{{$transaccion->descuento_multirenta}}</td>
 			<td>{{$transaccion->afectacion_comision}}</td>
 			<td>{{$transaccion->renta_faltante}}</td>
+
+		</tr>
+	<?php
+	}
+	?>
+	</table>
+@endif
+@if($version==2 && !empty($retroactivos))
+<br>
+<br>
+<br>
+<span style="color:rgb(10, 71, 161);font-size:40px;">RETROACTIVOS PERIODOS ANTERIORES</span>
+<br>
+<br>
+<br>
+<table border=1>
+	<tr style="background-color:#777777;color:#FFFFFF">
+	<td><b>Vendedor</td>
+	<td><b>Fecha</td>
+	<td><b>Cliente</td>
+	<td><b>DN</td>
+	<td><b>Cuenta</td>
+	<td><b>Tipo</td>
+	<td><b>Folio</td>
+	<td><b>Ciudad</td>
+	<td><b>Plan</td>
+	<td><b>Renta</td>
+	<td><b>Equipo</td>
+	<td><b>Plazo</td>
+	<td><b>Descuento_multirenta</td>
+	<td><b>Afectacion_comision</td>
+	<td style="background-color:#FF0000;color:#FFFFFF"><b>RETROACTIVO</td>
+	<td style="background-color:#FF0000;color:#FFFFFF"><b>COMENTARIO</td>
+	</tr>
+	<?php
+	
+	foreach ($retroactivos as $transaccion) {
+		?>
+		<tr>
+			<td>{{$transaccion->user_origen->name}}</td>
+			<td>{{$transaccion->venta->fecha}}</td>
+			<td>{{$transaccion->venta->cliente}}</td>
+			<td>{{$transaccion->venta->dn}}</td>
+			<td>{{$transaccion->venta->cuenta}}</td>
+			<td>{{$transaccion->venta->tipo}}</td>
+			<td>{{$transaccion->venta->folio}}</td>
+			<td>{{$transaccion->venta->ciudad}}</td>
+			<td>{{$transaccion->venta->plan}}</td>
+			<td>{{$transaccion->venta->renta}}</td>
+			<td>{{$transaccion->venta->equipo}}</td>
+			<td>{{$transaccion->venta->plazo}}</td>
+			<td>{{$transaccion->callidus->descuento_multirenta}}</td>
+			<td>{{$transaccion->callidus->afectacion_comision}}</td>
+			<td>{{$transaccion->retroactivo}}</td>
+			<td>{{$transaccion->comentario}}</td>
 
 		</tr>
 	<?php

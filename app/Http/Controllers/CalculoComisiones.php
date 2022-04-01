@@ -24,6 +24,7 @@ use App\Models\AlertaCobranza;
 use App\Models\AlertaConciliacion;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Retroactivo;
 use DateTime;
 
 class CalculoComisiones extends Controller
@@ -73,7 +74,7 @@ class CalculoComisiones extends Controller
         $version=$request->version;
         $calculo=Calculo::find($calculo_id);
         $distribuidores=Distribuidor::all();
-
+        
         echo "Inicio acreditar=".now();
         $this->acreditar_ventas($calculo,$version);
         echo "<br>Inicio mediciones=".now();
@@ -94,6 +95,8 @@ class CalculoComisiones extends Controller
         $this->restoreFacturas($facturas_precargadas);
         echo "<br>Inicio alertas=".now();
         $this->alertas_cobranza($calculo,$version);
+        echo "<br>Aplicando Retroactivos=".now(); 
+        $this->retroactivos($calculo,$version);
         echo "<br>Fin calculo=".now(); 
         
         if($version=="1")
@@ -810,6 +813,7 @@ class CalculoComisiones extends Controller
             $adelanto="1";
             $porcentaje_adelanto=50;
             $paga_residual="0";
+            echo '<br>'.$pago->user_id;
             if($perfiles[$pago->user_id]=="distribuidor")
             {
                 $distribuidor=$distribuidores->where('user_id',$pago->user_id)->first();
@@ -1659,5 +1663,32 @@ class CalculoComisiones extends Controller
         AlertaConciliacion::insert($registro_sin_pago);
         return;
     }
-
+    public function retroactivos($calculo,$version)
+    {
+        if($version=="1") return;
+        $pagos_calculo=PagosDistribuidor::where('version',2)
+                        ->where('calculo_id',$calculo->id)
+                        ->get();
+        foreach($pagos_calculo as $pago_cierre)
+        {
+            $retroactivo=Retroactivo::select(DB::raw('user_id, sum(retroactivo) as retro')) 
+                                ->where('calculo_id',$calculo->id)
+                                ->where('user_id',$pago_cierre->user_id)
+                                ->groupBy('user_id')
+                                ->get(); 
+            $retroactivo=$retroactivo->first();
+            $pago_anterior=$pago_cierre->total_pago;
+            if(!is_null($retroactivo))
+            {
+                $nuevo_pago=$pago_anterior+$retroactivo->retro;
+                
+                PagosDistribuidor::where('version',2)
+                                ->where('calculo_id',$calculo->id)
+                                ->where('user_id',$pago_cierre->user_id)
+                                ->update(['retroactivos_reproceso'=>$retroactivo->retro,
+                                        'total_pago'=>$nuevo_pago
+                                    ]);
+            }
+        }
+    }
 }
