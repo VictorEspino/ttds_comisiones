@@ -84,7 +84,7 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 {
 ?>
 	<tr>
-		<td colspan=20 rowspan=6></td>
+		<td colspan=20 rowspan=7></td>
 		<td><b>Subtotal</td>
 		<td>${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones+$pago->c_addons,2)}}</td>
 	</tr>
@@ -109,7 +109,7 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 		<td>-${{number_format($pago->anticipo_ordinario,2)}}</td>
 	</tr>
 	@endif
-	@if($version==2 && !empty($retroactivos))
+	@if(!empty($retroactivos))
 	<tr>
 		
 		<td><b>Retroactivos</td>
@@ -216,6 +216,8 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 	<td><b>Descuento_multirenta</td>
 	<td><b>Afectacion_comision</td>
 	<td style="background-color:#FF0000;color:#FFFFFF"><b>Renta ADDON CONTROL Faltante</td>
+	<td style="background-color:#00FF00;color:#000000"><b>COMISION ADDON CONTROL Faltante</td>
+	<td style="background-color:#00FF00;color:#000000"><b>Factor de pago</td>
 	</tr>
 	<?php
 	
@@ -237,6 +239,12 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 			<td>{{$transaccion->descuento_multirenta}}</td>
 			<td>{{$transaccion->afectacion_comision}}</td>
 			<td>{{$transaccion->renta_faltante}}</td>
+			@php
+			$factor_linea=0;
+			$factor_linea=$transaccion->upfront/((($transaccion->renta-$transaccion->renta_faltante)/1.16/1.03)*(1-$transaccion->descuento_multirenta/100)*(1-$transaccion->afectacion_comision/100));
+			@endphp
+			<td>{{number_format($factor_linea*(($transaccion->renta_faltante/1.16/1.03)*(1-$transaccion->descuento_multirenta/100)*(1-$transaccion->afectacion_comision/100)),2)}}</td>
+			<td>{{number_format($factor_linea,2)}}</td>
 
 		</tr>
 	<?php
@@ -244,7 +252,7 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 	?>
 	</table>
 @endif
-@if($version==2 && !empty($retroactivos))
+@if(!empty($retroactivos))
 <br>
 <br>
 <br>

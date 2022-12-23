@@ -118,7 +118,7 @@ foreach ($query as $transaccion) {
 		<td>-${{number_format($pago->anticipo_ordinario,2)}}</td>
 	</tr>
 	@endif
-	@if($version==2 && !empty($retroactivos))
+	@if(!empty($retroactivos))
 	<tr>
 		
 		<td><b>Retroactivos</td>
@@ -249,7 +249,7 @@ foreach ($query as $transaccion) {
 	?>
 	</table>
 @endif
-@if($version==2 && !empty($retroactivos))
+@if(!empty($retroactivos))
 <br>
 <br>
 <br>

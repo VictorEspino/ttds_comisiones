@@ -63,13 +63,6 @@
                                 ${{number_format($pago->adiciones_comision_no_pago,0)}}
                             </span>
                         </div>
-                        @if($user->detalles->bono=="1")
-                        <div>
-                            <span class="text-xs font-semibold text-yellow-300">
-                                Bono: ${{number_format($pago->adiciones_bono_no_pago,0)}}
-                            </span>
-                        </div>
-                        @endif
                     </div>
                     @endif
                 @endif
@@ -222,13 +215,14 @@
                             <td class="border-b border-gray-500 px-3">ADDONS <span class="text-red-700">{{$version=="1"?'50%':'100%'}}</span></td>
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->c_addons,0)}}</center></td>
                         </tr>
-                        @if($version=="2")
-        
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center></td>
                             <td class="border-b border-gray-500 px-3">Retroactivos</td>
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->retroactivos_reproceso,0)}}</center></td>
                         </tr>
+                        @if($version=="2")
+        
+                        
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 "></td>
                             <td class="border-b border-gray-500 px-3">Anticipo por lineas pendientes</td>

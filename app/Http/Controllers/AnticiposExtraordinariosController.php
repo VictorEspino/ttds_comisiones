@@ -152,7 +152,7 @@ class AnticiposExtraordinariosController extends Controller
         $solo_distribuidores=User::select('id')->where('perfil','distribuidor')->get();
         $periodos_con_anticipo=AnticipoExtraordinario::select(DB::raw('distinct periodo_id'))->get()->pluck('periodo_id');
         $periodos=Periodo::whereIn('id',$periodos_con_anticipo)->get();
-        $solo_distribuidores->pluck('id');
+        $solo_distribuidores=$solo_distribuidores->pluck('id');
         $aplicado="NULO";
         $distribuidor="NULO";
         $periodo_id="NULO";
@@ -188,7 +188,7 @@ class AnticiposExtraordinariosController extends Controller
                     ->when($nuevas_facturas,function($query){$query->where('carga_facturas','>=',Auth::user()->anterior_login);})
                     ->whereIn('user_id',$solo_distribuidores)
                     ->paginate(10);
-                    //return($pagos);
+                    //return($pagos->get());
         $pagos->appends($request->all());
         return(view('anticipos',['pagos'=>$pagos,
                              'distribuidores'=>$distribuidores,

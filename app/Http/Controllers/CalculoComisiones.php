@@ -134,6 +134,7 @@ class CalculoComisiones extends Controller
                             ]);
         }
     }
+    
     private function ejecutar_mediciones($calculo,$version)
     {
         $this->ejecutar_mediciones_vendedor($calculo,$version);
@@ -226,7 +227,8 @@ class CalculoComisiones extends Controller
         DB::delete('delete from comision_ventas where calculo_id='.$calculo->id.' and version='.$version);
         Reclamo::where('calculo_id',$calculo->id)->where('tipo','Faltante')->delete();
         Reclamo::where('calculo_id',$calculo->id)->where('tipo','ADDON CTRL Faltante')->delete();
-        $callidus=CallidusVenta::select('id','contrato','cuenta','dn','renta','plazo','descuento_multirenta','afectacion_comision')
+        Reclamo::where('calculo_id',$calculo->id)->where('tipo','ERROR PLAZO')->delete();
+        $callidus=CallidusVenta::select('id','contrato','cuenta','dn','renta','plazo','descuento_multirenta','afectacion_comision','comision')
                                 ->where('tipo','<>','ADDON')
                                 ->where('calculo_id',$calculo->id)
                                 ->get();
@@ -298,14 +300,16 @@ class CalculoComisiones extends Controller
         DB::delete('delete from comision_addons where calculo_id='.$calculo->id.' and version='.$version);
         DB::delete('delete from reclamos where calculo_id='.$calculo->id.' and tipo="ADDON"');
         
-        $callidus_addons=CallidusVenta::select('id','contrato','renta','plazo','descuento_multirenta','afectacion_comision','comision')
+        $callidus_addons=CallidusVenta::select('id','contrato','renta','plazo','descuento_multirenta','afectacion_comision','comision','plan')
                                 ->where('tipo','ADDON')
                                 ->where('calculo_id',$calculo->id)
                                 ->get();
+        $distribuidores=Distribuidor::all();
         $registros_addon=[];
+        $plan_padre="";
         foreach($callidus_addons as $addon)
         {
-            $venta_padre=CallidusVenta::select('id','descuento_multirenta','afectacion_comision','renta','comision')
+            $venta_padre=CallidusVenta::select('id','descuento_multirenta','afectacion_comision','renta','comision','plan')
                                     ->where('calculo_id',$calculo->id)
                                     ->where('tipo','<>','ADDON')
                                     ->where('contrato',$addon->contrato)
@@ -313,17 +317,22 @@ class CalculoComisiones extends Controller
                                     ->first();  
 
             try{
+            $plan_padre=$venta_padre->plan;
             $factor_comision_venta_padre=($venta_padre->comision)/(($venta_padre->renta/1.16/1.03)*(1-($venta_padre->descuento_multirenta/100))*(1-($venta_padre->afectacion_comision/100)));
+            $dmr_padre=$venta_padre->descuento_multirenta;
+            $descuento_adicional_padre=$venta_padre->afectacion_comision;
             }
             catch(\Exception $e){
+                $plan_padre="";
                 $factor_comision_venta_padre=0;
+                $dmr_padre=0;
+                $descuento_adicional_padre=0;
             }
-            try{
-            $factor_comision_add_on=($addon->comision)/(($addon->renta/1.16/1.03)*(1-($addon->descuento_multirenta/100))*(1-($addon->afectacion_comision/100)));
-            }
-            catch(\Exception $e){
+            if((($addon->renta/1.16/1.03)*(1-($dmr_padre/100))*(1-($descuento_adicional_padre/100)))>0)
+                $factor_comision_add_on=($addon->comision)/(($addon->renta/1.16/1.03)*(1-($dmr_padre/100))*(1-($descuento_adicional_padre/100)));
+            else
                 $factor_comision_add_on=0;
-            }
+            
 
             if(round($factor_comision_venta_padre,1)!=round($factor_comision_add_on,1))
             {
@@ -331,12 +340,21 @@ class CalculoComisiones extends Controller
                 $reclamo->venta_id=0;
                 $reclamo->callidus_id=$addon->id;
                 $reclamo->calculo_id=$calculo->id;
+                $monto=(round($factor_comision_venta_padre,1)*($addon->renta/1.16/1.03))-$addon->comision;
                 $reclamo->monto=(round($factor_comision_venta_padre,1)*($addon->renta/1.16/1.03))-$addon->comision;
                 $reclamo->razon="ADDON Pagado a factor distinto que el de la venta factor venta=".round($factor_comision_venta_padre,1)."x, addon=".round($factor_comision_add_on,1)."x";
                 $reclamo->tipo="ADDON";
-                $reclamo->save();
+                if($monto>0 && strpos($addon->plan,'CONTROL')!==false)
+                {
+                    $reclamo->save();
+                }
+                if($monto==0 && strpos($addon->plan,'CONTROL')===true)
+                {
+                    $reclamo->save();
+                }
             }
-
+            $factor_comision_vendedor=0;
+            try{
             $venta_pagada=ComisionVenta::with('venta')
                                     ->select('venta_id')
                                     ->where('calculo_id',$calculo->id)
@@ -344,6 +362,51 @@ class CalculoComisiones extends Controller
                                     ->where('callidus_venta_id',$venta_padre->id)
                                     ->get()
                                     ->first();
+            //dd($venta_pagada->venta->user_origen_id."-".$distribuidores->where('id',$venta_pagada->venta->user_origen_id));
+        }
+        catch(\Exception $e)
+        {
+            $venta_pagada=null;
+            $factor_comision_vendedor=0;
+        }
+
+        if(!is_null($venta_pagada))
+        {
+            try{
+                //dd($distribuidores->where('id',$venta_pagada->venta->user_origen_id)->first());
+            if($venta_pagada->venta->tipo=="RENOVACION")
+            {
+                if($venta_pagada->venta->plazo<18)
+                    {$factor_comision_vendedor=$distribuidores->where('user_id',$venta_pagada->venta->user_origen_id)->first()->r_12;}
+                if($venta_pagada->venta->plazo>=18 && $venta_pagada->venta->plazo<24)
+                    {$factor_comision_vendedor=$distribuidores->where('user_id',$venta_pagada->venta->user_origen_id)->first()->r_18;} 
+                if($venta_pagada->venta->plazo>=24)
+                    {$factor_comision_vendedor=$distribuidores->where('user_id',$venta_pagada->venta->user_origen_id)->first()->r_24;} 
+            }
+            if($venta_pagada->venta->tipo=="ADICION" || $venta_pagada->venta->tipo=="NUEVA")
+            {
+                if($venta_pagada->venta->plazo<18)
+                    {$factor_comision_vendedor=$distribuidores->where('user_id',$venta_pagada->venta->user_origen_id)->first()->a_12;}
+                if($venta_pagada->venta->plazo>=18 && $venta_pagada->venta->plazo<24)
+                    {$factor_comision_vendedor=$distribuidores->where('user_id',$venta_pagada->venta->user_origen_id)->first()->a_18;} 
+                if($venta_pagada->venta->plazo>=24)
+                    {$factor_comision_vendedor=$distribuidores->where('user_id',$venta_pagada->venta->user_origen_id)->first()->a_24;} 
+            }
+            //echo "factor-".$factor_comision_vendedor.", distribuid0r=". $venta_pagada->venta->user_origen_id."<br>";
+            }
+            catch(\Exception $e)
+            {
+                $factor_comision_vendedor=0.5;
+            }
+        }
+            
+         //dd($factor_comision_vendedor)  ; 
+
+            
+
+
+
+
             if(!is_null($venta_pagada))
             {
                 $registros_addon[]=[
@@ -351,7 +414,7 @@ class CalculoComisiones extends Controller
                     'calculo_id'=>$calculo->id,
                     'callidus_id'=>$addon->id,
                     'version'=>$version,
-                    'comision'=>$addon->renta/1.16/1.03,
+                    'comision'=>strpos($addon->plan,'CONTROL')!==false?($addon->renta/1.16/1.03)*(1-($dmr_padre/100))*(1-($descuento_adicional_padre/100))*$factor_comision_vendedor:($addon->renta/1.16/1.03),
                     'comision_supervisor'=>!is_null($venta_pagada->venta->supervisor_id)?$addon->renta/1.16/1.03*0.5:0,
                     'created_at'=>now()->toDateTimeString(),
                     'updated_at'=>now()->toDateTimeString(),
@@ -376,8 +439,24 @@ class CalculoComisiones extends Controller
         //    $registro=$callidus->where('dn',$venta->dn)->where('cuenta','like',$venta->cuenta.'%')->first();
         //}
 
+        //dd($factor_padre);
+
         if(!is_null($registro))
         {
+
+            $renta_neta_padre=($registro->renta/1.16/1.03)*(1-($registro->descuento_multirenta/100))*(1-($registro->afectacion_comision/100));
+            $dmr_padre=$registro->descuento_multirenta;
+            $ac_padre=$registro->afectacion_comision;
+            if($renta_neta_padre>0)
+            {
+                $factor_padre=$registro->comision/$renta_neta_padre;
+            }
+            else
+            {
+                $factor_padre=0;
+            }
+
+
             $respuesta['encontrada']=true;
             $respuesta['consistente']=true;
             $respuesta['callidus_id']=$registro->id;
@@ -407,14 +486,26 @@ class CalculoComisiones extends Controller
                         $reclamo=new Reclamo;
                         $reclamo->venta_id=$venta->id;
                         $reclamo->calculo_id=$calculo_id;
-                        $reclamo->monto=$error_renta*3;
+                        $reclamo->monto=$factor_padre*($error_renta/1.16)*(1-($dmr_padre/100))*(1-($ac_padre/100));
                         $reclamo->razon="Addon no pagado";
                         $reclamo->tipo="ADDON CTRL Faltante";
                         $reclamo->save(); 
                     }
                 }
             }
-            if($venta->plazo!=$registro->plazo){$respuesta['consistente']=false;}
+            if($venta->plazo!=$registro->plazo){
+                $respuesta['consistente']=false;
+                if($venta->plazo>$registro->plazo)
+                {
+                    $reclamo=new Reclamo;
+                    $reclamo->venta_id=$venta->id;
+                    $reclamo->calculo_id=$calculo_id;
+                    $reclamo->monto=$registro->comision;
+                    $reclamo->razon="Plazo menor en Callidus";
+                    $reclamo->tipo="ERROR PLAZO";
+                    $reclamo->save(); 
+                }
+            }
             if($venta->descuento_multirenta!=$registro->descuento_multirenta){$respuesta['consistente']=false;}
             if($venta->afectacion_comision!=$registro->afectacion_comision){$respuesta['consistente']=false;}
         }
@@ -570,6 +661,7 @@ class CalculoComisiones extends Controller
             $registro_original=CallidusVenta::select('id')
                         ->where('contrato',$cancelacion->contrato)
                         ->where('tipo','!=','DESACTIVACION_DESACTIVACIONES')
+                        ->where('tipo','!=','ADDON')
                         ->get()
                         ->first();
             $venta_previa=false;
@@ -722,6 +814,7 @@ class CalculoComisiones extends Controller
                         $factor_residual=0;
                         if($perfiles[$venta->user_id]=="distribuidor" && $actual->plazo>=24)
                         {
+                            
                             $factor_residual=$distribuidores->where('user_id',$venta->user_id)->first()->porcentaje_residual;
                         }
 
@@ -729,6 +822,7 @@ class CalculoComisiones extends Controller
                         $callidus_residual_id=$actual->id;
                         $venta_id=$venta->id;
                         $calculo_id=$calculo->id;
+                        //dd($factor_residual);
                         $comision=$actual->estatus=="ACTIVO"?$actual->renta*$factor_residual/100:0;
                     }
                     
@@ -1084,7 +1178,7 @@ class CalculoComisiones extends Controller
 
                         $anticipo_ordinario=is_null($anticipo_ordinario_previo)?0:$anticipo_ordinario_previo->total_pago;
 
-                        $charge_back=$comision_nuevas_vendedor_no_pago; //solo se calcula en el cierre
+                        $charge_back=0; //solo se calcula en el cierre
                         $descuentos=ChargeBackDistribuidor::select(DB::raw('sum(charge_back_distribuidors.charge_back+charge_back_distribuidors.cargo_equipo) as charge_back'))
                                                             ->join('comision_ventas','charge_back_distribuidors.comision_venta_id','=','comision_ventas.id')
                                                             ->join('ventas','comision_ventas.venta_id','=','ventas.id')
@@ -1665,8 +1759,8 @@ class CalculoComisiones extends Controller
     }
     public function retroactivos($calculo,$version)
     {
-        if($version=="1") return;
-        $pagos_calculo=PagosDistribuidor::where('version',2)
+        //if($version=="1") return;
+        $pagos_calculo=PagosDistribuidor::where('version',$version)
                         ->where('calculo_id',$calculo->id)
                         ->get();
         foreach($pagos_calculo as $pago_cierre)
@@ -1682,7 +1776,7 @@ class CalculoComisiones extends Controller
             {
                 $nuevo_pago=$pago_anterior+$retroactivo->retro;
                 
-                PagosDistribuidor::where('version',2)
+                PagosDistribuidor::where('version',$version)
                                 ->where('calculo_id',$calculo->id)
                                 ->where('user_id',$pago_cierre->user_id)
                                 ->update(['retroactivos_reproceso'=>$retroactivo->retro,

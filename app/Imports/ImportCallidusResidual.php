@@ -73,6 +73,6 @@ class ImportCallidusResidual implements ToModel,WithHeadingRow,WithValidation,Wi
     }
     public function batchSize(): int
     {
-        return 100;
+        return 10;
     }
 }

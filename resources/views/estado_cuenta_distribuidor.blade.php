@@ -224,6 +224,11 @@
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->bono_nuevas+$pago->bono_adiciones+$pago->bono_renovaciones,0)}}</center></td>
                         </tr>
                         @endif
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center></td>
+                            <td class="border-b border-gray-500 px-3">Retroactivos</td>
+                            <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->retroactivos_reproceso,0)}}</center></td>
+                        </tr>
                         @if($version=="2")
                         @if($user->detalles->residual=="1")
                         <tr class="border-l border-r border-gray-300">
@@ -236,11 +241,6 @@
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->residual,0)}}</center></td>
                         </tr>
                         @endif
-                        <tr class="border-l border-r border-gray-300">
-                            <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center></td>
-                            <td class="border-b border-gray-500 px-3">Retroactivos</td>
-                            <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->retroactivos_reproceso,0)}}</center></td>
-                        </tr>
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 "></td>
                             <td class="border-b border-gray-500 px-3">Anticipo por lineas pendientes</td>

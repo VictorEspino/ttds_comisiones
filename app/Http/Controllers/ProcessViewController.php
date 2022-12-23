@@ -221,12 +221,21 @@ class ProcessViewController extends Controller
         $x=$x+1;
     }
     if($x==0){$in_contratos="'NADA'";}
-    $sql_addons_faltantes="SELECT b.*,a.monto/3 as 'renta_faltante' FROM reclamos as a,ventas as b WHERE a.tipo='ADDON CTRL Faltante' and a.calculo_id=".$request->id." and a.venta_id=b.id and b.contrato in (".$in_contratos.")";
+
+    $sql_addons_faltantes="
+            select ventas_reclamadas.*,c.renta as 'renta_callidus',c.descuento_multirenta,c.afectacion_comision,ventas_reclamadas.renta-c.renta as renta_faltante from (
+                select ventas_sin_addon.*,b.callidus_venta_id,b.upfront from (
+                SELECT b.* FROM reclamos as a,ventas as b WHERE a.tipo='ADDON CTRL Faltante' and a.calculo_id='".$request->id."' and a.venta_id=b.id and b.contrato in (".$in_contratos.")
+                    ) as ventas_sin_addon,comision_ventas as b 
+                    where ventas_sin_addon.id=b.venta_id
+                    and b.version='".$request->version."'
+                    ) as ventas_reclamadas,callidus_ventas as c 
+                    where ventas_reclamadas.callidus_venta_id=c.id
+            ";
 
     $query_addons_faltantes=DB::select(DB::raw(
         $sql_addons_faltantes
        ));
-
 
     $sql_consulta_no_pago="SELECT b.vendedor,a.upfront,a.bono,0 as c_renta,0 as c_plazo,0 as c_descuento_multirenta,0 as c_afectacion_comision,b.* FROM comision_ventas as a,(SELECT users.name as 'vendedor',ventas.* FROM ventas,users where ventas.user_origen_id=users.id) as b WHERE a.venta_id=b.id and a.calculo_id='".$request->id."' and b.user_id='".$request->id_user."' and a.estatus_inicial='NO PAGO' and a.version='".$request->version."'";
     $query_no_pago=DB::select(DB::raw(

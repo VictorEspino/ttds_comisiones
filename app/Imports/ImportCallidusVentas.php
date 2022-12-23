@@ -53,6 +53,7 @@ class ImportCallidusVentas implements ToModel,WithHeadingRow,WithValidation,With
             'afectacion_comision'=> $row['afectacion_comision']*100,
             'comision'=> $row['comision'],
             'renta'=> $row['renta'],
+            //'renta'=> $row['renta']*1.16*1.03,
             'tipo_baja'=> $row['tipo_baja'],
         ]);
     }
@@ -65,6 +66,7 @@ class ImportCallidusVentas implements ToModel,WithHeadingRow,WithValidation,With
             '*.contrato' => ['required'],
             '*.plan' => ['required'],
             '*.dn' => ['required','exclude_if:*.tipo,DESACTIVACION_DESACTIVACIONES','exclude_if:*.tipo,ADDON','digits:10'],
+            //'*.dn' => ['required','exclude_if:*.tipo,DESACTIVACION_DESACTIVACIONES','exclude_if:*.tipo,ADDON','exclude_if:*.tipo,ADDON_DESACTIVACION','digits:10'],
             //'*.propiedad' => ['required'],
             '*.fecha' => ['required'],
             '*.plazo' => ['required','numeric'],
