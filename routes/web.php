@@ -124,3 +124,6 @@ Route::get('/anticipos_extraordinarios',[AnticiposExtraordinariosController::cla
 Route::post('/cambiar_estatus_anticipo',[AnticiposExtraordinariosController::class,'cambiar_estatus_anticipo'])->name('cambiar_estatus_anticipo')->middleware('auth');
 Route::get('/facturar_anticipo/{id}',[AnticiposExtraordinariosController::class,'facturar_anticipo_form'])->name('facturar_anticipo_form')->middleware('auth');
 Route::post('/facturar_anticipo',[AnticiposExtraordinariosController::class,'facturar_anticipo_save'])->name('facturar_anticipo_save')->middleware('auth');
+
+//BASE USADA
+Route::get('/export_base_usada/{id}',[ProcessViewController::class,'export_base_usada'])->name('export_base_usada')->middleware('auth');

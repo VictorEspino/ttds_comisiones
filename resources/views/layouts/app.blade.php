@@ -308,7 +308,8 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
                 </div>
                 <div class="max-w-7xl mx-auto py-4 px-2 sm:px-2 px-4 flex justify-between flex-row">
                     <div class="flex">
-                        <span onclick="openNav()" class="text-ttds font-bold text-2xl"><i class="fas fa-bars"></i></span>
+                        <span onclick="openNav()" class="text-ttds font-bold text-2xl">
+                        <i class="fas fa-bars"></i></span>
                     </div>
                     <div> 
                         <h2 class="font-semibold leading-tight text-ttds text-lg">    

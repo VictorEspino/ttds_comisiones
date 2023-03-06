@@ -3,6 +3,7 @@ header("Content-Type: application/vnd.ms-excel");
 header("Content-Disposition: attachment; filename=".$empleado->name.".xls");
 header("Pragma: no-cache");
 header("Expires: 0");
+$subtotal=0;
 ?>
 <br>
 <br>
@@ -34,9 +35,11 @@ header("Expires: 0");
 <td>Descuento Adicional</td>
 <td>Descuento de Servicio</td>
 <td style="background-color:#ffee02">Commission&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+@if($empleado->id!=129)
 <td style="background-color:#ffee02">Commission Supervisor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 <td style="background-color:#ffee02">Commission Padrino Lead&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 <td style="background-color:#ffee02">Padrino Lead&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+@endif
 <td>Renta</td>
 <td>Tipo de Periodo</td>
 <td>Esquema (Solo aplica en marcas legado)</td>
@@ -71,8 +74,17 @@ foreach ($query as $transaccion) {
 	<td>{{$transaccion->c_afectacion_comision}}</td>
 	<td>TV TELCO & DATA SOLUTIONS SA DE CV</td>
 	<td style="background-color:#f3e848">{{$transaccion->user_id==$empleado->id?$transaccion->upfront:0}}</td>
+	@php
+		if($empleado->id==129)
+		{
+		 $subtotal=$subtotal+$transaccion->upfront;
+		}
+	@endphp
+
+	@if($empleado->id!=129)
 	<td style="background-color:#f3e848">{{$transaccion->upfront_supervisor}}</td>
 	<td style="background-color:#f3e848">{{$transaccion->padrino}}</td>
+	
 	<td style="background-color:#f3e848">
 		@php
 			if($transaccion->padrino>0)
@@ -81,6 +93,7 @@ foreach ($query as $transaccion) {
 			}
 		@endphp
 	</td>
+	@endif
 	<td>${{$transaccion->c_renta}}</td>
 	<td>Monthly</td>
 	<td>ESPECIAL_442545</td>
@@ -92,6 +105,7 @@ foreach ($query as $transaccion) {
 <?php
 }
 ?>
+@if($empleado->id!=129)
 	<tr>
 		<td colspan=19 rowspan=6></td>
 		<td><b>Subtotal</td>
@@ -135,6 +149,13 @@ foreach ($query as $transaccion) {
 		<td><b>TOTAL</td>
 		<td colspan=4>${{number_format($pago->total_pago,2)}}</td>
 	</tr>
+@else
+		<tr>
+		<td colspan=19></td>
+		<td><b>SUBTOTAL</td>
+		<td>${{number_format($subtotal,2)}}</td>
+	</tr>	
+@endif
 </table>
 @if(!empty($query_no_pago))
 <br>

@@ -505,17 +505,17 @@
                     <div class="w-full flex flex-row pt-3 pb-6">
                         <div class="w-full md:w-1/2 flex flex-col justify-center items-center">
                             <div class="w-full flex justify-center">
-                                <a href="{{route('callidus_no_usados',['id'=>$id_calculo])}}">
+                                <a href="{{route('export_base_usada',['id'=>$id_calculo])}}">
                                     <span class="text-gray-500 text-6xl font-bold fas fa-database"></span>
                                 </a>
                             </div>
                             <div>
-                                <span class="text-xs md:text-sm text-gray-700">{{$n_callidus_sin_usar}} registros sin correspondiencia</span>
+                                <span class="text-xs md:text-sm text-gray-700">Descargar base</span>
                             </div>
                         </div>
                         
                         <div class="hidden md:block md:w-1/2 flex flex-col">
-                            <div><span class="text-2xl font-semibold text-gray-700">Registros de Callidus sin pago</span></div>
+                            <div><span class="text-2xl font-semibold text-gray-700">Conciliacion de Registros</span></div>
                             <div class="hidden md:block">
                                 <span class="text-xs md:text-sm text-gray-700">
                                     -Le permite revisar los registros de Callidus que no encontraron relacion con algun registro interno de ventas

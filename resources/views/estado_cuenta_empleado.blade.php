@@ -43,7 +43,7 @@
                 <div class="w-full py-3 flex flex-col">
                     <div>
                         <span class="text-3xl font-semibold text-white">
-                            ${{number_format($pago->comision_adiciones,0)}}
+                            ${{$user->id!=129?number_format($pago->comision_adiciones,0):0}}
                         </span>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                     <div class="w-full py-3 flex flex-col">
                         <div>
                             <span class="text-xl font-semibold text-yellow-300">
-                                ${{number_format($pago->adiciones_comision_no_pago,0)}}
+                                ${{$user->id!=129?number_format($pago->adiciones_comision_no_pago,0):0}}
                             </span>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                 <div class="w-full py-3 flex flex-col">
                     <div>
                         <span class="text-3xl font-semibold text-white">
-                            ${{number_format($pago->comision_nuevas,0)}}
+                            ${{$user->id!=129?number_format($pago->comision_nuevas,0):0}}
                         </span>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
                 <div class="w-full py-3 flex flex-col">
                     <div>
                         <span class="text-xl font-semibold text-yellow-300">
-                            ${{number_format($pago->nuevas_comision_no_pago,0)}}
+                            ${{$user->id!=129?number_format($pago->nuevas_comision_no_pago,0):0}}
                         </span>
                     </div>
                 </div>
@@ -114,7 +114,7 @@
                 </div>
                 <div class="w-full py-3">
                     <span class="text-3xl font-semibold text-white">
-                        ${{number_format($pago->comision_renovaciones,0)}}
+                        ${{$user->id!=129?number_format($pago->comision_renovaciones,0):0}}
                     </span>
                 </div>
                 @if($pago->renovaciones_no_pago!="0")
@@ -130,7 +130,7 @@
                 <div class="w-full py-3 flex flex-col">
                     <div>
                         <span class="text-xl font-semibold text-yellow-300">
-                            ${{number_format($pago->renovaciones_comision_no_pago,0)}}
+                            ${{$user->id!=129?number_format($pago->renovaciones_comision_no_pago,0):0}}
                         </span>
                     </div>
                 </div>
@@ -207,18 +207,24 @@
                                     </a>
                                 </td>
                             <td class="border-b border-gray-500 px-3">Comisiones <span class="text-red-700">{{$version=="1"?'50%':'100%'}}</span></td>
+                            @if($user->id!=129)
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->comision_nuevas+$pago->comision_adiciones+$pago->comision_renovaciones+$pago->leads,0)}}</center></td>
+                            @endif
                         </tr>
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
                                 </td>
                             <td class="border-b border-gray-500 px-3">ADDONS <span class="text-red-700">{{$version=="1"?'50%':'100%'}}</span></td>
+                            @if($user->id!=129)
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->c_addons,0)}}</center></td>
+                            @endif
                         </tr>
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl"><center></td>
                             <td class="border-b border-gray-500 px-3">Retroactivos</td>
+                            @if($user->id!=129)
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->retroactivos_reproceso,0)}}</center></td>
+                            @endif
                         </tr>
                         @if($version=="2")
         
@@ -226,13 +232,17 @@
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 "></td>
                             <td class="border-b border-gray-500 px-3">Anticipo por lineas pendientes</td>
+                            @if($user->id!=129)
                             <td class="border-b border-gray-500 px-3"><center>(+) ${{number_format($pago->anticipo_no_pago,0)}}</center></td>
+                            @endif
                         </tr>
                         @if($version=="2")
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 "></td>
                             <td class="border-b border-gray-500 px-3">Anticipo ordinario</td>
+                            @if($user->id!=129)
                             <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipo_ordinario,0)}}</center></td>
+                            @endif
                         </tr>
                         @endif
                         @endif
@@ -246,13 +256,17 @@
                                 </td>
                             </td>
                             <td class="border-b border-gray-500 px-3">Charge-Back</td>
+                            @if($user->id!=129)
                             <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->charge_back,0)}}</center></td>
+                            @endif
                         </tr>
                         @endif
                         <tr class="rounded-b-lg shadow-lg bg-black text-gray-200 font-bold">
                             <td class="rounded-bl-lg"></td>
                             <td class="p-3">Saldo a pagar</td>
+                            @if($user->id!=129)
                             <td class="p-3 rounded-br-lg"><center>${{number_format($pago->total_pago,0)}}</center></td>
+                            @endif
                         </tr>
                         
                     </table>

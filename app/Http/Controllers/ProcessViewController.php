@@ -433,4 +433,34 @@ class ProcessViewController extends Controller
                               ->get();
         return(view('alertas_export',['query'=>$query]));
     }    
+    public function export_base_usada(Request $request)
+    {
+        $calculo_id=$request->id;
+        $version=0;
+        $sql_version="select max(version) as version from pagos_distribuidors where calculo_id='".$calculo_id."'";
+        $version=collect(DB::select(DB::raw($sql_version)))->first()->version;
+        if(is_null($version))
+        {
+            return('Es necesario ejecutar calculo');
+        }
+        else
+        {
+            $sql_base="
+                        select fecha,cliente,dn,cuenta,tipo,folio,plan, renta, equipo,plazo,propiedad, descuento_multirenta,afectacion_comision,'SI' as 'captura_mesa_control','SI' as 'incluida_callidus' from ventas where id in (
+                            select venta_id from comision_ventas where calculo_id=".$calculo_id." and version=".$version." and estatus_inicial='PAGO'
+                            )
+                        UNION
+                        select fecha,cliente,dn,cuenta,tipo,folio,plan, renta, equipo,plazo,propiedad, descuento_multirenta,afectacion_comision,'SI' as 'captura_mesa_control','NO' as 'incluida_callidus' from ventas where id in (
+                            select venta_id from comision_ventas where calculo_id=".$calculo_id." and version=".$version." and estatus_inicial='NO PAGO'
+                            )
+                        UNION
+                        select fecha,cliente,dn,cuenta,tipo,contrato as 'folio',plan, renta, modelo as 'equipo',plazo,propiedad, descuento_multirenta,afectacion_comision,'NO' as 'captura_mesa_control','SI' as 'incluida_callidus' from callidus_ventas where tipo in ('ACTIVACION_ACTIVACIONES','RENOVACIONES') and calculo_id=".$calculo_id." and id not in 
+                        (
+                            select callidus_venta_id from comision_ventas where calculo_id=".$calculo_id." and version=".$version."
+                        )                         
+            ";
+            $base_usada=collect(DB::select(DB::raw($sql_base)));
+            return(view('export_base_usada',['query'=>$base_usada]));
+        }
+    }    
 }
