@@ -14,6 +14,7 @@ use App\Models\ChargeBackDistribuidor;
 use App\Models\Mediciones;
 use App\Models\AlertaCobranza;
 use App\Models\Retroactivo;
+use App\Models\AnticipoExtraordinario;
 use Illuminate\Support\Facades\DB;
 
 class EmpleadosController extends Controller
@@ -270,6 +271,10 @@ class EmpleadosController extends Controller
             }
         }
         
+        $id_administrados=User::where('administrador',$id_user)->orWhere('id',$id_user)->get()->pluck('id');
+
+        $anticipos_aplicados=AnticipoExtraordinario::with('periodo','user')->where('calculo_id_aplicado',$id_calculo)->whereIn('user_id',$id_administrados)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
+
         return(view('estado_cuenta_empleado',[  'calculo'=>$calculo,
                                                     'user'=>$user,
                                                     'pago'=>$pago,
@@ -278,6 +283,7 @@ class EmpleadosController extends Controller
                                                     'medicion'=>$medicion,
                                                     'autorizacion_especial'=>$autorizacion,
                                                     'porcentaje_autorizacion'=>$porcentaje_autorizacion,          
+                                                    'anticipos_aplicados'=>$anticipos_aplicados,
                                                 ]));
     }
     public function transacciones_pago_empleado(Request $request)

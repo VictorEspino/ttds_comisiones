@@ -74,7 +74,7 @@ class CalculoComisiones extends Controller
         $version=$request->version;
         $calculo=Calculo::find($calculo_id);
         $distribuidores=Distribuidor::all();
-        
+        /*
         echo "Inicio acreditar=".now();
         $this->acreditar_ventas($calculo,$version);
         echo "<br>Inicio mediciones=".now();
@@ -86,7 +86,7 @@ class CalculoComisiones extends Controller
         echo "<br>Inicio cb=".now();
         $this->charge_back($calculo,$version);
         echo "<br>Inicio residual=".now();
-        $this->residual($calculo,$version,$distribuidores);
+        $this->residual($calculo,$version,$distribuidores);*/
         echo "<br>Respalda Facturas".now();
         $facturas_precargadas=$this->respaldaFacturas($calculo,$version);
         echo "<br>Inicio pagos=".now();
@@ -1202,7 +1202,7 @@ class CalculoComisiones extends Controller
                         $retroactivos_reproceso=0; //solo se calcula en el cierre
                     }
 
-                    $anticipos_extraordinarios=$this->aplicar_anticipos($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
+                    $anticipos_extraordinarios=$this->aplicar_anticipos_administrador($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
                     $registro->anticipos_extraordinarios=$anticipos_extraordinarios*$factor;
                     $registro->activo=$activo;
                     $registro->anticipo_ordinario=$anticipo_ordinario; //Solo se calcula en el cierre
@@ -1402,6 +1402,36 @@ class CalculoComisiones extends Controller
         //OBTIENE ANTICIPOS RESETEADOS y DE PERIODOS PREVIOS 
         $anticipos=AnticipoExtraordinario::where('periodo_id','<=',$periodo_id)
                                         ->where('user_id',$user_id)
+                                        ->where('calculo_id_aplicado',0)
+                                        ->get();
+        $aplicados=0;
+        foreach($anticipos as $por_aplicar)
+        {
+            $aplicados=$aplicados+$por_aplicar->anticipo;
+            $por_aplicar->calculo_id_aplicado=$calculo_id;
+            if($version=="1")
+            {
+                $por_aplicar->en_adelanto=true;
+            }
+            $por_aplicar->save();
+        }
+        return($aplicados);
+    }
+    private function aplicar_anticipos_administrador($calculo_id,$user_id,$periodo_id,$version)
+    {
+        $id_administrados=0;
+
+        $id_administrados=User::where('administrador',$user_id)->orWhere('id',$user_id)->get()->pluck('id');
+
+        AnticipoExtraordinario::where('calculo_id_aplicado',$calculo_id)
+                                        ->whereIn('user_id',$id_administrados)
+                                        ->update([
+                                                    'calculo_id_aplicado'=>0,
+                                        ]);
+
+        //OBTIENE ANTICIPOS RESETEADOS y DE PERIODOS PREVIOS 
+        $anticipos=AnticipoExtraordinario::where('periodo_id','<=',$periodo_id)
+                                        ->whereIn('user_id',$id_administrados)
                                         ->where('calculo_id_aplicado',0)
                                         ->get();
         $aplicados=0;

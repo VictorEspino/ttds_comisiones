@@ -122,7 +122,7 @@ foreach ($query as $transaccion) {
 	<tr>
 		
 		<td><b>Anticipo extraordinario</td>
-		<td>-${{number_format($pago->anticipos_extraordinarios,2)}}</td>
+		<td colspan="4">-${{number_format($pago->anticipos_extraordinarios,2)}}</td>
 	</tr>
 	@endif
 	@if(intval($pago->anticipo_ordinario)>0)
@@ -154,7 +154,17 @@ foreach ($query as $transaccion) {
 		<td colspan=19></td>
 		<td><b>SUBTOTAL</td>
 		<td>${{number_format($subtotal,2)}}</td>
-	</tr>	
+		</tr>	
+		<tr>
+		<td colspan=19></td>
+		<td><b>ANTICIPOS EXTRAORDINARIOS</td>
+		<td>-${{number_format($pago->anticipos_extraordinarios,2)}}</td>
+		</tr>
+		<tr>
+		<td colspan=19></td>
+		<td><b>TOTAL</td>
+		<td>${{number_format($subtotal-$pago->anticipos_extraordinarios,2)}}</td>
+		</tr>
 @endif
 </table>
 @if(!empty($query_no_pago))

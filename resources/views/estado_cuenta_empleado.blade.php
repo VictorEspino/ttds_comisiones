@@ -246,6 +246,13 @@
                         </tr>
                         @endif
                         @endif
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 "></td>
+                            <td class="border-b border-gray-500 px-3">Anticipos extraordinarios</td>
+                            @if($user->id!=129)
+                            <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipos_extraordinarios,0)}}</center></td>
+                            @endif
+                        </tr>
                         @if($version=="2")
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
@@ -273,5 +280,31 @@
                 </div>
             </div>
         </div>  
+        <div class="w-full flex flex-col">
+            <div class="w-full p-3 text-lg text-ttds bg-gray-200 rounded-t-lg font-semibold">Anticipos aplicados</div>
+            <div class="w-full p-3 text-base bg-white rounded-b-lg shaddow-xl">
+                <table>
+                    <tr>
+                        <td class="p-1 md:p-3 text-ttds">Distribuidor</td>
+                        <td class="p-1 md:p-3 text-ttds">Periodo</td>
+                        <td class="p-1 md:p-3 text-ttds">Anticipo</td>
+                        <td class="p-1 md:p-3 text-ttds">Descripcion</td>
+                        <td class="p-1 md:p-3 text-ttds">% Aplicado</td>
+                        <td class="p-1 md:p-3 text-ttds"></td>
+                    </tr>
+                    @foreach($anticipos_aplicados as $anticipo)
+                    <tr>
+                        <td class="px-3 text-gray-600">{{$anticipo->user->name}}</td>
+                        <td class="px-3 text-gray-600">{{$anticipo->periodo->descripcion}}</td>
+                        <td class="px-3 text-gray-600">${{number_format($anticipo->anticipo,0)}}</td>
+                        <td class="px-3 text-gray-600">{{$anticipo->descripcion}}</td>
+                        <td class="px-3 {{$version=="1"?'text-red-700':'text-green-700'}}"><center>{{$version=="1"?'50':'100'}}%</center></td>
+                        <td class="px-3 text-gray-600 text-xs"><center>{{$version=="1"?'Aplicacion de referencia':'Saldado'}}</center></td>
+                    </tr>
+                    @endforeach
+                </table>
+            </div>
+
+        </div>
     </div>
 </x-app-layout>
