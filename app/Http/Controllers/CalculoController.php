@@ -371,7 +371,8 @@ class CalculoController extends Controller
            ]);
         
         $upload_path = public_path('facturas');
-        $upload_path="/home/icubecom/ttds.icube.com.mx/facturas";
+        // $upload_path="/home/icubeitc/ttds.icube-it.com/facturas";
+        $upload_path="/var/www/ttds.icube.com.mx/facturas";
 
         $file_name = $request->file("pdf_file")->getClientOriginalName();
         $generated_new_name_pdf = $request->user_id.'_'.$request->calculo_id.'_'.$request->version.'_'.time() . '.' . $request->file("pdf_file")->getClientOriginalExtension();

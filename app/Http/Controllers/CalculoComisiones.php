@@ -74,7 +74,7 @@ class CalculoComisiones extends Controller
         $version=$request->version;
         $calculo=Calculo::find($calculo_id);
         $distribuidores=Distribuidor::all();
-        /*
+        
         echo "Inicio acreditar=".now();
         $this->acreditar_ventas($calculo,$version);
         echo "<br>Inicio mediciones=".now();
@@ -86,7 +86,7 @@ class CalculoComisiones extends Controller
         echo "<br>Inicio cb=".now();
         $this->charge_back($calculo,$version);
         echo "<br>Inicio residual=".now();
-        $this->residual($calculo,$version,$distribuidores);*/
+        $this->residual($calculo,$version,$distribuidores);
         echo "<br>Respalda Facturas".now();
         $facturas_precargadas=$this->respaldaFacturas($calculo,$version);
         echo "<br>Inicio pagos=".now();
@@ -543,12 +543,12 @@ class CalculoComisiones extends Controller
             }
             if($credito->venta->user_origen->perfil=="ejecutivo" || $credito->venta->user_origen->perfil=="gerente")
             {
-                $a_12=1.5;
-                $a_18=1.5;
-                $a_24=2.0;
-                $r_12=1.0;
-                $r_18=1.0;
-                $r_24=1.5;
+                $a_12=2.0;
+                $a_18=2.0;
+                $a_24=2.5;
+                $r_12=1.5;
+                $r_18=1.5;
+                $r_24=2.0;
                 $paga_bono='0';
             }
             if(!is_null($credito->venta->padrino)) //SIEMPRE DEBE SER UN EMPLEADO POR LO TANTO SE APLICAN FACTORES DIRECTO
@@ -560,89 +560,110 @@ class CalculoComisiones extends Controller
                 $r_18_padrino=0.75;
                 $r_24_padrino=0.75;
             }
-                $medicion=$mediciones->where('user_id',$credito->venta->user_origen->id)->first();                                
-                $tipo=$credito->venta->tipo;
-                if($credito->estatus_inicial=="PAGO")
-                {
-                //LOS PARAMETROS DE CALCULO SON DE CALLIDUS
-                    $plazo=$credito->callidus->plazo;
-                    $renta=$credito->callidus->renta;
-                    $dmr=$credito->callidus->descuento_multirenta;
-                    $afectacion=$credito->callidus->afectacion_comision;
-                    $propiedad=$credito->callidus->propiedad;
-                ///////////////////////
-                }
-                else
-                {
-                    $plazo=$credito->venta->plazo;
-                    $renta=$credito->venta->renta;
-                    $dmr=$credito->venta->descuento_multirenta;
-                    $afectacion=$credito->venta->afectacion_comision;
-                    $propiedad=$credito->venta->propiedad;
-                }
+            $medicion=$mediciones->where('user_id',$credito->venta->user_origen->id)->first();                                
+            $tipo=$credito->venta->tipo;
+            if($credito->estatus_inicial=="PAGO")
+            {
+            //LOS PARAMETROS DE CALCULO SON DE CALLIDUS
+                $plazo=$credito->callidus->plazo;
+                $renta=$credito->callidus->renta;
+                $dmr=$credito->callidus->descuento_multirenta;
+                $afectacion=$credito->callidus->afectacion_comision;
+                $propiedad=$credito->callidus->propiedad;
+            ///////////////////////
+            }
+            else
+            {
+                $plazo=$credito->venta->plazo;
+                $renta=$credito->venta->renta;
+                $dmr=$credito->venta->descuento_multirenta;
+                $afectacion=$credito->venta->afectacion_comision;
+                $propiedad=$credito->venta->propiedad;
+            }
 
-                $renta_neta=($renta/1.16/1.03)*(1-($dmr/100))*(1-($afectacion/100));
-                $comision_supervisor=0;
-                $comision_padrino=0;
-                $comision=0;
-                $bono=0;
-                $factor_correccion=1;
-                $factor_padrino=0;
-                if($tipo=='NUEVA' || $tipo=='ADICION')
-                {
-                    if($plazo=='12' || $plazo=='6' || $plazo=='0')
-                    { 
-                        $comision=$renta_neta*$a_12;
-                        $factor_padrino=$a_12_padrino;
-                    }
-                    if($plazo=='18')
-                    { 
-                        $comision=$renta_neta*$a_18;
-                        $factor_padrino=$a_18_padrino;
-                    }
-                    if($plazo=='24' || $plazo=='36')
-                    { 
-                        $comision=$renta_neta*$a_24;
-                        $factor_padrino=$a_24_padrino;
-                    }
-                    //if($medicion->porcentaje_nuevas>=30 && $renta_neta>=200 && $paga_bono=="1"){$bono=0;}//{$bono=100;}
+            $renta_neta=($renta/1.16/1.03)*(1-($dmr/100))*(1-($afectacion/100));
+            $comision_supervisor=0;
+            $comision_padrino=0;
+            $comision=0;
+            $bono=0;
+            $factor_correccion=1;
+            $factor_padrino=0;
+            if($tipo=='NUEVA' || $tipo=='ADICION')
+            {
+                if($plazo=='12' || $plazo=='6' || $plazo=='0')
+                { 
+                    $comision=$renta_neta*$a_12;
+                    $factor_padrino=$a_12_padrino;
                 }
-                if($tipo=='RENOVACION')
-                {
-                    if($plazo=='12' || $plazo=='6' || $plazo=='0')
-                    { 
-                        $comision=$renta_neta*$r_12;
-                        $factor_padrino=$r_12_padrino;
-                    }
-                    if($plazo=='18')
-                    { 
-                        $comision=$renta_neta*$r_18;
-                        $factor_padrino=$r_18_padrino;
-                    }
-                    if($plazo=='24' || $plazo=='36')
-                    { 
-                        $comision=$renta_neta*$r_24;
-                        $factor_padrino=$r_24_padrino;
-                    }
-
+                if($plazo=='18')
+                { 
+                    $comision=$renta_neta*$a_18;
+                    $factor_padrino=$a_18_padrino;
+                }
+                if($plazo=='24' || $plazo=='36')
+                { 
+                    $comision=$renta_neta*$a_24;
+                    $factor_padrino=$a_24_padrino;
+                }
+                //if($medicion->porcentaje_nuevas>=30 && $renta_neta>=200 && $paga_bono=="1"){$bono=0;}//{$bono=100;}
+            }
+            if($tipo=='RENOVACION')
+            {
+                if($plazo=='12' || $plazo=='6' || $plazo=='0')
+                { 
+                    
+                    $comision=$renta_neta*$r_12;
+                    $factor_padrino=$r_12_padrino;
                     if($propiedad=='PROPIO')
                     {
-                        $factor_correccion=0.5;
+                        $comision=$renta_neta;
+
+                        if($credito->venta->user_origen_id==16 ||
+                        $credito->venta->user_origen_id==47 
+                        )
+                        {
+                            $comision=0;
+                        }
+                        if(
+                        $credito->venta->user_origen_id==33 ||
+                        $credito->venta->user_origen_id==37 ||
+                        $credito->venta->user_origen_id==52 
+                        )
+                        {
+                            $comision=$renta_neta*0.5;
+                        }    
+                        if($credito->venta->user_origen_id==142 )
+                        {
+                            $comision=$renta_neta*1.125;
+                        }    
                     }
                 }
-                if(!is_null($credito->venta->user_origen->supervisor))
-                {
-                    $comision_supervisor=$renta_neta*0.5;
+                if($plazo=='18')
+                { 
+                    $comision=$renta_neta*$r_18;
+                    $factor_padrino=$r_18_padrino;
                 }
-                if(!is_null($credito->venta->padrino))
-                {
-                    $comision_padrino=$renta_neta*$factor_padrino;
+                if($plazo=='24' || $plazo=='36')
+                { 
+                    $comision=$renta_neta*$r_24;
+                    $factor_padrino=$r_24_padrino;
                 }
-                $credito->upfront_supervisor=$comision_supervisor*$factor_correccion;
-                $credito->upfront=$comision*$factor_correccion;
-                $credito->upfront_padrino=$comision_padrino*$factor_correccion;
-                $credito->bono=$bono;
-                $credito->save();
+
+                
+            }
+            if(!is_null($credito->venta->user_origen->supervisor))
+            {
+                $comision_supervisor=$renta_neta*0.5;
+            }
+            if(!is_null($credito->venta->padrino))
+            {
+                $comision_padrino=$renta_neta*$factor_padrino;
+            }
+            $credito->upfront_supervisor=$comision_supervisor*$factor_correccion;
+            $credito->upfront=$comision*$factor_correccion;
+            $credito->upfront_padrino=$comision_padrino*$factor_correccion;
+            $credito->bono=$bono;
+            $credito->save();
             
         }
     }

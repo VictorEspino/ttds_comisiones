@@ -218,7 +218,8 @@ class AnticiposExtraordinariosController extends Controller
            ]);
         //return($request->all());
         $upload_path = public_path('facturas');
-        $upload_path="/home/icubecom/ttds.icube.com.mx/facturas";
+        // $upload_path="/home/icubeitc/ttds.icube-it.com/facturas";
+        $upload_path="/var/www/ttds.icube.com.mx/facturas";
 
         $file_name = $request->file("pdf_file")->getClientOriginalName();
         $generated_new_name_pdf = 'anticipo'.$request->id.'_'.time() . '.' . $request->file("pdf_file")->getClientOriginalExtension();
