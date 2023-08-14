@@ -312,12 +312,16 @@ class CalculoComisiones extends Controller
             $venta_padre=CallidusVenta::select('id','descuento_multirenta','afectacion_comision','renta','comision','plan')
                                     ->where('calculo_id',$calculo->id)
                                     ->where('tipo','<>','ADDON')
+                                    ->where('tipo','<>','DESACTIVACION_DESACTIVACIONES')
+                                    ->where('tipo','<>','ADDON_DESACTIVACION') 
                                     ->where('contrato',$addon->contrato)
                                     ->get()
                                     ->first();  
 
             try{
             $plan_padre=$venta_padre->plan;
+            $factor_comision_venta_padre=0;
+            if($venta_padre->descuento_multirenta!='100' && $venta_padre->afectacion_comision!='100')
             $factor_comision_venta_padre=($venta_padre->comision)/(($venta_padre->renta/1.16/1.03)*(1-($venta_padre->descuento_multirenta/100))*(1-($venta_padre->afectacion_comision/100)));
             $dmr_padre=$venta_padre->descuento_multirenta;
             $descuento_adicional_padre=$venta_padre->afectacion_comision;
@@ -624,18 +628,21 @@ class CalculoComisiones extends Controller
                         {
                             $comision=0;
                         }
-                        if(
-                        $credito->venta->user_origen_id==33 ||
-                        $credito->venta->user_origen_id==37 ||
-                        $credito->venta->user_origen_id==52 
+                        if($credito->venta->user_origen_id==19 
                         )
                         {
-                            $comision=$renta_neta*0.5;
-                        }    
-                        if($credito->venta->user_origen_id==142 )
+                            $comision=0.2;
+                        }
+                        if($credito->venta->user_origen_id==32 
+                        )
                         {
-                            $comision=$renta_neta*1.125;
-                        }    
+                            $comision=0.17;
+                        }
+                        if($credito->venta->user_origen_id==37 
+                        )
+                        {
+                            $comision=0.13;
+                        }
                     }
                 }
                 if($plazo=='18')

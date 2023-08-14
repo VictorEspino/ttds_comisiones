@@ -9,6 +9,7 @@ use App\Http\Controllers\CalculoController;
 use App\Http\Controllers\ShowPagosController;
 use App\Http\Controllers\EmpleadosController;
 use App\Http\Controllers\AnticiposExtraordinariosController;
+use App\Http\Controllers\EtiquetaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -127,3 +128,9 @@ Route::post('/facturar_anticipo',[AnticiposExtraordinariosController::class,'fac
 
 //BASE USADA
 Route::get('/export_base_usada/{id}',[ProcessViewController::class,'export_base_usada'])->name('export_base_usada')->middleware('auth');
+
+//ETIQUETAS
+
+Route::get('/etiquetas_import', function () {return view('etiquetas_import');})->middleware('auth')->name('etiquetas_import');
+Route::post('/etiquetas_import', [EtiquetaController::class,'etiquetas_import'])->middleware('auth')->name('etiquetas_import');
+Route::get('/etiquetas_show', [EtiquetaController::class,'etiquetas_show'])->middleware('auth')->name('etiquetas_show');

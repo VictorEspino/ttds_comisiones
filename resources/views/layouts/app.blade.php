@@ -287,6 +287,22 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
                                 @endif
                             </div>
                         </div>
+                        @if(Auth::user()->perfil=="admin")
+                        <div class="px-3 text-white flex flex-col pt-3">
+                            <div class="text">
+                                <i class="fas fa-tasks"></i>
+                                Etiquetas Prepago
+                            </div>
+                            <div class="flex flex-col">                               
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('etiquetas_import')}}">
+                                        <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                        Generar Etiquetas
+                                    </a>
+                                </div>     
+                            </div>
+                        </div>
+                        @endif
                         
                         <div class="px-3 text-[#383c3f] flex flex-col">.
                         </div>
