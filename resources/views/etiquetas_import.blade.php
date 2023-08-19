@@ -20,6 +20,16 @@
                     @enderror                    
                 </div>                
             </div>
+            <div class="w-full flex flex-row space-x-2">
+                <div class="w-1/2">
+                    <span class="text-xs text-ttds">Marca</span><br>
+                    <select class="w-full rounded p-1 border border-gray-300 bg-white" name="marca">
+                        <option value="att">AT&T</option>
+                        <option value="unefon">UNEFON</option>
+                    </select>
+                                     
+                </div>                
+            </div>
         </div> <!--FIN CONTENIDO-->
         <div class="w-full flex justify-center py-4 bg-ttds-secundario">
             <button class="rounded p-1 border bg-ttds hover:bg-ttdshover text-gray-100 font-semibold">Guardar</button>

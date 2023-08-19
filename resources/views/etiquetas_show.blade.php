@@ -17,16 +17,39 @@
     </head>
     <body>  
     <div class="flex flex-wrap">
+        @php
+            $ciclo=1;
+        @endphp
         @foreach($registros as $registro)
-        <div class="flex flex-row p-3 border">
-            <div class="flex flex-row py-1 px-1 w-36 border">
-                <div><img class="w-12" src="{{asset('images/att.png')}}"></div>
-                <div class="flex flex-col">
-                    <div class="text-xs font-bold">{{$registro->telefono}}</div>
-                    <div class="text-xs">{{$registro->fecha}}</div>
+        @if($ciclo==1)
+            @php
+                $fechaActual = $registro->fecha;
+                $intervalo = new DateInterval('P180D');
+                $fechaNueva = new DateTime($fechaActual);
+                $fechaNueva->add($intervalo);
+                $fechaNuevaFormateada = $fechaNueva->format('Y-m-d'); // Formatea la nueva fecha como yyyy-mm-dd
+            @endphp
+        @endif
+        <div class="flex flex-row border">
+            <div class="flex flex-row py-1 px-1 w-40">
+                <div class="{{$marca=='unefon'?'px-2':''}} flex flex-col">
+                    <div class="w-full flex justify-center">
+                        <img class="w-8" src="{{asset('images/bsr.png')}}">
+                    </div>
+                    <div class="w-full">
+                        <img class="{{$marca=='unefon'?'w-8':'w-12'}}" src="{{$marca=='unefon'?asset('images/unefon.png'):asset('images/att.png')}}">
+                    </div>
+                </div>               
+                <div class="flex flex-col items-center">
+                    <div class="h-1/3 text-xs font-bold flex justify-center pt-1">{{$registro->telefono}}</div>
+                    <div class="text-xs">Act {{$registro->fecha}}</div>
+                    <div class="text-xs">Ven {{$fechaNuevaFormateada}}</div>
                 </div>
             </div>
         </div>
+        @php
+            $ciclo=$ciclo+1;
+        @endphp
         @endforeach
     </div>
     </body>

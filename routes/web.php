@@ -133,4 +133,4 @@ Route::get('/export_base_usada/{id}',[ProcessViewController::class,'export_base_
 
 Route::get('/etiquetas_import', function () {return view('etiquetas_import');})->middleware('auth')->name('etiquetas_import');
 Route::post('/etiquetas_import', [EtiquetaController::class,'etiquetas_import'])->middleware('auth')->name('etiquetas_import');
-Route::get('/etiquetas_show', [EtiquetaController::class,'etiquetas_show'])->middleware('auth')->name('etiquetas_show');
+Route::get('/etiquetas_show/{marca}', [EtiquetaController::class,'etiquetas_show'])->middleware('auth')->name('etiquetas_show');
