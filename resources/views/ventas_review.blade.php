@@ -192,6 +192,7 @@
                                         <option value="12" {{old('plazo')=='12'?'selected':''}}>12</option>
                                         <option value="18" {{old('plazo')=='18'?'selected':''}}>18</option>
                                         <option value="24" {{old('plazo')=='24'?'selected':''}}>24</option>
+                                        <option value="24" {{old('plazo')=='36'?'selected':''}}>36</option>
                                     </select>
                                     @error('plazo')
                                     <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
@@ -216,7 +217,7 @@
                             </div>
                             
                             <div class="w-full flex justify-center pt-6 pb-3 rounded-b">
-                                @if(Auth::user()->perfil=='admin' || Auth::user()->perfil=='administrativo')
+                                @if(Auth::user()->perfil=='admin' || Auth::user()->perfil=='administrativo' || Auth::user()->perfil=='mesa' || Auth::user()->perfil=='gerente')
                                 <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold" type="button" onClick="Save()">Guardar</button>
                                 @endif
                                 <button class="rounded p-1 border bg-red-500 hover:bg-red-700 text-gray-100 font-semibold" type="button" onClick="Cancel()">Cancelar</button>

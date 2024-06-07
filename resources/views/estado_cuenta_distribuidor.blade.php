@@ -259,7 +259,7 @@
                             <td class="border-b border-gray-500 px-3">Anticipos extraordinarios</td>
                             <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipos_extraordinarios,0)}}</center></td>
                         </tr>
-                        @if($version=="2")
+                        
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
                                 <center>
@@ -271,7 +271,7 @@
                             <td class="border-b border-gray-500 px-3">Charge-Back</td>
                             <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->charge_back,0)}}</center></td>
                         </tr>
-                        @endif
+                        
                         <tr class="rounded-b-lg shadow-lg bg-black text-gray-200 font-bold">
                             <td class="rounded-bl-lg"></td>
                             <td class="p-3">Saldo a pagar</td>

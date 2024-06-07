@@ -321,8 +321,8 @@ class CalculoComisiones extends Controller
             try{
             $plan_padre=$venta_padre->plan;
             $factor_comision_venta_padre=0;
-            if($venta_padre->descuento_multirenta!='100' && $venta_padre->afectacion_comision!='100')
-            $factor_comision_venta_padre=($venta_padre->comision)/(($venta_padre->renta/1.16/1.03)*(1-($venta_padre->descuento_multirenta/100))*(1-($venta_padre->afectacion_comision/100)));
+            if($venta_padre->descuento_multirenta!='100' && $venta_padre->afectacion_comision!='100' && $venta_padre->renta!='0')
+             $factor_comision_venta_padre=($venta_padre->comision)/(($venta_padre->renta/1.16/1.03)*(1-($venta_padre->descuento_multirenta/100))*(1-($venta_padre->afectacion_comision/100)));
             $dmr_padre=$venta_padre->descuento_multirenta;
             $descuento_adicional_padre=$venta_padre->afectacion_comision;
             }
@@ -350,11 +350,11 @@ class CalculoComisiones extends Controller
                 $reclamo->tipo="ADDON";
                 if($monto>0 && strpos($addon->plan,'CONTROL')!==false)
                 {
-                    $reclamo->save();
+                  //  $reclamo->save();
                 }
                 if($monto==0 && strpos($addon->plan,'CONTROL')===true)
                 {
-                    $reclamo->save();
+                  //  $reclamo->save();
                 }
             }
             $factor_comision_vendedor=0;
@@ -623,25 +623,30 @@ class CalculoComisiones extends Controller
                         $comision=$renta_neta;
 
                         if($credito->venta->user_origen_id==16 ||
-                        $credito->venta->user_origen_id==47 
+				$credito->venta->user_origen_id==32 ||
+			        $credito->venta->user_origen_id==38 ||
+				$credito->venta->user_origen_id==47 ||
+				$credito->venta->user_origen_id==54 ||
+				$credito->venta->user_origen_id==103 ||
+				$credito->venta->user_origen_id==119 ||
+				$credito->venta->user_origen_id==150
                         )
                         {
                             $comision=0;
                         }
-                        if($credito->venta->user_origen_id==19 
+                        if($credito->venta->user_origen_id==33 
                         )
                         {
-                            $comision=0.2;
-                        }
-                        if($credito->venta->user_origen_id==32 
+                            $comision=0.6;
+			}
+			if($credito->venta->user_origen_id==14 ||
+				$credito->venta->user_origen_id==19 ||
+				$credito->venta->user_origen_id==37 ||
+				$credito->venta->user_origen_id==39 ||
+				$credito->venta->user_origen_id==52 
                         )
                         {
-                            $comision=0.17;
-                        }
-                        if($credito->venta->user_origen_id==37 
-                        )
-                        {
-                            $comision=0.13;
+                            $comision=0.9;
                         }
                     }
                 }
@@ -676,7 +681,7 @@ class CalculoComisiones extends Controller
     }
     public function charge_back($calculo,$version)
     {
-        if($version=="1") {return;}
+        //if($version=="1") {return;}
         
         ChargeBackDistribuidor::where('calculo_id',$calculo->id)->delete();
 
@@ -712,7 +717,7 @@ class CalculoComisiones extends Controller
             {
                 $venta_pagada_id=$venta_pagada->id;
                 $venta_pagada_cb=$venta_pagada->upfront+$venta_pagada->bono;
-                //$venta_pagada_eq=$venta_pagada->venta->propiedad=='NUEVO'&&$cancelacion->tipo_baja=='INVOLUNTARIO'?2000:0;
+                $venta_pagada_eq=$venta_pagada->venta->propiedad=='NUEVO'&&$cancelacion->tipo_baja=='INVOLUNTARIO'?2000:0;
                 $estatus="APLICADO";
             }
             $charge_back=new ChargeBackDistribuidor;
@@ -722,7 +727,7 @@ class CalculoComisiones extends Controller
             $charge_back->charge_back=$venta_pagada_cb;
             $charge_back->cargo_equipo=$venta_pagada_eq;
             //$charge_back->charge_back=is_null($cancelacion->comision)?0:-1*$cancelacion->comision;
-            $charge_back->cargo_equipo=0;
+            //$charge_back->cargo_equipo=0;
             $charge_back->estatus=$estatus;
             $charge_back->save();
 
@@ -991,6 +996,17 @@ class CalculoComisiones extends Controller
 
                 $activo=1;
 
+                $charge_back=0; //solo se calcula en el cierre
+                $descuentos=ChargeBackDistribuidor::select(DB::raw('sum(charge_back_distribuidors.charge_back+charge_back_distribuidors.cargo_equipo) as charge_back'))
+                                                    ->join('comision_ventas','charge_back_distribuidors.comision_venta_id','=','comision_ventas.id')
+                                                    ->join('ventas','comision_ventas.venta_id','=','ventas.id')
+                                                    ->where('charge_back_distribuidors.calculo_id',$calculo->id)->where('charge_back_distribuidors.comision_venta_id','!=',0)
+                                                    ->where('ventas.user_id',$pago->user_id)
+                                                    ->get()
+                                                    ->first();
+                if(!is_null($descuentos->charge_back)){$charge_back=$descuentos->charge_back;}
+
+
                 if($version=="2")
                 {
                     $activo=0;
@@ -1009,16 +1025,6 @@ class CalculoComisiones extends Controller
                                                         ->first();
 
                     $anticipo_ordinario=is_null($anticipo_ordinario_previo)?0:$anticipo_ordinario_previo->total_pago;
-
-                    $charge_back=0; //solo se calcula en el cierre
-                    $descuentos=ChargeBackDistribuidor::select(DB::raw('sum(charge_back_distribuidors.charge_back+charge_back_distribuidors.cargo_equipo) as charge_back'))
-                                                        ->join('comision_ventas','charge_back_distribuidors.comision_venta_id','=','comision_ventas.id')
-                                                        ->join('ventas','comision_ventas.venta_id','=','ventas.id')
-                                                        ->where('charge_back_distribuidors.calculo_id',$calculo->id)->where('charge_back_distribuidors.comision_venta_id','!=',0)
-                                                        ->where('ventas.user_id',$pago->user_id)
-                                                        ->get()
-                                                        ->first();
-                    if(!is_null($descuentos->charge_back)){$charge_back=$descuentos->charge_back;}
 
                     $residual=0; //solo se calcula en el cierre
 
