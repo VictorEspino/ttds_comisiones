@@ -10,6 +10,7 @@ use App\Http\Controllers\ShowPagosController;
 use App\Http\Controllers\EmpleadosController;
 use App\Http\Controllers\AnticiposExtraordinariosController;
 use App\Http\Controllers\EtiquetaController;
+use App\Http\Controllers\PagoACuentaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,3 +135,15 @@ Route::get('/export_base_usada/{id}',[ProcessViewController::class,'export_base_
 Route::get('/etiquetas_import', function () {return view('etiquetas_import');})->middleware('auth')->name('etiquetas_import');
 Route::post('/etiquetas_import', [EtiquetaController::class,'etiquetas_import'])->middleware('auth')->name('etiquetas_import');
 Route::get('/etiquetas_show/{marca}', [EtiquetaController::class,'etiquetas_show'])->middleware('auth')->name('etiquetas_show');
+
+//PAGOS A CUENTA
+
+Route::get('/pagos_a_cuenta',[PagoACuentaController::class,'distribuidores_pagos'])->name('pagos_a_cuenta')->middleware('auth');
+Route::post('/pagos_a_cuenta',[PagoACuentaController::class,'distribuidores_pagos_save'])->name('pagos_a_cuenta')->middleware('auth');
+Route::post('/cambiar_estatus_pago_a_cuenta',[PagoACuentaController::class,'cambiar_estatus_pago_a_cuenta'])->name('cambiar_estatus_pago_a_cuenta')->middleware('auth');
+Route::get('/pagos_a_cuenta_consulta/{user_id}',[PagoACuentaController::class,'pagos_a_cuenta_consulta'])->name('pagos_a_cuenta_consulta')->middleware('auth');
+Route::get('/pagos_a_cuenta_borrar/{id}',[PagoACuentaController::class,'pagos_a_cuenta_borrar'])->middleware('auth');
+Route::get('/base_pagos_a_cuenta',[PagoACuentaController::class,'base_pagos_a_cuenta'])->name('base_pagos_a_cuenta')->middleware('auth');
+Route::post('/cambiar_estatus_pago_a_cuenta',[PagoACuentaController::class,'cambiar_estatus_pago_a_cuenta'])->name('cambiar_estatus_pago_a_cuenta')->middleware('auth');
+Route::get('/facturar_pago_a_cuenta/{id}',[PagoACuentaController::class,'facturar_pago_a_cuenta_form'])->name('facturar_pago_a_cuenta_form')->middleware('auth');
+Route::post('/facturar_pago_a_cuenta',[PagoACuentaController::class,'facturar_pago_a_cuenta_save'])->name('facturar_pago_a_cuenta_save')->middleware('auth');

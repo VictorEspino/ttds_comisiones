@@ -259,6 +259,11 @@
                             <td class="border-b border-gray-500 px-3">Anticipos extraordinarios</td>
                             <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->anticipos_extraordinarios,0)}}</center></td>
                         </tr>
+                        <tr class="border-l border-r border-gray-300">
+                            <td class="border-b border-gray-500 "></td>
+                            <td class="border-b border-gray-500 px-3">Pagos a cuenta de comisiones</td>
+                            <td class="border-b border-gray-500 px-3 text-red-700"><center>(-) ${{number_format($pago->pagos_a_cuenta,0)}}</center></td>
+                        </tr>
                         
                         <tr class="border-l border-r border-gray-300">
                             <td class="border-b border-gray-500 mx-3 font-bold text-green-700 text-2xl">
@@ -304,7 +309,25 @@
                     @endforeach
                 </table>
             </div>
-
+        </div>
+        <div class="w-full flex flex-col">
+            <div class="w-full p-3 text-lg text-ttds bg-gray-200 rounded-t-lg font-semibold">Pagos a cuenta de comisiones</div>
+            <div class="w-full p-3 text-base bg-white rounded-b-lg shaddow-xl">
+                <table>
+                    <tr>
+                        <td class="p-1 md:p-3 text-ttds">Periodo</td>
+                        <td class="p-1 md:p-3 text-ttds">Cantidad</td>
+                        <td class="p-1 md:p-3 text-ttds">Descripcion</td>
+                    </tr>
+                    @foreach($pagos_a_cuenta_aplicados as $anticipo)
+                    <tr>
+                        <td class="px-3 text-gray-600">{{$anticipo->periodo->descripcion}}</td>
+                        <td class="px-3 text-gray-600">${{number_format($anticipo->cantidad,0)}}</td>
+                        <td class="px-3 text-gray-600">{{$anticipo->descripcion}}</td>
+                    </tr>
+                    @endforeach
+                </table>
+            </div>
         </div>
         @if($user->detalles->residual=="1" && $version=="2")
         <div class="w-full flex flex-col">

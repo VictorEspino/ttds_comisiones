@@ -2,7 +2,9 @@
 $nuevos_pagos=App\Http\Servicios\Notificaciones::nuevos_pagos();
 $nuevas_facturas=App\Http\Servicios\Notificaciones::nuevas_facturas();
 $nuevos_anticipos=App\Http\Servicios\Notificaciones::nuevos_anticipos();
+$nuevos_pagos_a_cuenta=App\Http\Servicios\Notificaciones::nuevos_pagos_a_cuenta();
 $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_anticipo();
+$nuevas_facturas_pagos_a_cuenta=App\Http\Servicios\Notificaciones::nuevas_facturas_pagos_a_cuenta();
 ?>
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -120,6 +122,12 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
                                     <a href="{{route('distribuidores_anticipos_extraordinarios')}}">
                                         <span class="text-yellow-300"><i class="fas fa-table"></i></span>
                                         Anticipos
+                                    </a>
+                                </div>
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('pagos_a_cuenta')}}">
+                                        <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                        Pago a cuenta de comisiones
                                     </a>
                                 </div>
                                 @endif
@@ -274,13 +282,38 @@ $nuevas_facturas_anticipo=App\Http\Servicios\Notificaciones::nuevas_facturas_ant
                                     </a>
                                 </div>
                                 @endif
-                                
                                 @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
                                 @if($nuevas_facturas_anticipo!="0")
                                 <div class="pl-5 pt-2">
                                     <a href="/anticipos_extraordinarios?nf=true">
                                         <span class="text-yellow-300"><i class="fas fa-table"></i></span>
                                         Nuevas Facturas <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas_anticipo}}</span>
+                                    </a>
+                                </div>
+                                @endif
+                                @endif
+                                @if(Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor")
+                                <div class="pl-5 pt-2">
+                                    <a href="{{route('base_pagos_a_cuenta')}}">
+                                        <span class="text-ttds"><i class="fas fa-coins"></i></span>
+                                        Pagos a cuenta de comisiones
+                                    </a>
+                                </div>
+                                @endif
+                                @if($nuevos_pagos_a_cuenta!="0" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo" || Auth::user()->perfil=="distribuidor" ))
+                                <div class="pl-5 pt-2">
+                                    <a href="/base_pagos_a_cuenta?np=true">
+                                        <span class="text-yellow-300"><i class="fas fa-file-upload"></i></span>
+                                        Nuevos Pagos a cuenta <span class="rounded-full bg-red-700 text-white p-2">{{$nuevos_pagos_a_cuenta}}</span>
+                                    </a>
+                                </div>
+                                @endif
+                                @if(Auth::user()->perfil!="distribuidor" && (Auth::user()->perfil=="admin" || Auth::user()->perfil=="administrativo"))
+                                @if($nuevas_facturas_pagos_a_cuenta!="0")
+                                <div class="pl-5 pt-2">
+                                    <a href="/base_pagos_a_cuenta?nf=true">
+                                        <span class="text-yellow-300"><i class="fas fa-table"></i></span>
+                                        Nuevas Facturas (Pagos a cuenta) <span class="rounded-full bg-red-700 text-white p-2">{{$nuevas_facturas_pagos_a_cuenta}}</span>
                                     </a>
                                 </div>
                                 @endif

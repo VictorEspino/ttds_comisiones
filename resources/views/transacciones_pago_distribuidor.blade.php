@@ -102,6 +102,13 @@ if(($distribuidor->detalles->adelanto==1 && $version==1) || $version==2)
 		<td>-${{number_format($pago->anticipos_extraordinarios,2)}}</td>
 	</tr>
 	@endif
+	@if(intval($pago->pagos_a_cuenta)>0)
+	<tr>
+		
+		<td><b>Pagos a cuenta de comisiones</td>
+		<td>-${{number_format($pago->pagos_a_cuenta,2)}}</td>
+	</tr>
+	@endif
 	@if(intval($pago->anticipo_ordinario)>0)
 	<tr>
 		

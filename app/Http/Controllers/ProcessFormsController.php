@@ -113,6 +113,7 @@ class ProcessFormsController extends Controller
             'r_24'=> 'required|numeric|between:0,5.99',
             'r_18'=> 'required|numeric|between:0,5.99',
             'r_12'=> 'required|numeric|between:0,5.99',
+            'rse'=> 'required|numeric|between:0,5.99',
             'porcentaje_residual'=>'exclude_unless:residual,on|required|numeric|between:1,6.0',
             'porcentaje_adelanto'=>'exclude_unless:adelanto,on|required|numeric|between:1,50.0'
         ]);
@@ -135,6 +136,7 @@ class ProcessFormsController extends Controller
                   'r_24' => $request->r_24,
                   'r_18' => $request->r_18,
                   'r_12' => $request->r_12,
+                  'rse' => $request->rse,
                   'bono' => $request->boolean('bono'),
                   'residual' => $request->boolean('residual'),
                   'porcentaje_residual' => $pr,
@@ -162,6 +164,7 @@ class ProcessFormsController extends Controller
             'r_24'=> 'required|numeric|between:0,5.99',
             'r_18'=> 'required|numeric|between:0,5.99',
             'r_12'=> 'required|numeric|between:0,5.99',
+            'rse'=> 'required|numeric|between:0,5.99',
             'porcentaje_residual'=>'exclude_unless:residual,on|required|numeric|between:1,6.0',
             'porcentaje_adelanto'=>'exclude_unless:adelanto,on|required|numeric|between:1,50.0',
         ]);
@@ -198,6 +201,7 @@ class ProcessFormsController extends Controller
         $registro->r_24=$request->r_24;
         $registro->r_18=$request->r_18;
         $registro->r_12=$request->r_12;
+        $registro->rse=$request->rse;
         $registro->bono=$request->boolean('bono');
         $registro->residual=$request->boolean('residual');
         $registro->porcentaje_residual=$pr;

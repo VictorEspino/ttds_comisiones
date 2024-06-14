@@ -14,6 +14,7 @@ use App\Models\ChargeBackDistribuidor;
 use App\Models\Reclamo;
 use App\Models\User;
 use App\Models\AnticipoExtraordinario;
+use App\Models\PagoACuenta;
 use App\Models\AlertaCobranza;
 use App\Models\AlertaConciliacion;
 use Illuminate\Support\Facades\Auth;
@@ -336,6 +337,7 @@ class CalculoController extends Controller
         $user=User::with('detalles')->find($id_user);
         $pago=PagosDistribuidor::where('calculo_id',$id_calculo)->where('user_id',$id_user)->where('version',$version)->get()->first();
         $anticipos_aplicados=AnticipoExtraordinario::with('periodo')->where('calculo_id_aplicado',$id_calculo)->where('user_id',$id_user)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
+        $pagos_a_cuenta_aplicados=PagoACuenta::with('periodo')->where('calculo_id_aplicado',$id_calculo)->where('user_id',$id_user)->where('en_adelanto',$version=='1'?'=':'<=',1)->get();
         $alertas=0;
         $analisis_residual=[];
         if($version=="2")
@@ -357,6 +359,7 @@ class CalculoController extends Controller
                                                     'user'=>$user,
                                                     'pago'=>$pago,
                                                     'anticipos_aplicados'=>$anticipos_aplicados,
+                                                    'pagos_a_cuenta_aplicados'=>$pagos_a_cuenta_aplicados,
                                                     'version'=>$version,
                                                     'alertas'=>$alertas,
                                                     'diferencial_residual'=>$analisis_residual,

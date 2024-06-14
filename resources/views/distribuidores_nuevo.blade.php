@@ -63,24 +63,31 @@
                 <span class="text-sm font-semibold text-gray-700">Comision Renovaciones (Factor)</span>
             </div>
             <div class="w-full px-2 flex flex-row space-x-1">
-                <div class="w-1/3">
+                <div class="w-1/4">
                     <span class="text-xs text-ttds">24 meses</span><br>
                     <input class="w-full rounded p-1 border border-gray-300" type="text" name="r_24" value="{{old('r_24')}}" id="r_24">
                     @error('r_24')
                     <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
                     @enderror   
                 </div>
-                <div class="w-1/3">
+                <div class="w-1/4">
                     <span class="text-xs text-ttds">18 meses</span><br>
                     <input class="w-full rounded p-1 border border-gray-300" type="text" name="r_18" value="{{old('r_18')}}" id="r_18">
                     @error('r_18')
                     <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
                     @enderror   
                 </div>
-                <div class="w-1/3">
+                <div class="w-1/4">
                     <span class="text-xs text-ttds">12 meses</span><br>
                     <input class="w-full rounded p-1 border border-gray-300" type="text" name="r_12" value="{{old('r_12')}}" id="r_12">
                     @error('r_12')
+                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                    @enderror   
+                </div>
+                <div class="w-1/4">
+                    <span class="text-xs text-ttds">RSE</span><br>
+                    <input class="w-full rounded p-1 border border-gray-300" type="text" name="rse" value="{{old('rse')}}" id="rse">
+                    @error('rse')
                     <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
                     @enderror   
                 </div>

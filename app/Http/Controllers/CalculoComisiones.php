@@ -22,6 +22,7 @@ use App\Models\AnticipoExtraordinario;
 use App\Models\ChargeBackDistribuidor;
 use App\Models\AlertaCobranza;
 use App\Models\AlertaConciliacion;
+use App\Models\PagoACuenta;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Retroactivo;
@@ -533,6 +534,7 @@ class CalculoComisiones extends Controller
             $r_12_padrino=0;
             $r_18_padrino=0;
             $r_24_padrino=0;
+            $rse_padrino=0;
 
             if($credito->venta->user_origen->perfil=="distribuidor")
             {
@@ -543,16 +545,18 @@ class CalculoComisiones extends Controller
                 $r_12=$distribuidor->r_12;
                 $r_18=$distribuidor->r_18;
                 $r_24=$distribuidor->r_24;
+                $rse=$distribuidor->rse;
                 $paga_bono=$distribuidor->bono;
             }
             if($credito->venta->user_origen->perfil=="ejecutivo" || $credito->venta->user_origen->perfil=="gerente")
             {
-                $a_12=2.0;
-                $a_18=2.0;
-                $a_24=2.5;
-                $r_12=1.5;
-                $r_18=1.5;
-                $r_24=2.0;
+                $a_12=1.5;
+                $a_18=1.5;
+                $a_24=2.0;
+                $r_12=0.8;
+                $r_18=0.8;
+                $r_24=1.2;
+                $rse=0.75;
                 $paga_bono='0';
             }
             if(!is_null($credito->venta->padrino)) //SIEMPRE DEBE SER UN EMPLEADO POR LO TANTO SE APLICAN FACTORES DIRECTO
@@ -563,6 +567,7 @@ class CalculoComisiones extends Controller
                 $r_12_padrino=0.75;
                 $r_18_padrino=0.75;
                 $r_24_padrino=0.75;
+                $rse_padrino=0.25;
             }
             $medicion=$mediciones->where('user_id',$credito->venta->user_origen->id)->first();                                
             $tipo=$credito->venta->tipo;
@@ -621,33 +626,8 @@ class CalculoComisiones extends Controller
                     if($propiedad=='PROPIO')
                     {
                         $comision=$renta_neta;
+                        $comision=$rse*$renta_neta;
 
-                        if($credito->venta->user_origen_id==16 ||
-				$credito->venta->user_origen_id==32 ||
-			        $credito->venta->user_origen_id==38 ||
-				$credito->venta->user_origen_id==47 ||
-				$credito->venta->user_origen_id==54 ||
-				$credito->venta->user_origen_id==103 ||
-				$credito->venta->user_origen_id==119 ||
-				$credito->venta->user_origen_id==150
-                        )
-                        {
-                            $comision=0;
-                        }
-                        if($credito->venta->user_origen_id==33 
-                        )
-                        {
-                            $comision=0.6;
-			}
-			if($credito->venta->user_origen_id==14 ||
-				$credito->venta->user_origen_id==19 ||
-				$credito->venta->user_origen_id==37 ||
-				$credito->venta->user_origen_id==39 ||
-				$credito->venta->user_origen_id==52 
-                        )
-                        {
-                            $comision=0.9;
-                        }
                     }
                 }
                 if($plazo=='18')
@@ -716,7 +696,7 @@ class CalculoComisiones extends Controller
             if($venta_previa)
             {
                 $venta_pagada_id=$venta_pagada->id;
-                $venta_pagada_cb=$venta_pagada->upfront+$venta_pagada->bono;
+		$venta_pagada_cb=$venta_pagada->upfront+$venta_pagada->bono;
                 $venta_pagada_eq=$venta_pagada->venta->propiedad=='NUEVO'&&$cancelacion->tipo_baja=='INVOLUNTARIO'?2000:0;
                 $estatus="APLICADO";
             }
@@ -1041,6 +1021,8 @@ class CalculoComisiones extends Controller
 
                 $anticipos_extraordinarios=$this->aplicar_anticipos($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
                 $registro->anticipos_extraordinarios=$anticipos_extraordinarios*$factor;
+                $pagos_a_cuenta=$this->aplicar_pagos_a_cuenta($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
+                $registro->pagos_a_cuenta=$pagos_a_cuenta;
                 $registro->activo=$activo;
                 $registro->anticipo_ordinario=$anticipo_ordinario; //Solo se calcula en el cierre
                 $registro->anticipo_no_pago=$anticipo_no_pago; //Solo se calcula en el cierre
@@ -1051,7 +1033,7 @@ class CalculoComisiones extends Controller
                 
                 $registro->carga_facturas='2021-01-01 00:00:01';
                 $total_comisiones=($pago->n_comision+$pago->n_bono+$pago->a_comision+$pago->a_bono+$pago->r_comision+$pago->r_bono+$pago->c_addons)*$factor;
-                $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario;
+                $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario-$registro->pagos_a_cuenta;
                 if($perfiles[$pago->user_id]!="distribuidor")
                 {
                    if(!$this->verifica_condiciones_pago_vendedor($calculo,$version,$pago->user_id))
@@ -1238,6 +1220,8 @@ class CalculoComisiones extends Controller
 
                     $anticipos_extraordinarios=$this->aplicar_anticipos_administrador($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
                     $registro->anticipos_extraordinarios=$anticipos_extraordinarios*$factor;
+                    $pagos_a_cuenta=$this->aplicar_pagos_a_cuenta_administrador($calculo->id,$pago->user_id,$calculo->periodo_id,$version);
+                    $registro->pagos_a_cuenta=$pagos_a_cuenta;
                     $registro->activo=$activo;
                     $registro->anticipo_ordinario=$anticipo_ordinario; //Solo se calcula en el cierre
                     $registro->anticipo_no_pago=$anticipo_no_pago; //Solo se calcula en el cierre
@@ -1255,7 +1239,7 @@ class CalculoComisiones extends Controller
                                                                         +$pago->c_leads*$factor
                                                                         ;
 
-                    $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario;
+                    $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario-$registro->pagos_a_cuenta;
                     if(!$this->verifica_condiciones_pago_supervisor($calculo,$version,$pago->user_id))
                     {
                         $registro->total_pago=0;
@@ -1451,6 +1435,32 @@ class CalculoComisiones extends Controller
         }
         return($aplicados);
     }
+    private function aplicar_pagos_a_cuenta($calculo_id,$user_id,$periodo_id,$version)
+    {
+        PagoACuenta::where('calculo_id_aplicado',$calculo_id)
+                                        ->where('user_id',$user_id)
+                                        ->update([
+                                                    'calculo_id_aplicado'=>0,
+                                        ]);
+
+        //OBTIENE PAGOS A CUENTA RESETEADOS y DE PERIODOS PREVIOS 
+        $anticipos=PagoACuenta::where('periodo_id','<=',$periodo_id)
+                                        ->where('user_id',$user_id)
+                                        ->where('calculo_id_aplicado',0)
+                                        ->get();
+        $aplicados=0;
+        foreach($anticipos as $por_aplicar)
+        {
+            $aplicados=$aplicados+$por_aplicar->cantidad;
+            $por_aplicar->calculo_id_aplicado=$calculo_id;
+            if($version=="1")
+            {
+                $por_aplicar->en_adelanto=true;
+            }
+            $por_aplicar->save();
+        }
+        return($aplicados);
+    }
     private function aplicar_anticipos_administrador($calculo_id,$user_id,$periodo_id,$version)
     {
         $id_administrados=0;
@@ -1481,6 +1491,38 @@ class CalculoComisiones extends Controller
         }
         return($aplicados);
     }
+
+    private function aplicar_pagos_a_cuenta_administrador($calculo_id,$user_id,$periodo_id,$version)
+    {
+        $id_administrados=0;
+
+        $id_administrados=User::where('administrador',$user_id)->orWhere('id',$user_id)->get()->pluck('id');
+
+        PagoACuenta::where('calculo_id_aplicado',$calculo_id)
+                                        ->whereIn('user_id',$id_administrados)
+                                        ->update([
+                                                    'calculo_id_aplicado'=>0,
+                                        ]);
+
+        //OBTIENE PAGOS A CUENTA RESETEADOS y DE PERIODOS PREVIOS 
+        $anticipos=AnticipoExtraordinario::where('periodo_id','<=',$periodo_id)
+                                        ->whereIn('user_id',$id_administrados)
+                                        ->where('calculo_id_aplicado',0)
+                                        ->get();
+        $aplicados=0;
+        foreach($anticipos as $por_aplicar)
+        {
+            $aplicados=$aplicados+$por_aplicar->cantidad;
+            $por_aplicar->calculo_id_aplicado=$calculo_id;
+            if($version=="1")
+            {
+                $por_aplicar->en_adelanto=true;
+            }
+            $por_aplicar->save();
+        }
+        return($aplicados);
+    }
+
     private function alertas_cobranza($calculo,$version)
     {
         if($version=="1") {return;}
