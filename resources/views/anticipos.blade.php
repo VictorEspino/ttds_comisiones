@@ -103,7 +103,7 @@
                                             <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm"><center>{!!$pago->user->detalles->emite_factura=="1"?'<a href="/facturar_anticipo/'.$pago->id.'">Tramitar</a>':'NA'!!}</div>
                                         @endif
                                     @endif
-                                    <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-white py-1 px-2 mx-2 text-sm {!!$pago->aplicado?'bg-green-500':'bg-red-500'!!}"><center>{!!$pago->aplicado?'Procesado':'Pendiente'!!}</center></div>
+                                    <div class="table-cell border-l border-b border-gray-300 font-ligth text-white py-1 px-2 mx-2 text-sm {!!$pago->aplicado?'bg-green-500':'bg-red-500'!!}"><center>{!!$pago->aplicado?'Procesado':'Pendiente'!!}</center></div>
                                     @if(Auth::user()->perfil!="distribuidor")
                                     <div class="table-cell border-l border-b border-gray-300 font-ligth {{$color?'bg-gray-100':'bg-white'}} text-gray-700 py-1 px-2 mx-2 text-sm">
                                         <form method="POST" action="{{route('cambiar_estatus_anticipo')}}">

@@ -294,7 +294,11 @@ class CalculoComisiones extends Controller
                 $reclamo->save();            
             }
         }
-        ComisionVenta::insert($registros);
+        
+        foreach (array_chunk($registros,500) as $chunk) {
+            ComisionVenta::insert($chunk);
+        }
+        //ComisionVenta::insert($registros);
     }
     private function comision_addons($calculo,$version,$distribuidores)
     {
@@ -427,7 +431,10 @@ class CalculoComisiones extends Controller
 
             }          
         }
-        ComisionAddon::insert($registros_addon);
+        foreach (array_chunk($registros_addon,500) as $chunk) {
+            ComisionAddon::insert($chunk);
+        }
+        //ComisionAddon::insert($registros_addon);
     }
     private function validar_venta($venta,$calculo_id,$callidus)
     {
@@ -1034,6 +1041,7 @@ class CalculoComisiones extends Controller
                 $registro->carga_facturas='2021-01-01 00:00:01';
                 $total_comisiones=($pago->n_comision+$pago->n_bono+$pago->a_comision+$pago->a_bono+$pago->r_comision+$pago->r_bono+$pago->c_addons)*$factor;
                 $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario-$registro->pagos_a_cuenta;
+                $registro->total_pago=($version=="1" && $registro->total_pago<0)?0:$registro->total_pago;
                 if($perfiles[$pago->user_id]!="distribuidor")
                 {
                    if(!$this->verifica_condiciones_pago_vendedor($calculo,$version,$pago->user_id))
@@ -1240,6 +1248,7 @@ class CalculoComisiones extends Controller
                                                                         ;
 
                     $registro->total_pago=$total_comisiones+$registro->anticipo_no_pago+$registro->residual+$registro->retroactivos_reproceso-$registro->charge_back-$registro->anticipos_extraordinarios-$registro->anticipo_ordinario-$registro->pagos_a_cuenta;
+                    $registro->total_pago=($version=="1" && $registro->total_pago<0)?0:$registro->total_pago;
                     if(!$this->verifica_condiciones_pago_supervisor($calculo,$version,$pago->user_id))
                     {
                         $registro->total_pago=0;

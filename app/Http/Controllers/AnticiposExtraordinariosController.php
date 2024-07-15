@@ -94,6 +94,11 @@ class AnticiposExtraordinariosController extends Controller
                     $respuesta['viable']=true;
                     $respuesta['estatus']='EJECUTE EL CIERRE NUEVAMENTE';
                 }
+            if($periodo->calculo->cierre=="0")
+                {
+                    $respuesta['viable']=true;
+                    $respuesta['estatus']='Anticipo OK';
+                }
         }    
         $distribuidor=User::with('detalles')->find($request->id_distribuidor);
         $porcentaje_previo=$distribuidor->detalles->porcentaje_adelanto-($periodo->calculo->adelanto=="0"?25:12);

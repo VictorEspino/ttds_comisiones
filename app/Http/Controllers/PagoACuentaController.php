@@ -94,9 +94,12 @@ class PagoACuentaController extends Controller
                     $respuesta['viable']=true;
                     $respuesta['estatus']='EJECUTE EL CIERRE NUEVAMENTE';
                 }
-        }    
-        
-        
+            if($periodo->calculo->cierre=="0")
+                {
+                    $respuesta['viable']=true;
+                    $respuesta['estatus']='Pago a cuenta OK';
+                }
+        }       
         return($respuesta);
     }
     public function base_pagos_a_cuenta(Request $request)
