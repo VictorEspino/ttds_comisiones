@@ -19,10 +19,22 @@ header("Expires: 0");
 <td><b>Propiedad</td>
 <td><b>captura_mesa_control</td>
 <td><b>incluida_callidus</td>
+<td><b>distribuidor</td>
+<td><b>mesa_control</td>
 </tr>
 <?php
 
 foreach ($query as $transaccion) {
+	$distribuidor='';
+	$mesa_control='';
+	if($transaccion->distribuidor!=0)
+	{
+		$distribuidor=$usuarios[$transaccion->distribuidor];
+	}
+	if($transaccion->mesa_control!=0)
+	{
+		$mesa_control=$usuarios[$transaccion->mesa_control];
+	}
 	?>
 	<tr>
 	<td>{{$transaccion->fecha}}</td>
@@ -38,6 +50,8 @@ foreach ($query as $transaccion) {
 	<td>{{$transaccion->propiedad}}</td>
 	<td>{{$transaccion->captura_mesa_control}}</td>
 	<td>{{$transaccion->incluida_callidus}}</td>
+	<td>{{$distribuidor}}</td>
+	<td>{{$mesa_control}}</td>
 	</tr>
 <?php
 }

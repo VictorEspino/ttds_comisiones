@@ -446,21 +446,22 @@ class ProcessViewController extends Controller
         else
         {
             $sql_base="
-                        select fecha,cliente,dn,cuenta,tipo,folio,plan, renta, equipo,plazo,propiedad, descuento_multirenta,afectacion_comision,'SI' as 'captura_mesa_control','SI' as 'incluida_callidus' from ventas where id in (
+                        select fecha,cliente,dn,cuenta,tipo,folio,plan, renta, equipo,plazo,propiedad, descuento_multirenta,afectacion_comision,'SI' as 'captura_mesa_control','SI' as 'incluida_callidus',user_origen_id as 'distribuidor',user_id_carga as 'mesa_control' from ventas where id in (
                             select venta_id from comision_ventas where calculo_id=".$calculo_id." and version=".$version." and estatus_inicial='PAGO'
                             )
                         UNION
-                        select fecha,cliente,dn,cuenta,tipo,folio,plan, renta, equipo,plazo,propiedad, descuento_multirenta,afectacion_comision,'SI' as 'captura_mesa_control','NO' as 'incluida_callidus' from ventas where id in (
+                        select fecha,cliente,dn,cuenta,tipo,folio,plan, renta, equipo,plazo,propiedad, descuento_multirenta,afectacion_comision,'SI' as 'captura_mesa_control','NO' as 'incluida_callidus',user_origen_id as 'distribuidor',user_id_carga as 'mesa_control' from ventas where id in (
                             select venta_id from comision_ventas where calculo_id=".$calculo_id." and version=".$version." and estatus_inicial='NO PAGO'
                             )
                         UNION
-                        select fecha,cliente,dn,cuenta,tipo,contrato as 'folio',plan, renta, modelo as 'equipo',plazo,propiedad, descuento_multirenta,afectacion_comision,'NO' as 'captura_mesa_control','SI' as 'incluida_callidus' from callidus_ventas where tipo in ('ACTIVACION_ACTIVACIONES','RENOVACIONES') and calculo_id=".$calculo_id." and id not in 
+                        select fecha,cliente,dn,cuenta,tipo,contrato as 'folio',plan, renta, modelo as 'equipo',plazo,propiedad, descuento_multirenta,afectacion_comision,'NO' as 'captura_mesa_control','SI' as 'incluida_callidus',0 as 'distribuidor',0 as 'mesa_control' from callidus_ventas where tipo in ('ACTIVACION_ACTIVACIONES','RENOVACIONES') and calculo_id=".$calculo_id." and id not in 
                         (
                             select callidus_venta_id from comision_ventas where calculo_id=".$calculo_id." and version=".$version."
                         )                         
             ";
+            $usuarios=User::select('id','name')->get();$usuarios=$usuarios->pluck('name','id');
             $base_usada=collect(DB::select(DB::raw($sql_base)));
-            return(view('export_base_usada',['query'=>$base_usada]));
+            return(view('export_base_usada',['query'=>$base_usada,'usuarios'=>$usuarios]));
         }
     }    
 }

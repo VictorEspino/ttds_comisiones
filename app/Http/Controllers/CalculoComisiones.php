@@ -98,7 +98,7 @@ class CalculoComisiones extends Controller
         $this->alertas_cobranza($calculo,$version);
         echo "<br>Aplicando Retroactivos=".now(); 
         $this->retroactivos($calculo,$version);
-        echo "<br>Fin calculo=".now(); 
+        echo "<br>Fin calculo=".now();
         
         if($version=="1")
         {
@@ -748,7 +748,8 @@ class CalculoComisiones extends Controller
     public function residual($calculo,$version,$distribuidores)
     {
         if($version=="1") {return;}
-
+        $n=collect(DB::select(DB::raw('select count(*) as N from comision_residuals where calculo_id='.$calculo->id)))->first()->N;
+        if($n!=0) {return;}
         $usuarios=User::select('id','perfil')->get();
         $perfiles=$usuarios->pluck('perfil','id');       
 
@@ -1534,7 +1535,7 @@ class CalculoComisiones extends Controller
 
     private function alertas_cobranza($calculo,$version)
     {
-        if($version=="1") {return;}
+        return;
 
         $periodos_anteriores=$this->periodos_anteriores($calculo);
 
