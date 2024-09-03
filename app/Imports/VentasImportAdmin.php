@@ -59,6 +59,8 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
             'carga_id'=>$id_carga,
             'lead'=>$row['lead'],
             'padrino_lead'=>$row['padrino_lead'],
+            'numero_contrato'=>$row['numero_contrato'],
+            'acuerdo'=>$row['acuerdo'],
         ]);
     }
     public function rules(): array
@@ -77,7 +79,9 @@ class VentasImportAdmin implements ToModel,WithHeadingRow,WithValidation,WithBat
             '*.renta' => ['required','numeric'],
             '*.descuento_multirenta' => ['required','numeric'],
             '*.afectacion_comision' => ['required','numeric'],
-            '*.padrino_lead'=>['exclude_unless:lead,1','required','exists:users,user']
+            '*.padrino_lead'=>['exclude_unless:lead,1','required','exists:users,user'],
+            '*.numero_contrato' => ['required'],
+            '*.acuerdo' => ['required'],
         ];
     }
     public function batchSize(): int

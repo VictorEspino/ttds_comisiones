@@ -30,7 +30,9 @@ class Venta extends Model
                             'user_id_validacion',
                             'carga_id',
                             'lead',
-                            'padrino_lead'
+                            'padrino_lead',
+                            'numero_contrato',
+                            'acuerdo'
                     ];
     use HasFactory;
     

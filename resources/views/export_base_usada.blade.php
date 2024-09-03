@@ -21,6 +21,8 @@ header("Expires: 0");
 <td><b>incluida_callidus</td>
 <td><b>distribuidor</td>
 <td><b>mesa_control</td>
+<td><b>numero_contrato</td>
+<td><b>acuerdo</td>
 </tr>
 <?php
 
@@ -52,6 +54,8 @@ foreach ($query as $transaccion) {
 	<td>{{$transaccion->incluida_callidus}}</td>
 	<td>{{$distribuidor}}</td>
 	<td>{{$mesa_control}}</td>
+	<td>{{$transaccion->numero_contrato}}</td>
+	<td>{{$transaccion->acuerdo}}</td>
 	</tr>
 <?php
 }

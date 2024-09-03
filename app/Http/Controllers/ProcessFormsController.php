@@ -227,7 +227,9 @@ class ProcessFormsController extends Controller
             'descuento_multirenta'=> ' required|numeric',
             'afectacion_comision'=> ' required|numeric',
             //'contrato'=> ' required',
-            'fecha_movimiento' => 'required|date_format:Y-m-d'
+            'fecha_movimiento' => 'required|date_format:Y-m-d',
+            'numero_contrato'=> ' required',
+            'acuerdo'=> ' required',
         ]);
 
         Venta::where('id', $request->id_venta)
@@ -247,6 +249,8 @@ class ProcessFormsController extends Controller
                   'fecha'=>$request->fecha_movimiento,
                   'validado'=>$request->validado,
                   'user_id_validacion'=>($request->validado=="1"?Auth::user()->id:0),
+                  'numero_contrato'=>$request->numero_contrato,
+                  'acuerdo'=>$request->acuerdo,
 
                 ]);
                 return(back()->withStatus('Registro de venta actualizado con exito'));

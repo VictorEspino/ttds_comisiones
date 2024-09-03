@@ -42,6 +42,8 @@ header("Expires: 0");
 <td>Marca</td>
 <td>Performance</td>
 <td>Subcategoria</td>
+<td>Numero Contrato</td>
+<td>Acuerdo</td>
 </tr>
 <?php
 
@@ -77,6 +79,8 @@ foreach ($query as $transaccion) {
 	<td>IUSACELL</td>
 	<td>$0</td>
 	<td>{{$transaccion->tipo}}</td>
+	<td>{{$transaccion->numero_contrato}}</td>
+	<td>{{$transaccion->acuerdo}}</td>
 	</tr>
 <?php
 }

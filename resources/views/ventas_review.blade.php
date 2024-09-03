@@ -215,7 +215,22 @@
                                     @enderror   
                                 </div>
                             </div>
-                            
+                            <div class="w-full px-2 flex flex-row space-x-1">
+                                <div class="w-1/2">
+                                    <span class="text-xs text-ttds">Numero Contrato</span><br>
+                                    <input class="w-full rounded p-1 border border-gray-300" type="text" name="numero_contrato" value="{{old('numero_contrato')}}" id="numero_contrato">
+                                    @error('numero_contrato')
+                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                    @enderror   
+                                </div>
+                                <div class="w-1/2">
+                                    <span class="text-xs text-ttds">Acuerdo</span><br>
+                                    <input class="w-full rounded p-1 border border-gray-300" type="text" name="acuerdo" value="{{old('acuerdo')}}" id="acuerdo">
+                                    @error('acuerdo')
+                                    <br><span class="text-xs italic text-red-700 text-xs">{{ $message }}</span>
+                                    @enderror   
+                                </div>
+                            </div>
                             <div class="w-full flex justify-center pt-6 pb-3 rounded-b">
                                 @if(Auth::user()->perfil=='admin' || Auth::user()->perfil=='administrativo' || Auth::user()->perfil=='mesa' || Auth::user()->perfil=='gerente')
                                 <button class="rounded p-1 border bg-ttds hover:bg-ttds_hover text-gray-100 font-semibold" type="button" onClick="Save()">Guardar</button>
@@ -264,6 +279,8 @@
                         document.getElementById("plazo").value=respuesta.plazo;
                         document.getElementById("descuento_multirenta").value=respuesta.descuento_multirenta;
                         document.getElementById("afectacion_comision").value=respuesta.afectacion_comision;
+                        document.getElementById("numero_contrato").value=respuesta.numero_contrato;
+                        document.getElementById("acuerdo").value=respuesta.acuerdo;
  
                     }
                     else
