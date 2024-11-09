@@ -646,8 +646,19 @@ class CalculoComisiones extends Controller
                 { 
                     $comision=$renta_neta*$r_24;
                     $factor_padrino=$r_24_padrino;
-                }
+                    
+                    //if($propiedad=='PROPIO')
+                    //{
+                    //    $comision=$renta_neta;
+                    //    $comision=$rse*$renta_neta;
+                    //    $factor_padrino=$r_12_padrino;
 
+                    //}
+                }
+                if($renta_neta<=200)
+                {
+                    $factor_correccion=0.5;
+                }
                 
             }
             if(!is_null($credito->venta->user_origen->supervisor))
